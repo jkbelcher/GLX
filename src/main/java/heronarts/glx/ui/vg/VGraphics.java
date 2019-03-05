@@ -92,6 +92,38 @@ public class VGraphics {
     }
   }
 
+  public static enum LineJoin {
+    MITER(NVG_MITER),
+    ROUND(NVG_ROUND),
+    BEVEL(NVG_BEVEL);
+
+    private final int raw;
+
+    private LineJoin(int raw) {
+      this.raw = raw;
+    }
+
+    public int asInt() {
+      return this.raw;
+    }
+  }
+
+  public static enum LineCap {
+    BUTT(NVG_BUTT),
+    ROUND(NVG_ROUND),
+    SQUARE(NVG_SQUARE);
+
+    private final int raw;
+
+    private LineCap(int raw) {
+      this.raw = raw;
+    }
+
+    public int asInt() {
+      return this.raw;
+    }
+  }
+
   public class Font {
     public final int id;
     public final String name;
@@ -316,6 +348,16 @@ public class VGraphics {
     this.strokeColor.g(g);
     this.strokeColor.b(b);
     nvgStrokeColor(this.vg, this.strokeColor);
+    return this;
+  }
+
+  public VGraphics lineJoin(LineJoin lineJoin) {
+    nvgLineJoin(this.vg, lineJoin.asInt());
+    return this;
+  }
+
+  public VGraphics lineCap(LineCap lineCap) {
+    nvgLineCap(this.vg, lineCap.asInt());
     return this;
   }
 
