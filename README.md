@@ -4,59 +4,9 @@ Please note that LX is not open-source software. The license grants permission t
 
 ---
 
-### P3LX Overview ###
+### GLX Overview ###
 
-P3LX is a Processing 3 wrapper library for the [LX](https://github.com/heronarts/LX) lighting engine and the basis of the [LX Studio](http://lx.studio/) application. It allows you to simply embed LX inside a Processing sketch with a rich UI library that makes it easy and painless to render 3D simulations alongside versatile 2D controls.
-
-Directly working with the P3LX library is only recommended for advanced users of LX. The easiest way to start an LX project is to clone or fork the [LXStudio](https://github.com/heronarts/LXStudio) repository and use that as the basis for your project.
-
-### Development Environment ###
-
-The recommended IDE for LX is Eclipse, with simple `ant` tasks for command-line build. Create a folder to work in and clone both the LX and P3LX repositories side-by-side.
-```
-$ mkdir workspace
-$ cd workspace
-$ git clone https://github.com/heronarts/LX.git
-$ git clone https://github.com/heronarts/P3LX.git
-```
-
-To build the project:
-```
-$ cd P3LX/build
-$ ant
-$ cp ../bin/P3LX.jar <wherever you need it>
-```
-
-To open the project in Eclipse:
-```
-File | Import...
-General > Existing Projects Into Workspace
-Select root directory...
-```
-
-Go through this process for both the LX and P3LX projects, selecting `workspace/LX` and `workspace/P3LX` as the root directories.
-
-#### Alternate build process: Maven ####
-First: Install Maven for your platform. Google is your friend.
-
-You'll still want to check out both LX and this repo locally (as of this writing neither is published to a public Maven repo):
-```
-$ git clone https://github.com/heronarts/LX.git
-$ git clone https://github.com/heronarts/P3LX.git
-$ cd LX
-$ mvn install
-$ cd ../P3LX
-$ mvn install
-```
-The above commands result in the following artifacts:
-in `P3LX/target`:
-1. fat jar (with dependencies): `P3LX.jar`.
-1. thin jar for distribution via maven repository publishing
-1. source jar for distribution via maven repository publishing
-1. javadoc jar for distribution via maven repository publishing
-1. javadoc html files for publishing to web: `apidocs`
-
-The Maven build is IDE-agnostic, so any IDE that can import Maven projects (Eclipse, IntelliJ) should have no problem importing and building this repo.
+GLX is an experimental fork of P3LX to run LX on top of the LWJGL rather than Processing. The build files have not been cleaned up as of now, and a few things in here may be out of sync or still being ported. I don't recommend anyone work with this just yet.
 
 ### Contact and Collaboration ###
 
