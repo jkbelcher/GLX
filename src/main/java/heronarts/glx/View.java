@@ -49,7 +49,7 @@ public class View {
 
   public View(GLX glx, int x, int y, int w, int h) {
     this.glx = glx;
-    this.viewId = glx.registerView();
+    this.viewId = 0;
 
     this.x = x;
     this.y = 0;
@@ -74,6 +74,15 @@ public class View {
 
   public short getId() {
     return this.viewId;
+  }
+
+  public View setId(short viewId) {
+    this.viewId = viewId;
+    bgfx_reset_view(this.viewId);
+    _setViewClear();
+    _setViewRect();
+    _setViewTransform();
+    return this;
   }
 
   public View touch() {
@@ -120,11 +129,6 @@ public class View {
       this.clearDepth = clearDepth;
       _setViewClear();
     }
-    return this;
-  }
-
-  public View setFrameBuffer(short frameBuffer) {
-    bgfx_set_view_frame_buffer(this.viewId, frameBuffer);
     return this;
   }
 

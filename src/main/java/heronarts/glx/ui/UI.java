@@ -243,23 +243,37 @@ public class UI {
       return null;
     }
 
+    // Limit the number of nanovg buffers we'll render in a single pass
+    private static final int MAX_NVG_VIEWS_PER_PASS = 30;
+
+    private final Stack<UI2dContext> renderStack = new Stack<UI2dContext>();
+
     public void draw() {
+      this.renderStack.clear();
+
+      // First pass, we determine which UI2dContexts need rendering, and push
+      // them all onto a stack. Each will need its own BGFX view because they have
+      // unique framebuffers.
       for (UIObject child : this.mutableChildren) {
-        ((UILayer) child).draw(this.ui, this.view);
+        if (child instanceof UI2dContext) {
+          ((UI2dContext) child).populateRenderStack(renderStack);
+        }
       }
-      // NanoVG is not re-entrant! So when we encounter nested
-      // UI2dContext objects, we push them onto a stack for rendering.
-      // Keep doing that until we've gotten them all...
-      while (!renderStack.isEmpty()) {
-        renderStack.pop().render(vg);
+
+      // Now we have all of our UI2dContexts ready to go, render all of them
+      // as necessary.
+      short viewId = 0;
+      while (!renderStack.isEmpty() && (viewId < MAX_NVG_VIEWS_PER_PASS)) {
+        renderStack.pop().setView(viewId++).render(vg);
+      }
+
+      // Finally, draw everything into the root view
+      this.view.setId(viewId);
+      for (UIObject child : this.mutableChildren) {
+        UILayer layer = (UILayer) child;
+        layer.draw(this.ui, this.view);
       }
     }
-  }
-
-  private final Stack<UI2dContext> renderStack = new Stack<UI2dContext>();
-
-  void pushRender(UI2dContext context) {
-    this.renderStack.push(context);
   }
 
   /**
@@ -673,15 +687,6 @@ public class UI {
   public void resize() {
     this.root.resize();
     onResize();
-
-    // Not 100% sure why this is necessary, but when the main backbuffer
-    // changes it seems that all the allocated buffers from nvgluCreateFramebuffer
-    // seem to go stale. Haven't looked deeply into this, might be a bgfx_reset thing
-    // or it could be a Mac thing? Anyways, we need to regenerate all of them.
-    vg.regenerateFramebuffers();
-
-    // Redraw everything, buffer changes aplenty!
-    this.root.redraw();
   }
 
   /**

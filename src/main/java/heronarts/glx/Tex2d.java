@@ -96,6 +96,8 @@ public class Tex2d {
 
   void dispose() {
     MemoryUtil.memFree(this.vertexBuffer);
+    MemoryUtil.memFree(this.vsCode);
+    MemoryUtil.memFree(this.fsCode);
     this.vertexDecl.free();
     MemoryUtil.memFree(this.modelMatrixBuf);
     bgfx_destroy_uniform(this.uniformTexture);

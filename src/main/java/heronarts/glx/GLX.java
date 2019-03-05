@@ -26,8 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
-
 import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.bgfx.BGFXPlatform.*;
 import org.lwjgl.bgfx.BGFXInit;
@@ -37,7 +35,6 @@ import org.lwjgl.glfw.GLFWNativeCocoa;
 import org.lwjgl.glfw.GLFWNativeWin32;
 import org.lwjgl.glfw.GLFWNativeX11;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.system.Platform;
 
 import heronarts.glx.ui.UI;
@@ -57,10 +54,6 @@ public class GLX extends LX {
 
   private int bgfxRenderer = BGFX_RENDERER_TYPE_COUNT;
   private int bgfxFormat = 0;
-
-  private static final int MAX_VIEWS = 32;
-  private short bgfxViewCount = 0;
-  private final ShortBuffer bgfxViewOrder;
 
   public final VGraphics vg;
 
@@ -95,12 +88,11 @@ public class GLX extends LX {
 
     initializeWindow();
     this.zZeroToOne = !bgfx_get_caps().homogeneousDepth();
-    this.bgfxViewOrder = MemoryUtil.memAllocShort(MAX_VIEWS);
 
     // Initialize shader programs
     this.program = new Programs(this);
 
-    this.vg = new VGraphics();
+    this.vg = new VGraphics(this);
 
     // Create the UI system
     this.ui = buildUI();
@@ -145,15 +137,6 @@ public class GLX extends LX {
    */
   protected UI buildUI() throws IOException {
     return new UI(this);
-  }
-
-  protected short registerView() {
-    this.bgfxViewOrder.clear();
-    for (short i = this.bgfxViewCount; i >= 0; --i) {
-      this.bgfxViewOrder.put(i);
-    }
-    this.bgfxViewOrder.flip();
-    return this.bgfxViewCount++;
   }
 
   public int getRenderer() {
@@ -307,13 +290,11 @@ public class GLX extends LX {
 
   private void draw() {
     this.ui.draw();
-    bgfx_set_view_order(0, this.bgfxViewCount, this.bgfxViewOrder);
     bgfx_frame(false);
   }
 
   @Override
   public void dispose() {
-    MemoryUtil.memFree(this.bgfxViewOrder);
     this.program.dispose();
     super.dispose();
   }

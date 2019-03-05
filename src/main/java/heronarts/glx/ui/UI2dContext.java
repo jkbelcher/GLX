@@ -24,7 +24,6 @@
 
 package heronarts.glx.ui;
 
-import static org.lwjgl.bgfx.BGFX.*;
 import heronarts.glx.View;
 import heronarts.glx.ui.vg.VGraphics;
 
@@ -34,7 +33,6 @@ import heronarts.glx.ui.vg.VGraphics;
  */
 public class UI2dContext extends UI2dContainer implements UILayer {
 
-  private final View view;
   private VGraphics.Framebuffer framebuffer;
 
   /**
@@ -49,14 +47,16 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   public UI2dContext(UI ui, int x, int y, int w, int h) {
     super(x, y, w, h);
     setUI(ui);
-    this.view = new View(ui.lx, 0, 0, w, h);
-    this.view.setClearFlags(BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
     this.framebuffer = ui.vg.createFramebuffer(w, h, 0);
-    this.framebuffer.setView(this.view.getId());
   }
 
   public short getTexture() {
     return (short) this.framebuffer.texture();
+  }
+
+  public UI2dContext setView(short viewId) {
+    this.framebuffer.setView(viewId);
+    return this;
   }
 
   /**
@@ -65,10 +65,18 @@ public class UI2dContext extends UI2dContainer implements UILayer {
    * @param vg
    */
   protected final void render(VGraphics vg) {
+    // Bind the framebuffer, which rebuilds if necessary
     vg.bindFramebuffer(this.framebuffer);
     vg.beginFrame(this.width, this.height, 1);
     super.draw(ui, vg);
     vg.endFrame();
+
+    // Note: this super.draw() call will have cleared the
+    // needsRedraw and childNeedsRedraw flags on this element
+    // and everything below it. That's fine, but we'll mark
+    // ourselves as still needing a blitting operation so
+    // that the draw() pass gets our pixels out.
+    this.needsBlit = true;
   }
 
   @Override
@@ -76,12 +84,10 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     if (!isVisible()) {
       return;
     }
-    if (this.framebuffer.isStale()) {
-      this.framebuffer.rebuffer();
-    }
-    if (this.needsRedraw || this.childNeedsRedraw) {
-      render(ui.vg);
-    }
+
+    // NOTE: no rendering happens inside this method. The previous render() pass
+    // will have ensured that our texture was rendered properly if it
+    // needed to be.
     view.image(this);
   }
 
@@ -90,26 +96,23 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     if (!isVisible()) {
       return;
     }
-    if (this.framebuffer.isStale()) {
-      this.framebuffer.rebuffer();
-    }
-    if (this.needsRedraw || this.childNeedsRedraw) {
-      // NanoVG is not re-entrant... and we're rendering one
-      // UI2dContext into another. The solution is BGFX views,
-      // we'll schedule this context to be rendered by the engine
-      // so that its texture is updated and available
-      ui.pushRender(this);
-    }
+
+    // NOTE: similar to the above, we don't need to actually draw ourselves
+    // here, we can assume that the render() pass has already happened and
+    // our framebuffer has been generated appropriately. So we just nest
+    // ourselves into the vg context.
 
     vg.beginPath();
     vg.fillPaint(this.framebuffer.paint);
     vg.rect(0, 0, this.width, this.height);
     vg.fill();
+
+    this.needsBlit = false;
   }
 
   @Override
   protected void onResize() {
-    this.framebuffer.resize((int) this.width, (int) this.height);
+    this.framebuffer.markForResize((int) this.width, (int) this.height);
     redraw();
   }
 

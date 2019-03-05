@@ -24,6 +24,8 @@
 
 package heronarts.glx.ui;
 
+import java.util.Stack;
+
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.parameter.LXParameterModulation;
 
@@ -92,8 +94,8 @@ public abstract class UI2dComponent extends UIObject {
   private boolean mappable = true;
 
   boolean needsRedraw = true;
-
   boolean childNeedsRedraw = true;
+  boolean needsBlit = false;
 
   protected UI2dComponent() {
     this(0, 0, 0, 0);
@@ -180,8 +182,12 @@ public abstract class UI2dComponent extends UIObject {
         ((UI2dContainer) this.parent).reflow();
       }
       if (visible) {
+        // Redraw ourselves, in the space we take up
         redraw();
       } else {
+        // We're invisible now, the container needs to redraw so
+        // our background or whatever was underneath can
+        // be filled in
         redrawContainer();
       }
     }
@@ -222,6 +228,11 @@ public abstract class UI2dComponent extends UIObject {
       if (this.parent instanceof UI2dContainer) {
         ((UI2dContainer) this.parent).reflow();
       }
+      // We redraw from our container instead of just
+      // ourselves because the background needs to be
+      // refreshed. If we only redrew ourself, there
+      // could be remnants of our old position in the
+      // buffer
       redrawContainer();
     }
     return this;
@@ -271,6 +282,9 @@ public abstract class UI2dComponent extends UIObject {
       if (resize) {
         onResize();
       }
+      // Redraw from our container because our bounds are
+      // different and we don't want to leave remnants of
+      // our old position in the buffer
       redrawContainer();
     }
     return this;
@@ -336,6 +350,10 @@ public abstract class UI2dComponent extends UIObject {
         ((UI2dContainer) this.parent).reflow();
       }
       onResize();
+
+      // Our bounds have changed, we could be smaller.
+      // Redraw whole container to erase any remnants
+      // of our former position
       redrawContainer();
     }
     return this;
@@ -709,7 +727,7 @@ public abstract class UI2dComponent extends UIObject {
           index = maxIndex;
         }
         while (index >= 0) {
-          UIObject neighbor = container.children.get(index);
+          UIObject neighbor = container.children.get(index--);
           if (neighbor instanceof UIKeyFocus) {
             neighbor.focus();
             break;
@@ -717,6 +735,8 @@ public abstract class UI2dComponent extends UIObject {
         }
       }
     }
+
+    // Blammo, we are gone. Need to redraw the container.
     redrawContainer();
     this.parent = null;
     return this;
@@ -839,6 +859,8 @@ public abstract class UI2dComponent extends UIObject {
     if (this.parent instanceof UI2dContainer) {
       ((UI2dContainer) this.parent).reflow();
     }
+    // Overlaps could have changed, everything in the container needs
+    // to be redone now
     redrawContainer();
     return this;
   }
@@ -883,6 +905,25 @@ public abstract class UI2dComponent extends UIObject {
     this.childNeedsRedraw = (this.mutableChildren.size() > 0);
     for (UIObject child : this.mutableChildren) {
       ((UI2dComponent)child)._redrawChildren();
+    }
+  }
+
+  protected final void populateRenderStack(Stack<UI2dContext> renderStack) {
+    if (!isVisible()) {
+      return;
+    }
+    // Before the main drawing loop, the tree is checked for all
+    // contexts that need a redraw. If we fall into this category
+    // then we push ourselves on the render stack, which will be
+    // serviced before the draw() methods are invoked.
+    if (this instanceof UI2dContext) {
+      if (this.needsRedraw || this.childNeedsRedraw) {
+        renderStack.push((UI2dContext) this);
+      }
+    }
+    // Iterate through children
+    for (UIObject child : this.children) {
+      ((UI2dComponent)child).populateRenderStack(renderStack);
     }
   }
 
@@ -938,14 +979,13 @@ public abstract class UI2dComponent extends UIObject {
       vg.translate(sx, sy);
       for (UIObject childObject : this.mutableChildren) {
         UI2dComponent child = (UI2dComponent) childObject;
-        if (child.needsRedraw || child.childNeedsRedraw) {
-          float cx = child.x;
-          float cy = child.y;
-          vg.translate(cx, cy);
-          child.draw(ui, vg);
-          vg.translate(-cx, -cy);
-          if (child.needsRedraw && !needsMappingOverlay) {
-            drawMappingOverlay(ui, vg, cx, cy, child.width, child.height);
+        if (child.isVisible()) {
+          if (child.needsRedraw || child.childNeedsRedraw || child.needsBlit) {
+            float cx = child.x;
+            float cy = child.y;
+            vg.translate(cx, cy);
+            child.draw(ui, vg);
+            vg.translate(-cx, -cy);
           }
         }
       }
@@ -964,7 +1004,7 @@ public abstract class UI2dComponent extends UIObject {
 
   private void drawMappingBorder(UI ui, VGraphics vg) {
     vg.beginPath();
-    vg.rect(0, 0, this.width-1, this.height-1, this.borderRounding);
+    vg.rect(0.5f, 0.5f, this.width, this.height, this.borderRounding);
     vg.strokeColor(0xff000000 | ui.theme.getModulationTargetMappingColor());
     vg.stroke();
   }
@@ -1004,6 +1044,9 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   private void drawBackground(UI ui, VGraphics vg) {
+    if (this.width == 0 || this.height == 0) {
+      return;
+    }
 
     boolean ownBackground = this.hasBackground || (this.hasFocus && this.hasFocusBackground);
 
@@ -1035,6 +1078,10 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   protected void drawBorder(UI ui, VGraphics vg) {
+    if (this.width == 0 || this.height == 0) {
+      return;
+    }
+
     if (this.hasBorder) {
       int border = this.borderWeight;
       vg.beginPath();

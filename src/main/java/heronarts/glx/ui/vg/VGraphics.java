@@ -37,7 +37,10 @@ import org.lwjgl.nanovg.NVGLUFramebuffer;
 import org.lwjgl.nanovg.NVGPaint;
 import org.lwjgl.system.MemoryStack;
 
+import heronarts.glx.GLX;
 import heronarts.glx.View;
+
+import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.nanovg.NanoVGBGFX.*;
 
@@ -199,16 +202,21 @@ public class VGraphics {
     }
 
     public Framebuffer setView(short viewId) {
-      nvgluSetViewFramebuffer(this.viewId = viewId, this.buffer);
+      this.viewId = viewId;
       return this;
     }
 
     public Framebuffer bind() {
+      if (this.isStale) {
+        rebuffer();
+      }
+      view.setId(this.viewId);
+      nvgluSetViewFramebuffer(this.viewId, this.buffer);
       nvgluBindFramebuffer(this.buffer);
       return this;
     }
 
-    public void resize(int w, int h) {
+    public void markForResize(int w, int h) {
       if (this.width != w || this.height != h) {
         this.width = w;
         this.height = h;
@@ -219,29 +227,23 @@ public class VGraphics {
     public void rebuffer() {
       nvgluDeleteFramebuffer(this.buffer);
       this.buffer = nvgluCreateFramebuffer(vg, this.width, this.height, this.imageFlags);
-      nvgluSetViewFramebuffer(this.viewId, this.buffer);
       this.paint.imagePattern(0, 0, this.width, this.height, this.buffer.image());
       this.isStale = false;
     }
 
   }
 
+  private final View view;
   private final long vg;
   private final NVGColor fillColor = NVGColor.create();
   private final NVGColor strokeColor = NVGColor.create();
   private final Set<Framebuffer> allocatedBuffers = new HashSet<Framebuffer>();
 
 
-  public VGraphics() {
-    this(0);
-  }
-
-  public VGraphics(View view) {
-    this(view.getId());
-  }
-
-  public VGraphics(int viewId) {
-    this.vg = nvgCreate(true, viewId, NULL);
+  public VGraphics(GLX glx) {
+    this.vg = nvgCreate(true, 0, NULL);
+    this.view = new View(glx);
+    this.view.setClearFlags(BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
   }
 
   public long getHandle() {
@@ -261,16 +263,6 @@ public class VGraphics {
   public void deleteFrameBuffer(Framebuffer framebuffer) {
     nvgluDeleteFramebuffer(framebuffer.buffer);
     this.allocatedBuffers.remove(framebuffer);
-  }
-
-  public static void bindFramebuffer(NVGLUFramebuffer framebuffer) {
-    nvgluBindFramebuffer(framebuffer);
-  }
-
-  public void regenerateFramebuffers() {
-    for (Framebuffer framebuffer : this.allocatedBuffers) {
-      framebuffer.rebuffer();
-    }
   }
 
   public VGraphics fillColor(int argb) {

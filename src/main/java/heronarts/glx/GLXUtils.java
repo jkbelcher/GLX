@@ -29,7 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
 
 import static org.lwjgl.bgfx.BGFX.*;
@@ -61,10 +60,11 @@ public class GLXUtils {
   }
 
   /**
-   * Loads the resource at the given path into a newly allocated buffer
+   * Loads the resource at the given path into a newly allocated buffer. The buffer is owned by
+   * the caller and must be freed explicitly.
    *
    * @param path Path to the resource
-   * @return Buffer allocated by BufferUtils
+   * @return Buffer allocated by MemoryUtil
    * @throws IOException If there is an error loading the resource
    */
   public static ByteBuffer loadResource(String path) throws IOException {
@@ -74,7 +74,7 @@ public class GLXUtils {
       try (
         SeekableByteChannel fc = Files.newByteChannel(file);
       ) {
-        resource = BufferUtils.createByteBuffer((int) fc.size() + 1);
+        resource = MemoryUtil.memAlloc((int) fc.size() + 1);
         while (fc.read(resource) != -1);
         resource.flip();
         return resource;
@@ -89,7 +89,7 @@ public class GLXUtils {
       throw new IOException("Resource not found: " + path);
     }
     int resourceSize = url.openConnection().getContentLength();
-    resource = BufferUtils.createByteBuffer(resourceSize);
+    resource = MemoryUtil.memAlloc(resourceSize);
     try (
       InputStream stream = url.openStream();
       ReadableByteChannel rbc = Channels.newChannel(stream);
