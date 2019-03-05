@@ -538,6 +538,4 @@ public class VGraphics {
     return this;
   }
 
-  // TODO(mcslee): add text methods and font loading
-
 }

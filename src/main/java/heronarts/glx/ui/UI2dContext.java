@@ -27,10 +27,6 @@ package heronarts.glx.ui;
 import heronarts.glx.View;
 import heronarts.glx.ui.vg.VGraphics;
 
-/**
- * TODO(mcslee): Deprecate UI2dContext? Can we always use UI2dContainer in
- * this new framework? Or do we still need some off-screen buffers...
- */
 public class UI2dContext extends UI2dContainer implements UILayer {
 
   private VGraphics.Framebuffer framebuffer;
