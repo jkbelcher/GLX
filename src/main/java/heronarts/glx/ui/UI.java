@@ -26,6 +26,7 @@ package heronarts.glx.ui;
 
 import heronarts.glx.GLX;
 import heronarts.glx.View;
+import heronarts.glx.event.Event;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.vg.VGraphics;
@@ -133,9 +134,9 @@ public class UI {
           }
         } else if (keyCode == KeyEvent.VK_TAB) {
           if (keyEvent.isShiftDown()) {
-            focusPrev();
+            focusPrev(keyEvent);
           } else {
-            focusNext();
+            focusNext(keyEvent);
           }
         } else if (keyCode == KeyEvent.VK_ESCAPE) {
           hideContextOverlay();
@@ -493,17 +494,17 @@ public class UI {
     return UI.instance;
   }
 
-  public void focusPrev() {
+  public void focusPrev(Event event) {
     UIObject focusTarget = this.root.findPrevFocusable();
     if (focusTarget != null) {
-      focusTarget.focus();
+      focusTarget.focus(event);
     }
   }
 
-  public void focusNext() {
+  public void focusNext(Event event) {
     UIObject focusTarget = this.root.findNextFocusable();
     if (focusTarget != null) {
-      focusTarget.focus();
+      focusTarget.focus(event);
     }
   }
 

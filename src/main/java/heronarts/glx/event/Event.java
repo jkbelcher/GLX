@@ -24,6 +24,22 @@ import org.lwjgl.system.Platform;
 
 public abstract class Event {
 
+  private static class Virtual extends Event {
+    private Virtual() {
+      super(0);
+    }
+
+    @Override
+    public Event consume() {
+      // This event can never actually be consumed,
+      // because it doesn't exist!
+      return this;
+    }
+  }
+
+  public static final Event NONE = new Virtual();
+  public static final Event SIBLING_REMOVED = new Virtual();
+
   public static final int SHIFT = GLFW_MOD_SHIFT;
   public static final int CONTROL = GLFW_MOD_CONTROL;
   public static final int ALT = GLFW_MOD_ALT;

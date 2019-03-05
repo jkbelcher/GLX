@@ -25,6 +25,7 @@
 package heronarts.glx.ui;
 
 import heronarts.glx.GLX;
+import heronarts.glx.event.Event;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.component.UIContextMenu;
@@ -256,17 +257,21 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    * Focuses on this object, giving focus to everything above
    * and whatever was previously focused below.
    *
+   * @param event Event that caused the focus
    * @return this
    */
-  public UIObject focus() {
+  public UIObject focus(Event event) {
+    if (event == null) {
+      throw new IllegalArgumentException("Focus requires non-null event, use Event.NONE if none available");
+    }
     if (this.focusedChild != null) {
       this.focusedChild.blur();
     }
-    _focusParents();
+    _focusParents(event);
     return this;
   }
 
-  private void _focusParents() {
+  private void _focusParents(Event event) {
     if (this.parent != null) {
       if (this.parent.focusedChild != this) {
         if (this.parent.focusedChild != null) {
@@ -274,16 +279,16 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
         }
         this.parent.focusedChild = this;
       }
-      this.parent._focusParents();
+      this.parent._focusParents(event);
     }
     if (!this.hasFocus) {
       this.hasFocus = true;
-      _onFocus();
+      _onFocus(event);
     }
   }
 
-  private void _onFocus() {
-    onFocus();
+  private void _onFocus(Event event) {
+    onFocus(event);
     if (this instanceof UI2dComponent) {
       ((UI2dComponent) this).redraw();
     }
@@ -478,12 +483,6 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    */
   protected void onUIResize(UI ui) {}
 
-  // Flag that subclasses may check in event handlers to know whether focus is due to key press
-  protected KeyEvent keyPressFocused = null;
-
-  // Flag that subclasses may check in event handlers to know whether focus is due to mouse press
-  protected boolean mousePressFocused = false;
-
   void mousePressed(MouseEvent mouseEvent, float mx, float my) {
     if (isMidiMapping()) {
       this.ui.setControlTarget((UIControlTarget) this);
@@ -545,8 +544,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     // If mouse press was consumed by a child, don't handle it ourselves
     if (!mouseEvent.isConsumed()) {
       if (!hasFocus() && (this instanceof UIMouseFocus)) {
-        this.mousePressFocused = true;
-        focus();
+        focus(mouseEvent);
       }
       if (!mouseEvent.isContextMenuConsumed()) {
         onMousePressed(mouseEvent, mx, my);
@@ -558,7 +556,6 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
       mouseEvent.consume();
     }
 
-    this.mousePressFocused = false;
   }
 
   void mouseReleased(MouseEvent mouseEvent, float mx, float my) {
@@ -709,8 +706,10 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
 
   /**
    * Subclasses override when element is focused
+   *
+   * @param event Event that caused the focus to occur
    */
-  protected void onFocus() {
+  protected void onFocus(Event event) {
   }
 
   /**

@@ -26,6 +26,7 @@ package heronarts.glx.ui;
 
 import java.util.Stack;
 
+import heronarts.glx.event.Event;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.parameter.LXParameterModulation;
 
@@ -729,7 +730,7 @@ public abstract class UI2dComponent extends UIObject {
         while (index >= 0) {
           UIObject neighbor = container.children.get(index--);
           if (neighbor instanceof UIKeyFocus) {
-            neighbor.focus();
+            neighbor.focus(Event.SIBLING_REMOVED);
             break;
           }
         }
