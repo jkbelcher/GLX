@@ -51,6 +51,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
   private final static float ARC_START = (float) LX.HALF_PI + KNOB_INDENT;
   private final static float ARC_RANGE = (float) LX.TWO_PI - 2 * KNOB_INDENT;
   private final static float ARC_END = ARC_START + ARC_RANGE;
+  private final static float ARC_MIN = ARC_RANGE / 255.f; // half a MIDI tick
 
   public UIKnob(LXListenableNormalizedParameter parameter) {
     this();
@@ -183,7 +184,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     }
 
     // Value indication
-    if (valueStart != baseEnd) {
+    if (Math.abs(valueStart - baseEnd) > ARC_MIN) {
       vg.fillColor(baseColor);
       vg.beginPath();
       vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
@@ -192,7 +193,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
       vg.fill();
     }
 
-    if (baseEnd != valueEnd) {
+    if (Math.abs(baseEnd - valueEnd) > ARC_MIN) {
       vg.fillColor(valueColor);
       vg.beginPath();
       vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
@@ -205,7 +206,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     if (this.polarity == LXParameter.Polarity.BIPOLAR) {
       vg.strokeColor(0xff333333);
       vg.beginPath();
-      vg.line(ARC_CENTER_X, ARC_CENTER_Y, ARC_CENTER_X, ARC_CENTER_Y - arcSize/2);
+      vg.line(ARC_CENTER_X, ARC_CENTER_Y, ARC_CENTER_X, ARC_CENTER_Y - arcSize);
       vg.stroke();
     }
 
