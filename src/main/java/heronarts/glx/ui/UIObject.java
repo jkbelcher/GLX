@@ -56,6 +56,8 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
   private UIObject pressedChild = null;
   private UIObject overChild = null;
 
+  private boolean consumeMousePress = false;
+
   protected boolean hasFocus = false;
 
   private final List<LXLoopTask> loopTasks = new ArrayList<LXLoopTask>();
@@ -207,6 +209,17 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    */
   public UIObject setVisible(boolean visible) {
     this.visible.setValue(visible);
+    return this;
+  }
+
+  /**
+   * Toggles whether this object always consumes mouse press events it receives
+   *
+   * @param consumeMousePress Whether to always consume mouse press events by default
+   * @return this
+   */
+  public UIObject setConsumeMousePress(boolean consumeMousePress) {
+    this.consumeMousePress = consumeMousePress;
     return this;
   }
 
@@ -487,27 +500,6 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     return this.keyEventConsumed;
   }
 
-  /**
-   * Called in a mouse event handler to stop this event from bubbling up the
-   * parent container chain. For example, a button which responds to a mouse press and
-   * sets some focus elsewhere should call consumeMouseEvent() to stop the press from
-   * being handled by its container.
-   *
-   * @return this
-   */
-  protected UIObject consumeMousePress() {
-    this.mousePressConsumed = true;
-    return this;
-  }
-
-  /**
-   * Checks whether the mouse event was already consumed
-   *
-   * @return Whether the mouse event is already handled
-   */
-  protected boolean mousePressConsumed() {
-    return this.mousePressConsumed;
-  }
 
   /**
    * Called in a mouse wheel handler to stop this mouse wheel event from
@@ -527,7 +519,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
   private boolean keyBlurConsumed = false;
 
   // Whether the mouse press event dispatched to this UI object has been consumed already
-  private boolean mousePressConsumed = false;
+  // private boolean mousePressConsumed = false;
 
   // Whether the mouse wheel event dispatched to this UI object has been consumed
   private boolean mouseScrollEventConsumed = false;
@@ -543,8 +535,6 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
   protected boolean mousePressContextMenu = false;
 
   void mousePressed(MouseEvent mouseEvent, float mx, float my) {
-    this.mousePressConsumed = false;
-
     if (isMidiMapping()) {
       this.ui.setControlTarget((UIControlTarget) this);
       return;
@@ -589,7 +579,6 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
 
         // If any child has shown a context menu, we shouldn't
         this.mousePressContextMenu = this.pressedChild.mousePressContextMenu;
-        this.mousePressConsumed = this.pressedChild.mousePressConsumed;
         break;
       }
     }
@@ -609,7 +598,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     }
 
     // If mouse press was consumed by a child, don't handle it ourselves
-    if (!this.mousePressConsumed) {
+    if (!mouseEvent.isConsumed()) {
       if (!hasFocus() && (this instanceof UIMouseFocus)) {
         this.mousePressFocused = true;
         focus();
@@ -617,6 +606,11 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
       if (!this.mousePressContextMenu) {
         onMousePressed(mouseEvent, mx, my);
       }
+    }
+
+    // Eat the mouse event
+    if (this.consumeMousePress) {
+      mouseEvent.consume();
     }
 
     this.mousePressFocused = false;
