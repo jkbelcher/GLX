@@ -1,0 +1,104 @@
+/**
+ * Copyright 2019- Mark C. Slee, Heron Arts LLC
+ *
+ * This file is part of the LX Studio software library. By using
+ * LX, you agree to the terms of the LX Studio Software License
+ * and Distribution Agreement, available at: http://lx.studio/license
+ *
+ * Please note that the LX license is not open-source. The license
+ * allows for free, non-commercial use.
+ *
+ * HERON ARTS MAKES NO WARRANTY, EXPRESS, IMPLIED, STATUTORY, OR
+ * OTHERWISE, AND SPECIFICALLY DISCLAIMS ANY WARRANTY OF
+ * MERCHANTABILITY, NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR
+ * PURPOSE, WITH RESPECT TO THE SOFTWARE.
+ *
+ * @author Mark C. Slee <mark@heronarts.com>
+ */
+
+package heronarts.glx;
+
+import static org.lwjgl.bgfx.BGFX.*;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+
+import org.joml.Matrix4f;
+import org.lwjgl.bgfx.BGFXVertexDecl;
+import org.lwjgl.system.MemoryUtil;
+
+public class Tex2d {
+
+  private BGFXVertexDecl vertexDecl;
+  private short program;
+  private short uniformTexture;
+
+  private ByteBuffer vertexBuffer;
+  private short vbh;
+
+  private ByteBuffer vsCode;
+  private ByteBuffer fsCode;
+
+  protected final Matrix4f modelMatrix = new Matrix4f();
+  protected final FloatBuffer modelMatrixBuf;
+
+  private final float[][] VERTEX_BUFFER = {
+    {0f, 0f, 0f, 0f, 0f },
+    {1f, 0f, 0f, 1f, 0f },
+    {0f, 1f, 0f, 0f, 1f },
+    {1f, 1f, 0f, 1f, 1f }
+  };
+
+  public Tex2d(GLX glx) {
+
+    this.modelMatrixBuf = MemoryUtil.memAllocFloat(16);
+    this.modelMatrix.get(this.modelMatrixBuf);
+
+    this.vertexDecl = BGFXVertexDecl.calloc();
+    bgfx_vertex_decl_begin(this.vertexDecl, glx.getRenderer());
+    bgfx_vertex_decl_add(this.vertexDecl, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+    bgfx_vertex_decl_add(this.vertexDecl, BGFX_ATTRIB_TEXCOORD0, 2, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+    bgfx_vertex_decl_end(this.vertexDecl);
+
+    this.vertexBuffer = MemoryUtil.memAlloc(VERTEX_BUFFER.length * 20);
+    for (float[] fl : VERTEX_BUFFER) {
+      for (float f : fl) {
+        this.vertexBuffer.putFloat(f);
+      }
+    }
+    this.vertexBuffer.flip();
+    this.vbh = bgfx_create_vertex_buffer(bgfx_make_ref(this.vertexBuffer), this.vertexDecl, BGFX_BUFFER_NONE);
+
+    try {
+      this.vsCode = GLXUtils.loadShader(glx, "vs_view2d");
+      this.fsCode = GLXUtils.loadShader(glx, "fs_view2d");
+      this.program = bgfx_create_program(
+        bgfx_create_shader(bgfx_make_ref(this.vsCode)),
+        bgfx_create_shader(bgfx_make_ref(this.fsCode)),
+        true
+      );
+      this.uniformTexture = bgfx_create_uniform("s_texColor", BGFX_UNIFORM_TYPE_SAMPLER, 1);
+    } catch (IOException iox) {
+      throw new RuntimeException(iox);
+    }
+  }
+
+  public void submit(View view, short texHandle, float x, float y, float w, float h) {
+    this.modelMatrix.identity().translate(x, y, 0).scale(w, h, 1);
+    this.modelMatrix.get(this.modelMatrixBuf);
+    bgfx_set_transform(this.modelMatrixBuf);
+    bgfx_set_texture(0, this.uniformTexture, texHandle, 0xffffffff);
+    bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_PT_TRISTRIP, 0);
+    bgfx_set_vertex_buffer(0, this.vbh, 0, VERTEX_BUFFER.length);
+    bgfx_submit(view.getId(), this.program, 0, false);
+  }
+
+  void dispose() {
+    MemoryUtil.memFree(this.vertexBuffer);
+    this.vertexDecl.free();
+    MemoryUtil.memFree(this.modelMatrixBuf);
+    bgfx_destroy_uniform(this.uniformTexture);
+    bgfx_destroy_program(this.program);
+  }
+}
