@@ -59,6 +59,10 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     return this;
   }
 
+  public VGraphics.Paint getPaint() {
+    return this.framebuffer.paint;
+  }
+
   /**
    * Renders the content of the context to its framebuffer.
    *
