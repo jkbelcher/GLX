@@ -61,6 +61,8 @@ public class MouseEvent extends Event {
   public final float dx;
   public final float dy;
 
+  private boolean consumeContextMenu = false;
+
   public MouseEvent(int glfwAction, int button, float x, float y, int modifiers) {
     super(modifiers);
     this.action = glfwAction(glfwAction);
@@ -95,6 +97,14 @@ public class MouseEvent extends Event {
 
   public double getY() {
     return this.y;
+  }
+
+  public void consumeContextMenu() {
+    this.consumeContextMenu = true;
+  }
+
+  public boolean isContextMenuConsumed() {
+    return this.consumeContextMenu;
   }
 
   public MouseEvent setCount(int count) {

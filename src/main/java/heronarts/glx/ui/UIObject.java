@@ -478,61 +478,11 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    */
   protected void onUIResize(UI ui) {}
 
-  /**
-   * Called in a key event handler to stop this event from bubbling up the
-   * parent container chain. For example, a button which responds to a space bar
-   * press should call consumeKeyEvent() to stop the event from being handled by its
-   * container.
-   *
-   * @return this
-   */
-  protected UIObject consumeKeyEvent() {
-    this.keyEventConsumed = true;
-    return this;
-  }
-
-  /**
-   * Checks whether key event was already consumed
-   *
-   * @return Whether the key event is already handled
-   */
-  protected boolean keyEventConsumed() {
-    return this.keyEventConsumed;
-  }
-
-
-  /**
-   * Called in a mouse wheel handler to stop this mouse wheel event from
-   * bubbling. Invoked by nested scroll views.
-   *
-   * @return this
-   */
-  protected UIObject consumeMouseWheelEvent() {
-    this.mouseScrollEventConsumed = true;
-    return this;
-  }
-
-  // Whether the key event dispatched to this UI object has been consumed already
-  private boolean keyEventConsumed = false;
-
-  // Whether a blur event caused by keypress has been consumed already
-  private boolean keyBlurConsumed = false;
-
-  // Whether the mouse press event dispatched to this UI object has been consumed already
-  // private boolean mousePressConsumed = false;
-
-  // Whether the mouse wheel event dispatched to this UI object has been consumed
-  private boolean mouseScrollEventConsumed = false;
-
   // Flag that subclasses may check in event handlers to know whether focus is due to key press
   protected KeyEvent keyPressFocused = null;
 
   // Flag that subclasses may check in event handlers to know whether focus is due to mouse press
   protected boolean mousePressFocused = false;
-
-  // Flag set when a mouse press event on this UI object has triggered the opening of a context-menu,
-  // either from this object itself or any of its children
-  protected boolean mousePressContextMenu = false;
 
   void mousePressed(MouseEvent mouseEvent, float mx, float my) {
     if (isMidiMapping()) {
@@ -568,27 +518,22 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
       return;
     }
 
-    // Set context menu flag
-    this.mousePressContextMenu = false;
-
+    // Find child to press on
     for (int i = this.mutableChildren.size() - 1; i >= 0; --i) {
       UIObject child = this.mutableChildren.get(i);
       if (child.isVisible() && child.contains(mx, my)) {
         child.mousePressed(mouseEvent, mx - child.getX(), my - child.getY());
         this.pressedChild = child;
-
-        // If any child has shown a context menu, we shouldn't
-        this.mousePressContextMenu = this.pressedChild.mousePressContextMenu;
         break;
       }
     }
 
     // Show a right-click context menu, if no child has, and if we're eligible
-    if (!this.mousePressContextMenu && this instanceof UIContextActions && (mouseEvent.getButton() == MouseEvent.BUTTON_RIGHT)) {
+    if (!mouseEvent.isContextMenuConsumed() && this instanceof UIContextActions && (mouseEvent.getButton() == MouseEvent.BUTTON_RIGHT)) {
       UIContextActions contextParent = (UIContextActions) this;
       List<UIContextActions.Action> contextActions = contextParent.getContextActions();
       if (contextActions != null && contextActions.size() > 0) {
-        this.mousePressContextMenu = true;
+        mouseEvent.consumeContextMenu();
         getUI().showContextOverlay(
           new UIContextMenu(mx, my, UIContextMenu.DEFAULT_WIDTH, 0)
           .setActions(contextActions.toArray(new UIContextActions.Action[0]))
@@ -603,12 +548,12 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
         this.mousePressFocused = true;
         focus();
       }
-      if (!this.mousePressContextMenu) {
+      if (!mouseEvent.isContextMenuConsumed()) {
         onMousePressed(mouseEvent, mx, my);
       }
     }
 
-    // Eat the mouse event
+    // Finally, if we're set to always consume mouse presses, eat this
     if (this.consumeMousePress) {
       mouseEvent.consume();
     }
@@ -647,7 +592,9 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
         dy
       );
     }
-    onMouseDragged(mouseEvent, mx, my, dx, dy);
+    if (!mouseEvent.isConsumed()) {
+      onMouseDragged(mouseEvent, mx, my, dx, dy);
+    }
   }
 
   void mouseMoved(MouseEvent mouseEvent, float mx, float my) {
@@ -697,74 +644,65 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
   }
 
   void mouseScroll(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-    this.mouseScrollEventConsumed = false;
     for (int i = this.mutableChildren.size() - 1; i >= 0; --i) {
       UIObject child = this.mutableChildren.get(i);
       if (child.isVisible() && child.contains(mx, my)) {
         child.mouseScroll(mouseEvent, mx - child.getX(), my - child.getY(), dx, dy);
-        this.mouseScrollEventConsumed = child.mouseScrollEventConsumed;
         break;
       }
     }
-    if (!this.mouseScrollEventConsumed) {
+    if (!mouseEvent.isConsumed()) {
       onMouseScroll(mouseEvent, mx, my, dx, dy);
     }
   }
 
   void keyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
-    this.keyEventConsumed = false;
-    this.keyBlurConsumed = false;
-
     // First delegate to focused child elements which may handle this event
     if (this.focusedChild != null) {
       UIObject delegate = this.focusedChild;
       delegate.keyPressed(keyEvent, keyChar, keyCode);
-      this.keyEventConsumed = delegate.keyEventConsumed;
-      this.keyBlurConsumed = delegate.keyBlurConsumed;
     }
 
     // Next, check for copy/paste/duplicate actions
-    if (!this.keyEventConsumed) {
+    if (!keyEvent.isConsumed()) {
       if (keyEvent.isMetaDown() || keyEvent.isControlDown()) {
         if (keyCode == KeyEvent.VK_C && this instanceof UICopy) {
           this.ui.lx.clipboard.setItem(((UICopy)this).onCopy());
-          this.keyEventConsumed = true;
+          keyEvent.consume();
         } else if (keyCode == KeyEvent.VK_V && this instanceof UIPaste) {
           LXClipboardItem item = this.ui.lx.clipboard.getItem();
           if (item != null) {
             ((UIPaste) this).onPaste(item);
-            this.keyEventConsumed = true;
+            keyEvent.consume();
           }
         } else if (keyCode == KeyEvent.VK_D && this instanceof UIDuplicate) {
           LXClipboardItem item = ((UICopy) this).onCopy();
           if (item != null) {
             ((UIPaste) this).onPaste(item);
-            this.keyEventConsumed = true;
+            keyEvent.consume();
           }
         }
       }
     }
 
     // Finally, delegate to custom handler
-    if (!this.keyEventConsumed) {
+    if (!keyEvent.isConsumed()) {
       onKeyPressed(keyEvent, keyChar, keyCode);
     }
 
     // Escape key blurs items with key focus
-    if (!this.keyBlurConsumed && (keyCode == KeyEvent.VK_ESCAPE) && this instanceof UIKeyFocus) {
-      this.keyBlurConsumed = true;
+    if (!keyEvent.isBlurConsumed() && (keyCode == KeyEvent.VK_ESCAPE) && this instanceof UIKeyFocus) {
+      keyEvent.consumeBlur();
       blur();
     }
   }
 
   void keyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
-    this.keyEventConsumed = false;
     if (this.focusedChild != null) {
       UIObject delegate = this.focusedChild;
       delegate.keyReleased(keyEvent, keyChar, keyCode);
-      this.keyEventConsumed = delegate.keyEventConsumed;
     }
-    if (!this.keyEventConsumed) {
+    if (!keyEvent.isConsumed()) {
       onKeyReleased(keyEvent, keyChar, keyCode);
     }
   }

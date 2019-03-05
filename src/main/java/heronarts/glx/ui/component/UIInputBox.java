@@ -269,34 +269,34 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       if (this.editing) {
         // Editing!
         if (isValidCharacter(keyChar)) {
-          consumeKeyEvent();
+          keyEvent.consume();
           this.editBuffer += keyChar;
           redraw();
         } else if (keyCode == KeyEvent.VK_ENTER) {
-          consumeKeyEvent();
+          keyEvent.consume();
           this.editing = false;
           saveEditBuffer();
           redraw();
         } else if (keyCode == KeyEvent.VK_BACKSPACE) {
-          consumeKeyEvent();
+          keyEvent.consume();
           if (this.editBuffer.length() > 0) {
             this.editBuffer = this.editBuffer.substring(0, this.editBuffer.length() - 1);
             redraw();
           }
         } else if (keyCode == KeyEvent.VK_ESCAPE) {
-          consumeKeyEvent();
+          keyEvent.consume();
           this.editing = false;
           redraw();
         }
       } else if (this.enabled) {
         // Not editing
         if (this.immediateEdit && isValidCharacter(keyChar)) {
-          consumeKeyEvent();
+          keyEvent.consume();
           this.editing = true;
           this.editBuffer = Character.toString(keyChar);
           redraw();
         } else if (keyCode == KeyEvent.VK_ENTER) {
-          consumeKeyEvent();
+          keyEvent.consume();
           this.editing = true;
           this.editBuffer = "";
           redraw();

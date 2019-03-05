@@ -105,7 +105,7 @@ public class UISwitch extends UIParameterControl implements UIFocus, UITriggerTa
     super.onKeyPressed(keyEvent, keyChar, keyCode);
     if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
       if (this.parameter != null) {
-        consumeKeyEvent();
+        keyEvent.consume();
         if (this.isMomentary) {
           getBooleanParameter().setValue(true);
         } else {
@@ -120,7 +120,7 @@ public class UISwitch extends UIParameterControl implements UIFocus, UITriggerTa
     super.onKeyReleased(keyEvent, keyChar, keyCode);
     if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
       if ((this.parameter != null) && this.isMomentary) {
-        consumeKeyEvent();
+        keyEvent.consume();
         getBooleanParameter().setValue(false);
       }
     }

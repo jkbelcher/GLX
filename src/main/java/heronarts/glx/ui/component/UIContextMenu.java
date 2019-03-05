@@ -95,19 +95,19 @@ public class UIContextMenu extends UI2dComponent {
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (keyCode == KeyEvent.VK_UP) {
-      consumeKeyEvent();
+      keyEvent.consume();
       setHighlight((this.highlight + this.actions.length - 1) % this.actions.length);
     } else if (keyCode == KeyEvent.VK_DOWN) {
-      consumeKeyEvent();
+      keyEvent.consume();
       setHighlight((this.highlight + 1) % this.actions.length);
     } else if (keyCode == KeyEvent.VK_SPACE || keyCode == KeyEvent.VK_ENTER) {
-      consumeKeyEvent();
+      keyEvent.consume();
       if (this.highlight >= 0) {
         this.actions[this.highlight].onContextAction(getUI());
       }
       getUI().hideContextOverlay();
     } else if (keyCode == KeyEvent.VK_ESCAPE) {
-      consumeKeyEvent();
+      keyEvent.consume();
       getUI().hideContextOverlay();
     }
   }

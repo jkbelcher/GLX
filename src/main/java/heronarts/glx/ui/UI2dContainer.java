@@ -299,18 +299,18 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     super.onKeyPressed(keyEvent, keyChar, keyCode);
     if (this.arrowKeyFocus == ArrowKeyFocus.VERTICAL) {
       if (keyCode == KeyEvent.VK_UP) {
-        consumeKeyEvent();
+        keyEvent.consume();
         keyFocus(keyEvent, -1);
       } else if (keyCode == KeyEvent.VK_DOWN) {
-        consumeKeyEvent();
+        keyEvent.consume();
         keyFocus(keyEvent, 1);
       }
     } else if (this.arrowKeyFocus == ArrowKeyFocus.HORIZONTAL) {
       if (keyCode == KeyEvent.VK_LEFT) {
-        consumeKeyEvent();
+        keyEvent.consume();
         keyFocus(keyEvent, -1);
       } else if (keyCode == KeyEvent.VK_RIGHT) {
-        consumeKeyEvent();
+        keyEvent.consume();
         keyFocus(keyEvent, 1);
       }
     }

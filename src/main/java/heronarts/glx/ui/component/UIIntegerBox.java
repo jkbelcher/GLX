@@ -163,13 +163,13 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
 
   @Override
   protected void incrementValue(KeyEvent keyEvent) {
-    consumeKeyEvent();
+    keyEvent.consume();
     setValue(this.value + getIncrement(keyEvent));
   }
 
   @Override
   protected void decrementValue(KeyEvent keyEvent) {
-    consumeKeyEvent();
+    keyEvent.consume();
     setValue(this.value - getIncrement(keyEvent));
   }
 

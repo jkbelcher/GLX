@@ -203,17 +203,17 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (this.enabled) {
       if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
-        consumeKeyEvent();
+        keyEvent.consume();
         toggleExpanded();
       } else if (keyCode == KeyEvent.VK_DOWN) {
-        consumeKeyEvent();
+        keyEvent.consume();
         getLX().command.perform(new LXCommand.Parameter.Increment(this.parameter));
       } else if (keyCode == KeyEvent.VK_UP) {
-        consumeKeyEvent();
+        keyEvent.consume();
         getLX().command.perform(new LXCommand.Parameter.Decrement(this.parameter));
       } else if (keyCode == KeyEvent.VK_ESCAPE) {
         if (this.contextMenu.isVisible()) {
-          consumeKeyEvent();
+          keyEvent.consume();
           setExpanded(false);
         }
       }

@@ -96,10 +96,10 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (this.contextMenu.isVisible()) {
-      consumeKeyEvent();
+      keyEvent.consume();
       this.contextMenu.onKeyPressed(keyEvent, keyChar, keyCode);
     } else if (keyCode == KeyEvent.VK_SPACE || keyCode == KeyEvent.VK_ENTER) {
-      consumeKeyEvent();
+      keyEvent.consume();
       showMenu();
     }
   }

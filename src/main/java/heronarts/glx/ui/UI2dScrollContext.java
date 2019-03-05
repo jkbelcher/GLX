@@ -187,23 +187,29 @@ public class UI2dScrollContext extends UI2dContext {
   }
 
   @Override
-  protected void onMouseDragged(MouseEvent e, float mx, float my, float dx, float dy) {
-    setScrollY(this.scrollY + dy);
+  protected void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
+    mouseEvent.consume();
+    if (this.verticalScrollingEnabled) {
+      setScrollY(this.scrollY + dy);
+    }
+    if (this.horizontalScrollingEnabled) {
+      setScrollX(this.scrollY + dx);
+    }
   }
 
   @Override
-  protected void onMouseScroll(MouseEvent e, float mx, float my, float dx, float dy) {
-    if (e.isShiftDown()) {
+  protected void onMouseScroll(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
+    if (mouseEvent.isShiftDown()) {
       if (this.horizontalScrollingEnabled) {
         if (this.scrollWidth > this.width) {
-          consumeMouseWheelEvent();
+          mouseEvent.consume();
         }
         setScrollX(this.scrollX + dx);
       }
     } else {
       if (this.verticalScrollingEnabled) {
         if (this.scrollHeight > this.height) {
-          consumeMouseWheelEvent();
+          mouseEvent.consume();
         }
         setScrollY(this.scrollY + dy);
       }

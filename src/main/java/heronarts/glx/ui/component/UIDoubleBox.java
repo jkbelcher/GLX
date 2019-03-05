@@ -233,13 +233,13 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
 
   @Override
   protected void decrementValue(KeyEvent keyEvent) {
-    consumeKeyEvent();
+    keyEvent.consume();
     setValue(getValue() - getIncrement(keyEvent));
   }
 
   @Override
   protected void incrementValue(KeyEvent keyEvent) {
-    consumeKeyEvent();
+    keyEvent.consume();
     setValue(getValue() + getIncrement(keyEvent));
   }
 

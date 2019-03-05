@@ -161,7 +161,7 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     super.onKeyPressed(keyEvent, keyChar, keyCode);
     if (keyCode == KeyEvent.VK_SPACE) {
-      consumeKeyEvent();
+      keyEvent.consume();
       toggle();
     }
   }

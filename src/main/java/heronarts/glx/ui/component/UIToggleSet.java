@@ -241,10 +241,10 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   @Override
   protected void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if ((keyCode == KeyEvent.VK_LEFT) || (keyCode == KeyEvent.VK_DOWN)) {
-      consumeKeyEvent();
+      keyEvent.consume();
       setValue(LXUtils.constrain(this.value - 1, 0, this.options.length - 1));
     } else if ((keyCode == KeyEvent.VK_RIGHT) || (keyCode == KeyEvent.VK_UP)) {
-      consumeKeyEvent();
+      keyEvent.consume();
       setValue(LXUtils.constrain(this.value + 1, 0, this.options.length - 1));
     }
   }

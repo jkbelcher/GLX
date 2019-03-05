@@ -321,7 +321,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   @Override
   protected void decrementValue(KeyEvent keyEvent) {
     if (this.parameter != null) {
-      consumeKeyEvent();
+      keyEvent.consume();
       if (this.parameter instanceof DiscreteParameter) {
         DiscreteParameter dp = (DiscreteParameter) this.parameter;
         getLX().command.perform(new LXCommand.Parameter.Decrement(dp, keyEvent.isShiftDown() ? dp.getRange() / 10 : 1));
@@ -342,7 +342,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   @Override
   protected void incrementValue(KeyEvent keyEvent) {
     if (this.parameter != null) {
-      consumeKeyEvent();
+      keyEvent.consume();
       if (this.parameter instanceof DiscreteParameter) {
         DiscreteParameter dp = (DiscreteParameter) this.parameter;
         getLX().command.perform(new LXCommand.Parameter.Increment(dp, keyEvent.isShiftDown() ? dp.getRange() / 10 : 1));
@@ -358,17 +358,17 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   protected void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (!this.editing) {
       if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
-        consumeKeyEvent();
+        keyEvent.consume();
         setShowValue(true);
       } else if (isEnabled() && isEditable() && keyEvent.isShiftDown() && keyCode == KeyEvent.VK_BACKSPACE) {
-        consumeKeyEvent();
+        keyEvent.consume();
         if (this.parameter != null) {
           this.parameter.reset();
         }
       }
     }
 
-    if (isEditable() && this.keyEditable && !keyEventConsumed()) {
+    if (isEditable() && this.keyEditable && !keyEvent.isConsumed()) {
       super.onKeyPressed(keyEvent, keyChar, keyCode);
     }
   }
@@ -376,7 +376,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   @Override
   protected void onKeyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
     if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
-      consumeKeyEvent();
+      keyEvent.consume();
       setShowValue(false);
     }
   }

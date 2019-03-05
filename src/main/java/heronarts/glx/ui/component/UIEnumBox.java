@@ -48,7 +48,7 @@ public class UIEnumBox extends UIIntegerBox {
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (this.enabled && (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE)) {
-      consumeKeyEvent();
+      keyEvent.consume();
       incrementValue(keyEvent);
     } else {
       super.onKeyPressed(keyEvent, keyChar, keyCode);

@@ -114,7 +114,7 @@ public class UI {
       super.mousePressed(mouseEvent, mx, my);
 
       // Note: check
-      if (!this.mousePressContextMenu && hideContext && !contextMenuOverlay.mousePressed) {
+      if (!mouseEvent.isContextMenuConsumed() && hideContext && !contextMenuOverlay.mousePressed) {
         hideContextOverlay();
       }
     }
@@ -124,7 +124,7 @@ public class UI {
       if (topLevelKeyEventHandler != null) {
         topLevelKeyEventHandler.onKeyPressed(keyEvent, keyChar, keyCode);
       }
-      if (!keyEventConsumed()) {
+      if (!keyEvent.isConsumed()) {
         if (keyCode == KeyEvent.VK_Z && (keyEvent.isMetaDown() || keyEvent.isControlDown())) {
           if (keyEvent.isShiftDown()) {
             lx.command.redo();

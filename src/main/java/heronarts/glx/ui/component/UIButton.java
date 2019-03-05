@@ -244,7 +244,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       if (this.enabled) {
         setActive(this.isMomentary ? true : !this.active);
       }
-      consumeKeyEvent();
+      keyEvent.consume();
     }
   }
 
@@ -254,7 +254,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       if (this.enabled && this.isMomentary) {
         setActive(false);
       }
-      consumeKeyEvent();
+      keyEvent.consume();
     }
   }
 

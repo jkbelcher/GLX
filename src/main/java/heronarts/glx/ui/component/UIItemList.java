@@ -990,7 +990,7 @@ public interface UIItemList {
     public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
       boolean consume = this.impl.onKeyPressed(keyEvent, keyChar, keyCode);
       if (consume) {
-        consumeKeyEvent();
+        keyEvent.consume();
       }
     }
 
@@ -998,7 +998,7 @@ public interface UIItemList {
     public void onKeyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
       boolean consume = this.impl.onKeyReleased(keyEvent, keyChar, keyCode);
       if (consume) {
-        consumeKeyEvent();
+        keyEvent.consume();
       }
     }
 
@@ -1132,7 +1132,7 @@ public interface UIItemList {
     public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
       boolean consume = this.impl.onKeyPressed(keyEvent, keyChar, keyCode);
       if (consume) {
-        consumeKeyEvent();
+        keyEvent.consume();
       }
     }
 
@@ -1140,7 +1140,7 @@ public interface UIItemList {
     public void onKeyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
       boolean consume = this.impl.onKeyReleased(keyEvent, keyChar, keyCode);
       if (consume) {
-        consumeKeyEvent();
+        keyEvent.consume();
       }
     }
 

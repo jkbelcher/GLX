@@ -168,6 +168,7 @@ public class KeyEvent extends Event {
   public final int keyCode;
   public final int scanCode;
   private char keyChar;
+  private boolean blurConsumed = false;
 
   public KeyEvent(int keyCode, int scanCode, int action, int modifiers) {
     super(modifiers);
@@ -186,6 +187,14 @@ public class KeyEvent extends Event {
 
   public void setKeyChar(char keyChar) {
     this.keyChar = keyChar;
+  }
+
+  public void consumeBlur() {
+    this.blurConsumed = true;
+  }
+
+  public boolean isBlurConsumed() {
+    return this.blurConsumed;
   }
 
   public char getKeyChar() {
