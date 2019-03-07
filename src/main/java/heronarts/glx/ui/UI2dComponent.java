@@ -966,8 +966,8 @@ public abstract class UI2dComponent extends UIObject {
     }
     boolean needsBorder = this.needsRedraw || this.childNeedsRedraw;
     boolean needsMappingOverlay = this.needsRedraw;
-    float sx = this.scrollX;
-    float sy = this.scrollY;
+    int sx = (int) this.scrollX;
+    int sy = (int) this.scrollY;
     if (this.needsRedraw) {
       this.needsRedraw = false;
       drawBackground(ui, vg);

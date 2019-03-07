@@ -50,6 +50,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
+import static org.lwjgl.bgfx.BGFX.*;
+
 /**
  * Top-level container for all overlay UI elements.
  */
@@ -70,12 +72,14 @@ public class UI {
     private UIRoot() {
       this.ui = UI.this;
       this.view = new View(this.ui.lx);
-      this.view.setOrtho(getWidth(), getHeight());
+      this.view.setClearFlags(BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
+      this.view.setClearColor(0);
+      this.view.setScreenOrtho(getWidth(), getHeight());
     }
 
     protected void resize() {
       this.view.setRect(0, 0, (int) getWidth(), (int) getHeight());
-      this.view.setOrtho(getWidth(), getHeight());
+      this.view.setScreenOrtho(getWidth(), getHeight());
     }
 
     @Override
@@ -268,11 +272,21 @@ public class UI {
         renderStack.pop().setView(viewId++).render(vg);
       }
 
-      // Finally, draw everything into the root view
-      this.view.setId(viewId);
+      // Draw any 3d contexts
       for (UIObject child : this.mutableChildren) {
-        UILayer layer = (UILayer) child;
-        layer.draw(this.ui, this.view);
+        if (child instanceof UI3dContext) {
+          UI3dContext context3d = (UI3dContext) child;
+          context3d.view.setId(viewId++);
+          context3d.draw(this.ui, context3d.view);
+        }
+      }
+
+      // Finally, draw all 2d overlays onto the root view
+      this.view.setId(viewId++);
+      for (UIObject child : this.mutableChildren) {
+        if (child instanceof UI2dContext) {
+          ((UI2dContext) child).draw(this.ui, this.view);
+        }
       }
     }
   }
@@ -635,21 +649,21 @@ public class UI {
    * @param layer 3d context
    * @return this UI
    */
-//  public UI addLayer(UI3dContext layer) {
-//    this.root.mutableChildren.add(layer);
-//    layer.parent = this.root;
-//    layer.setUI(this);
-//    return this;
-//  }
-//
-//  public UI removeLayer(UI3dContext layer) {
-//    if (layer.parent != this.root) {
-//      throw new IllegalStateException("Cannot remove 3d layer which is not present");
-//    }
-//    this.root.mutableChildren.remove(layer);
-//    layer.parent = null;
-//    return this;
-//  }
+  public UI addLayer(UI3dContext layer) {
+    this.root.mutableChildren.add(layer);
+    layer.parent = this.root;
+    layer.setUI(this);
+    return this;
+  }
+
+  public UI removeLayer(UI3dContext layer) {
+    if (layer.parent != this.root) {
+      throw new IllegalStateException("Cannot remove 3d layer which is not present");
+    }
+    this.root.mutableChildren.remove(layer);
+    layer.parent = null;
+    return this;
+  }
 
   /**
    * Brings a layer to the top of the UI stack

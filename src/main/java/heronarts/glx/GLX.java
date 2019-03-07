@@ -51,6 +51,8 @@ public class GLX extends LX {
   private int windowHeight = 720;
   private int frameBufferWidth = 0;
   private int frameBufferHeight = 0;
+  float xContentScale = 1;
+  float yContentScale = 1;
 
   private int bgfxRenderer = BGFX_RENDERER_TYPE_COUNT;
   private int bgfxFormat = 0;
@@ -183,19 +185,18 @@ public class GLX extends LX {
       FloatBuffer xScale = stack.mallocFloat(1);
       FloatBuffer yScale = stack.mallocFloat(1);
       glfwGetWindowContentScale(this.window, xScale, yScale);
-      System.out.println("Content scale: " + xScale.get(0) + " " + yScale.get(0));
+      this.xContentScale = xScale.get(0);
+      this.yContentScale = yScale.get(0);
 
       IntBuffer xSize = stack.mallocInt(1);
       IntBuffer ySize = stack.mallocInt(1);
       glfwGetWindowSize(this.window, xSize, ySize);
       this.windowWidth = xSize.get(0);
       this.windowHeight = ySize.get(0);
-      System.out.println("Window: " + this.windowWidth + " " + this.windowHeight);
 
       glfwGetFramebufferSize(this.window, xSize, ySize);
       this.frameBufferWidth = xSize.get(0);
       this.frameBufferHeight = ySize.get(0);
-      System.out.println("Frame buffer: " + this.frameBufferWidth + " " + this.frameBufferHeight);
     }
 
     glfwSetWindowCloseCallback(this.window, (window) -> {
@@ -204,7 +205,6 @@ public class GLX extends LX {
     });
 
     glfwSetWindowSizeCallback(this.window, (window, width, height) -> {
-      System.out.println("Window resized to: " + width + "x" + height);
       this.windowWidth = width;
       this.windowHeight = height;
       bgfx_reset(this.windowWidth, this.windowHeight, BGFX_RESET_VSYNC, this.bgfxFormat);
@@ -213,7 +213,6 @@ public class GLX extends LX {
     });
 
     glfwSetFramebufferSizeCallback(this.window, (window, width, height) -> {
-      System.out.println("Frame buffer resized to: " + width + "x" + height);
       this.frameBufferWidth = width;
       this.frameBufferHeight = height;
       // TODO(mcslee): should we redraw here? seems redundant...

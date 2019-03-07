@@ -43,7 +43,7 @@ public class Tex2d {
   protected final Matrix4f modelMatrix = new Matrix4f();
   protected final FloatBuffer modelMatrixBuf;
 
-  private final float[][] VERTEX_BUFFER = {
+  private final static float[][] VERTEX_BUFFER_DATA = {
     {0f, 0f, 0f, 0f, 0f },
     {1f, 0f, 0f, 1f, 0f },
     {0f, 1f, 0f, 0f, 1f },
@@ -61,8 +61,8 @@ public class Tex2d {
     bgfx_vertex_decl_add(this.vertexDecl, BGFX_ATTRIB_TEXCOORD0, 2, BGFX_ATTRIB_TYPE_FLOAT, false, false);
     bgfx_vertex_decl_end(this.vertexDecl);
 
-    this.vertexBuffer = MemoryUtil.memAlloc(VERTEX_BUFFER.length * 20);
-    for (float[] fl : VERTEX_BUFFER) {
+    this.vertexBuffer = MemoryUtil.memAlloc(VERTEX_BUFFER_DATA.length * 5 * Float.BYTES);
+    for (float[] fl : VERTEX_BUFFER_DATA) {
       for (float f : fl) {
         this.vertexBuffer.putFloat(f);
       }
@@ -84,13 +84,29 @@ public class Tex2d {
     }
   }
 
+  public void submit(View view, Texture texture, VertexBuffer vertexBuffer) {
+    this.modelMatrix.identity();
+    this.modelMatrix.get(this.modelMatrixBuf);
+    bgfx_set_transform(this.modelMatrixBuf);
+    bgfx_set_texture(0, this.uniformTexture, texture.getHandle(), 0xffffffff);
+    bgfx_set_state(
+      BGFX_STATE_WRITE_RGB |
+      BGFX_STATE_WRITE_A |
+      BGFX_STATE_WRITE_Z |
+      BGFX_STATE_BLEND_ALPHA,
+      0
+    );
+    bgfx_set_vertex_buffer(0, vertexBuffer.getHandle(), 0, vertexBuffer.getNumVertices());
+    bgfx_submit(view.getId(), this.program, 0, false);
+  }
+
   public void submit(View view, short texHandle, float x, float y, float w, float h) {
     this.modelMatrix.identity().translate(x, y, 0).scale(w, h, 1);
     this.modelMatrix.get(this.modelMatrixBuf);
     bgfx_set_transform(this.modelMatrixBuf);
     bgfx_set_texture(0, this.uniformTexture, texHandle, 0xffffffff);
     bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_PT_TRISTRIP, 0);
-    bgfx_set_vertex_buffer(0, this.vbh, 0, VERTEX_BUFFER.length);
+    bgfx_set_vertex_buffer(0, this.vbh, 0, VERTEX_BUFFER_DATA.length);
     bgfx_submit(view.getId(), this.program, 0, false);
   }
 

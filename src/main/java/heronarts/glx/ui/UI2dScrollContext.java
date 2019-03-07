@@ -188,11 +188,12 @@ public class UI2dScrollContext extends UI2dContext {
 
   @Override
   protected void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-    mouseEvent.consume();
     if (this.verticalScrollingEnabled) {
+      mouseEvent.consume();
       setScrollY(this.scrollY + dy);
     }
     if (this.horizontalScrollingEnabled) {
+      mouseEvent.consume();
       setScrollX(this.scrollY + dx);
     }
   }
@@ -203,15 +204,15 @@ public class UI2dScrollContext extends UI2dContext {
       if (this.horizontalScrollingEnabled) {
         if (this.scrollWidth > this.width) {
           mouseEvent.consume();
+          setScrollX(this.scrollX + dx);
         }
-        setScrollX(this.scrollX + dx);
       }
     } else {
       if (this.verticalScrollingEnabled) {
         if (this.scrollHeight > this.height) {
           mouseEvent.consume();
+          setScrollY(this.scrollY + dy);
         }
-        setScrollY(this.scrollY + dy);
       }
     }
   }

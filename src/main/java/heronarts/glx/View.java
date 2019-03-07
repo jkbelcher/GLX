@@ -22,6 +22,7 @@ import static org.lwjgl.bgfx.BGFX.*;
 
 import java.nio.FloatBuffer;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 import heronarts.glx.ui.UI2dContext;
@@ -90,7 +91,42 @@ public class View {
     return this;
   }
 
-  public View setOrtho(float width, float height) {
+  public int getWidth() {
+    return this.width;
+  }
+
+  public int getHeight() {
+    return this.height;
+  }
+
+  public float getAspectRatio() {
+    return this.width / (float) this.height;
+  }
+
+  public View setCamera(Vector3f eye, Vector3f center, Vector3f up) {
+    // Up is down in GL-land... flip and un-flip our Y-axis before doing camera-stuffs to conform...
+    this.viewMatrix.scaling(1, -1, 1).lookAtLH(eye, center, up).scale(1, -1, 1);
+    this.viewMatrix.get(this.viewMatrixBuf);
+    _setViewTransform();
+    return this;
+  }
+
+  public View setOrthographic(float x1, float x2, float y1, float y2, float z1, float z2) {
+    this.projectionMatrix.setOrthoLH(x1, x2, y1, y2, z1, z2, this.glx.zZeroToOne);
+    this.projectionMatrix.get(this.projectionMatrixBuf);
+    _setViewTransform();
+    return this;
+  }
+
+
+  public View setPerspective(float radians, float aspectRatio, float zNear, float zFar) {
+    this.projectionMatrix.setPerspectiveLH(radians, aspectRatio, zNear, zFar, this.glx.zZeroToOne);
+    this.projectionMatrix.get(this.projectionMatrixBuf);
+    _setViewTransform();
+    return this;
+  }
+
+  public View setScreenOrtho(float width, float height) {
     this.viewMatrix.identity();
     this.viewMatrix.get(this.viewMatrixBuf);
     this.projectionMatrix.setOrthoLH(0, width, height, 0, -1, 1, this.glx.zZeroToOne);
