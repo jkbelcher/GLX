@@ -136,7 +136,7 @@ public class UIPointCloud extends UI3dComponent implements LXModel.Listener {
   }
 
   public final BoundedParameter pointSize =
-    new BoundedParameter("Point Size", 5, 0, 100)
+    new BoundedParameter("Point Size", 3, 0, 100)
     .setDescription("Size of points rendered in the preview display");
 
   private final GLX lx;
