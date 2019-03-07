@@ -59,7 +59,8 @@ public class UIColorBox extends UI2dComponent implements UIFocus {
 
   @Override
   public void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-    parameter.hue.setValue((parameter.hue.getValue() + 360 + 2*dx + 2*dy) % 360);
+    mouseEvent.consume();
+    this.parameter.hue.setValue((parameter.hue.getValue() + 360 + 2*dx + 2*dy) % 360);
   }
 
   @Override

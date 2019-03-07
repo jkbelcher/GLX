@@ -365,33 +365,35 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
 
   @Override
   protected void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-    if (isEnabled()) {
-      float dv, dim;
-      boolean valid;
-      switch (this.direction) {
-      case VERTICAL:
-        dv = -dy;
-        dim = this.handleHeight;
-        valid = (my > 0 && dy > 0) || (my < dim && dy < 0);
-        break;
-      default:
-      case HORIZONTAL:
-        dv = dx;
-        dim = this.width;
-        valid = (mx > 0 && dx > 0) || (mx < dim && dx < 0);
-        break;
-      }
-      if (valid) {
-        float delta = dv / (dim - HANDLE_SIZE - 2*PADDING);
-        LXCompoundModulation modulation = getModulation(mouseEvent.isShiftDown());
-        if (modulation != null && (mouseEvent.isMetaDown() || mouseEvent.isControlDown())) {
-          modulation.range.setValue(modulation.range.getValue() + delta);
-        } else {
-          if (mouseEvent.isShiftDown()) {
-            delta /= 10;
-          }
-          setNormalized(LXUtils.constrain(getNormalized() + delta, 0, 1));
+    mouseEvent.consume();
+    if (!isEnabled() || !isEditable()) {
+      return;
+    }
+    float dv, dim;
+    boolean valid;
+    switch (this.direction) {
+    case VERTICAL:
+      dv = -dy;
+      dim = this.handleHeight;
+      valid = (my > 0 && dy > 0) || (my < dim && dy < 0);
+      break;
+    default:
+    case HORIZONTAL:
+      dv = dx;
+      dim = this.width;
+      valid = (mx > 0 && dx > 0) || (mx < dim && dx < 0);
+      break;
+    }
+    if (valid) {
+      float delta = dv / (dim - HANDLE_SIZE - 2*PADDING);
+      LXCompoundModulation modulation = getModulation(mouseEvent.isShiftDown());
+      if (modulation != null && (mouseEvent.isMetaDown() || mouseEvent.isControlDown())) {
+        modulation.range.setValue(modulation.range.getValue() + delta);
+      } else {
+        if (mouseEvent.isShiftDown()) {
+          delta /= 10;
         }
+        setNormalized(LXUtils.constrain(getNormalized() + delta, 0, 1));
       }
     }
   }
