@@ -348,6 +348,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   @Override
   protected void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
     if (this.enabled && this.editable) {
+      mouseEvent.consume();
       this.dAccum -= dy;
       int offset = (int) (this.dAccum / 5);
       this.dAccum = this.dAccum - (offset * 5);

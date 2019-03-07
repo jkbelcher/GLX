@@ -25,6 +25,8 @@
 package heronarts.glx.ui;
 
 import org.joml.Vector3f;
+import org.lwjgl.bgfx.BGFX;
+
 import com.google.gson.JsonObject;
 
 import heronarts.glx.View;
@@ -645,6 +647,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     if (this.interactionMode.getEnum() != InteractionMode.ZOOM) {
       throw new IllegalStateException("setCenter() only allowed in ZOOM mode");
     }
+
     this.camera.x.setValue(this.center.x = x);
     this.camera.y.setValue(this.center.y = y);
     this.camera.z.setValue(this.center.z = z);
@@ -738,6 +741,9 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
       throw new IllegalArgumentException("Not currently supported to draw a 3dContext into a different view");
     }
 
+    // Make sure we clear the view
+    BGFX.bgfx_touch(this.view.getId());
+
     if (!isVisible()) {
       return;
     }
@@ -800,7 +806,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
         float cosPhi = (float) Math.cos(this.phiDamped.getValue());
 
         float dcx = dx * 2.f / getWidth() * this.radiusDamped.getValuef() * tanPerspective;
-        float dcy = -dy * 2.f / getHeight() * this.radiusDamped.getValuef() * tanPerspective;
+        float dcy = dy * 2.f / getHeight() * this.radiusDamped.getValuef() * tanPerspective;
 
         this.camera.x.incrementValue(-dcx * cosTheta - dcy * sinTheta * sinPhi);
         this.camera.y.incrementValue(dcy * cosPhi);
@@ -808,7 +814,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
 
       } else {
         this.camera.theta.incrementValue(-dx / getWidth() * 1.5 * Math.PI);
-        this.camera.phi.incrementValue(-dy / getHeight() * 1.5 * Math.PI);
+        this.camera.phi.incrementValue(dy / getHeight() * 1.5 * Math.PI);
       }
       break;
     case MOVE:

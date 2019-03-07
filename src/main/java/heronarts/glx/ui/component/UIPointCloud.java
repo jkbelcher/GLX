@@ -34,26 +34,16 @@ import heronarts.glx.VertexDeclaration;
 import heronarts.glx.View;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI3dComponent;
-import heronarts.lx.color.LXColor;
+import heronarts.lx.LXEngine;
+import heronarts.lx.model.LXModel;
+import heronarts.lx.model.LXPoint;
 import heronarts.lx.parameter.BoundedParameter;
 
-public class UIPointCloud extends UI3dComponent {
-
-  public final BoundedParameter pointSize =
-    new BoundedParameter("Point Size", 5, 0, 100)
-    .setDescription("Size of points rendered in the preview display");
-
-  private Program program;
-  private VertexBuffer vertexBuffer;
-  private DynamicVertexBuffer colorBuffer;
-  private Texture texture;
-
-  private static final int NUM_LEDS = 500;
+public class UIPointCloud extends UI3dComponent implements LXModel.Listener {
 
   private class Program extends ShaderProgram {
     private short uniformTexture;
     private short uniformDimensions;
-
     private final FloatBuffer dimensionsBuffer;
 
     Program(GLX lx) {
@@ -73,7 +63,7 @@ public class UIPointCloud extends UI3dComponent {
 
     @Override
     public void setVertexBuffers(View view) {
-      bgfx_set_vertex_buffer(0, vertexBuffer.getHandle(), 0, vertexBuffer.getNumVertices());
+      bgfx_set_vertex_buffer(0, modelBuffer.getHandle(), 0, modelBuffer.getNumVertices());
       bgfx_set_dynamic_vertex_buffer(1, colorBuffer.getHandle(), 0, colorBuffer.getNumVertices());
     }
 
@@ -95,77 +85,168 @@ public class UIPointCloud extends UI3dComponent {
     }
   }
 
+  private class ModelBuffer extends VertexBuffer {
+
+    private static final int VERTICES_PER_POINT = 6;
+
+    private ModelBuffer(GLX lx) {
+      super(lx, model.size * VERTICES_PER_POINT, VertexDeclaration.ATTRIB_POSITION | VertexDeclaration.ATTRIB_TEXCOORD0);
+    }
+
+    @Override
+    protected void bufferData(ByteBuffer buffer) {
+      for (LXPoint p : model.points) {
+        buffer.putFloat(p.x);
+        buffer.putFloat(p.y);
+        buffer.putFloat(p.z);
+        buffer.putFloat(0f);
+        buffer.putFloat(0f);
+
+        buffer.putFloat(p.x);
+        buffer.putFloat(p.y);
+        buffer.putFloat(p.z);
+        buffer.putFloat(1f);
+        buffer.putFloat(0f);
+
+        buffer.putFloat(p.x);
+        buffer.putFloat(p.y);
+        buffer.putFloat(p.z);
+        buffer.putFloat(0f);
+        buffer.putFloat(1f);
+
+        buffer.putFloat(p.x);
+        buffer.putFloat(p.y);
+        buffer.putFloat(p.z);
+        buffer.putFloat(0f);
+        buffer.putFloat(1f);
+
+        buffer.putFloat(p.x);
+        buffer.putFloat(p.y);
+        buffer.putFloat(p.z);
+        buffer.putFloat(1f);
+        buffer.putFloat(0f);
+
+        buffer.putFloat(p.x);
+        buffer.putFloat(p.y);
+        buffer.putFloat(p.z);
+        buffer.putFloat(1f);
+        buffer.putFloat(1f);
+      }
+    }
+  }
+
+  public final BoundedParameter pointSize =
+    new BoundedParameter("Point Size", 5, 0, 100)
+    .setDescription("Size of points rendered in the preview display");
+
+  private final GLX lx;
+
+  private final Program program;
+  private final Texture texture;
+
+  private VertexBuffer modelBuffer;
+  private DynamicVertexBuffer colorBuffer;
+
+  // This is the model that is active in the engine and we listen to for changes
+  private LXModel model;
+
+  // This is the model that our current vertex buffers (UI thread) is based upon,
+  // which could be 1 frame behind the engine!
+  private LXModel bufferModel;
+
+  private boolean updateModelBuffer = false;
+
   public UIPointCloud(GLX lx) {
+    this.lx = lx;
     this.program = new Program(lx);
     this.texture = new Texture("led.ktx");
-    this.colorBuffer = new DynamicVertexBuffer(lx, NUM_LEDS * 6, VertexDeclaration.ATTRIB_COLOR0);
-    this.vertexBuffer = new VertexBuffer(lx, NUM_LEDS * 6, VertexDeclaration.ATTRIB_POSITION | VertexDeclaration.ATTRIB_TEXCOORD0) {
-
-      @Override
-      protected void bufferData(ByteBuffer buffer) {
-        for (int i = 0; i < NUM_LEDS; ++i) {
-          float x = (float) Math.random() * 200 - 100;
-          float y = (float) Math.random() * 200 - 100;
-          float z = 0;
-
-          buffer.putFloat(x);
-          buffer.putFloat(y);
-          buffer.putFloat(z);
-          buffer.putFloat(0f);
-          buffer.putFloat(0f);
-
-          buffer.putFloat(x);
-          buffer.putFloat(y);
-          buffer.putFloat(z);
-          buffer.putFloat(1f);
-          buffer.putFloat(0f);
-
-          buffer.putFloat(x);
-          buffer.putFloat(y);
-          buffer.putFloat(z);
-          buffer.putFloat(0f);
-          buffer.putFloat(1f);
-
-          buffer.putFloat(x);
-          buffer.putFloat(y);
-          buffer.putFloat(z);
-          buffer.putFloat(0f);
-          buffer.putFloat(1f);
-
-          buffer.putFloat(x);
-          buffer.putFloat(y);
-          buffer.putFloat(z);
-          buffer.putFloat(1f);
-          buffer.putFloat(0f);
-
-          buffer.putFloat(x);
-          buffer.putFloat(y);
-          buffer.putFloat(z);
-          buffer.putFloat(1f);
-          buffer.putFloat(1f);
-        }
-      }
-    };
-
+    this.colorBuffer = null;
+    this.modelBuffer = null;
+    this.model = null;
+    this.bufferModel = null;
+    setModel(lx.getModel());
   }
 
   public void dispose() {
     this.texture.dispose();
-    this.vertexBuffer.dispose();
+    this.modelBuffer.dispose();
     this.colorBuffer.dispose();
     this.program.dispose();
   }
 
+  private void setModel(LXModel model) {
+    if (model == null) {
+      throw new IllegalArgumentException("May not set null model on point cloud");
+    }
+    if (this.model != model) {
+      if (this.model != null) {
+        this.model.removeListener(this);
+      }
+      this.model = model;
+      model.addListener(this);
+    }
+  }
+
+  @Override
+  public void onModelUpdated(LXModel model) {
+    // Mark the model buffer as needing an update
+    this.updateModelBuffer = true;
+  }
+
+  private void buildModelBuffer() {
+    if (this.modelBuffer != null) {
+      this.modelBuffer.dispose();
+    }
+    this.modelBuffer = new ModelBuffer(lx);
+    this.updateModelBuffer = false;
+  }
+
+  private void buildColorBuffer() {
+    if (this.colorBuffer != null) {
+      this.colorBuffer.dispose();
+    }
+    this.colorBuffer = new DynamicVertexBuffer(lx, this.model.size * ModelBuffer.VERTICES_PER_POINT, VertexDeclaration.ATTRIB_COLOR0);
+  }
+
   @Override
   public void onDraw(UI ui, View view) {
+    LXEngine.Frame frame = this.lx.uiFrame;
+    setModel(frame.getModel());
+
+    // Empty model? Don't do anything.
+    if (this.model.size == 0) {
+      return;
+    }
+
+    // Is our buffer model out of date? Rebuild it if so...
+    if (this.bufferModel != this.model) {
+      buildModelBuffer();
+      // Only need to rebuild the color buffer if its size has changed
+      if (this.bufferModel == null || (this.bufferModel.size != this.model.size)) {
+        buildColorBuffer();
+      }
+      // This is now the model our buffers are based upon
+      this.bufferModel = this.model;
+    }
+
+    // Rebuild the model buffer if points in the model have moved
+    if (this.updateModelBuffer) {
+      buildModelBuffer();
+    }
+
+    // Update the color data
     ByteBuffer colorData = this.colorBuffer.getVertexData();
     colorData.rewind();
-    int c = LXColor.hsb(System.currentTimeMillis() / 100 % 360., 100, 100);
-    for (int i = 0; i < this.colorBuffer.getNumVertices(); ++i) {
-      colorData.putInt(c);
+    for (int c : frame.getColors()) {
+      for (int i = 0; i < ModelBuffer.VERTICES_PER_POINT; ++i) {
+        colorData.putInt(c);
+      }
     }
     colorData.flip();
     this.colorBuffer.update();
+
+    // Submit our drawing program!
     this.program.submit(view);
   }
+
 }

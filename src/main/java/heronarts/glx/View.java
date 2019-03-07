@@ -104,8 +104,7 @@ public class View {
   }
 
   public View setCamera(Vector3f eye, Vector3f center, Vector3f up) {
-    // Up is down in GL-land... flip and un-flip our Y-axis before doing camera-stuffs to conform...
-    this.viewMatrix.scaling(1, -1, 1).lookAtLH(eye, center, up).scale(1, -1, 1);
+    this.viewMatrix.setLookAtLH(eye, center, up);
     this.viewMatrix.get(this.viewMatrixBuf);
     _setViewTransform();
     return this;

@@ -40,6 +40,7 @@ import org.lwjgl.system.Platform;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
+import heronarts.lx.LXEngine;
 import heronarts.lx.model.GridModel;
 import heronarts.lx.model.LXModel;
 
@@ -64,6 +65,7 @@ public class GLX extends LX {
   private final InputDispatch inputDispatch = new InputDispatch(this);
 
   public final UI ui;
+  public final LXEngine.Frame uiFrame;
 
   public final class Programs {
 
@@ -91,10 +93,13 @@ public class GLX extends LX {
     initializeWindow();
     this.zZeroToOne = !bgfx_get_caps().homogeneousDepth();
 
-    // Initialize shader programs
+    // Initialize global shader programs and VG library
     this.program = new Programs(this);
-
     this.vg = new VGraphics(this);
+
+    // Initialize LED frame buffer for the UI
+    this.uiFrame = new LXEngine.Frame(this);
+    this.engine.getFrameNonThreadSafe(this.uiFrame);
 
     // Create the UI system
     this.ui = buildUI();
@@ -282,7 +287,11 @@ public class GLX extends LX {
 
   private void loop() {
     while (!glfwWindowShouldClose(this.window)) {
+      // Poll for input events
       this.inputDispatch.poll();
+
+      // Copy the latest engine-rendered LED frame
+      this.engine.copyFrameThreadSafe(this.uiFrame);
       draw();
     }
   }
