@@ -80,7 +80,7 @@ public interface UIContextActions {
 
       @Override
       public void onContextAction(UI ui) {
-        ui.lx.setClipboardString(oscAddress);
+        ui.lx.setSystemClipboardString(oscAddress);
       }
     }
   }

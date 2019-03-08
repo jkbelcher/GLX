@@ -21,6 +21,8 @@ package heronarts.glx;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.util.tinyfd.TinyFileDialogs.*;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +30,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.bgfx.BGFXPlatform.*;
+
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.bgfx.BGFXInit;
 import org.lwjgl.bgfx.BGFXPlatformData;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -41,7 +45,6 @@ import heronarts.glx.ui.UI;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
-import heronarts.lx.model.GridModel;
 import heronarts.lx.model.LXModel;
 
 public class GLX extends LX {
@@ -290,13 +293,19 @@ public class GLX extends LX {
       // Poll for input events
       this.inputDispatch.poll();
 
-      // Copy the latest engine-rendered LED frame
-      this.engine.copyFrameThreadSafe(this.uiFrame);
       draw();
+
+      // Copy something to the clipboard
+      if (this._setSystemClipboardString != null) {
+        glfwSetClipboardString(this.window, this._setSystemClipboardString);
+        this._setSystemClipboardString = null;
+      }
     }
   }
 
   private void draw() {
+    // Copy the latest engine-rendered LED frame
+    this.engine.copyFrameThreadSafe(this.uiFrame);
     this.ui.draw();
     bgfx_frame(false);
   }
@@ -305,6 +314,68 @@ public class GLX extends LX {
   public void dispose() {
     this.program.dispose();
     super.dispose();
+  }
+
+  // Prevent stacking up multiple dialogs
+  private volatile boolean dialogShowing = new Boolean(false);
+
+  public void showSaveDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    new Thread() {
+      @Override
+      public void run() {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
+          aFilterPatterns.put(stack.UTF8("*.lxp"));
+          aFilterPatterns.flip();
+          dialogShowing = true;
+          String path = tinyfd_saveFileDialog(
+            "Save Project",
+            mediaPath() + File.separator + "default.lxp",
+            aFilterPatterns,
+            "LX Project files (*.lxp)"
+         );
+         dialogShowing = false;
+         if (path != null) {
+           engine.addTask(() -> {
+             saveProject(new File(path));
+           });
+         }
+        }
+      }
+    }.start();
+  }
+
+  public void showOpenDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    new Thread() {
+      @Override
+      public void run() {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
+          aFilterPatterns.put(stack.UTF8("*.lxp"));
+          aFilterPatterns.flip();
+          dialogShowing = true;
+          String path = tinyfd_openFileDialog(
+            "Open Project",
+            mediaPath(),
+            aFilterPatterns,
+            "LX Project files (*.lxp)",
+            false
+          );
+          dialogShowing = false;
+          if (path != null) {
+            engine.addTask(() -> {
+              openProject(new File(path));
+            });
+          }
+        }
+      }
+    }.start();
   }
 
   public String mediaPath() {
@@ -317,16 +388,11 @@ public class GLX extends LX {
     return new File(path);
   }
 
-  public void setClipboardString(String str) {
-    glfwSetClipboardString(this.window, str);
+  private String _setSystemClipboardString = null;
+
+  @Override
+  public void setSystemClipboardString(String str) {
+    this._setSystemClipboardString = str;
   }
 
-  public static void main(String[] args) {
-    try {
-      new GLX(new Flags(), new GridModel(10, 10)).run();
-    } catch (Exception x) {
-      System.err.println("GLX error: " + x.getMessage());
-      x.printStackTrace();
-    }
-  }
 }

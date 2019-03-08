@@ -25,6 +25,8 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.system.MemoryUtil;
 
+import com.google.gson.JsonObject;
+
 import heronarts.glx.DynamicVertexBuffer;
 import heronarts.glx.GLX;
 import heronarts.glx.ShaderProgram;
@@ -34,12 +36,14 @@ import heronarts.glx.VertexDeclaration;
 import heronarts.glx.View;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI3dComponent;
+import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
+import heronarts.lx.LXSerializable;
 import heronarts.lx.model.LXModel;
 import heronarts.lx.model.LXPoint;
 import heronarts.lx.parameter.BoundedParameter;
 
-public class UIPointCloud extends UI3dComponent implements LXModel.Listener {
+public class UIPointCloud extends UI3dComponent implements LXModel.Listener, LXSerializable {
 
   private class Program extends ShaderProgram {
     private short uniformTexture;
@@ -247,6 +251,19 @@ public class UIPointCloud extends UI3dComponent implements LXModel.Listener {
 
     // Submit our drawing program!
     this.program.submit(view);
+  }
+
+  private static final String KEY_POINT_SIZE = "pointSize";
+
+  @Override
+  public void save(LX lx, JsonObject object) {
+    object.addProperty(KEY_POINT_SIZE, this.pointSize.getValue());
+  }
+
+  @Override
+  public void load(LX lx, JsonObject object) {
+    LXSerializable.Utils.loadDouble(this.pointSize, object, KEY_POINT_SIZE);
+
   }
 
 }

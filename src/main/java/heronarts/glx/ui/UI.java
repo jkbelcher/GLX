@@ -52,6 +52,7 @@ import java.util.Stack;
 
 import static org.lwjgl.bgfx.BGFX.*;
 
+
 /**
  * Top-level container for all overlay UI elements.
  */
@@ -792,22 +793,6 @@ public class UI {
     }
   }
 
-  public final void onSaveAs(final File file) {
-    if (file != null) {
-      this.lx.engine.addTask(() -> {
-        lx.saveProject(file);
-      });
-    }
-  }
-
-  public final void onLoad(final File file) {
-    if (file != null) {
-      this.lx.engine.addTask(() -> {
-        lx.openProject(file);
-      });
-    }
-  }
-
   private void _engineThreadDefaultKeyEvent(KeyEvent keyEvent) {
     int keyCode = keyEvent.getKeyCode();
     KeyEvent.Action action = keyEvent.getAction();
@@ -816,8 +801,7 @@ public class UI {
       case KeyEvent.VK_S:
         if (keyEvent.isCommand()) {
           if (keyEvent.isShiftDown() || lx.getProject() == null) {
-            // TODO(mcslee): restore this
-            // this.applet.selectOutput("Select a file to save:", "onSaveAs", this.applet.saveFile("Project.lxp"), this);
+            lx.showSaveDialog();
           } else {
             lx.saveProject();
           }
@@ -825,8 +809,7 @@ public class UI {
         break;
       case KeyEvent.VK_O:
         if (keyEvent.isCommand()) {
-          // TODO(mcslee): restore this
-          // this.applet.selectInput("Select a file to load:", "onLoad", this.applet.saveFile("default.lxp"), this);
+          lx.showOpenDialog();
         }
         break;
 
