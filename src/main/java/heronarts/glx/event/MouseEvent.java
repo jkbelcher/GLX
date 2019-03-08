@@ -55,7 +55,7 @@ public class MouseEvent extends Event {
 
   public final Action action;
   public final int button;
-  private int count = 0;
+  private int count = 1;
   public final float x;
   public final float y;
   public final float dx;

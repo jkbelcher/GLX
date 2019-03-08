@@ -47,12 +47,18 @@ public abstract class Event {
   public static final int CAPS_LOCK = GLFW_MOD_CAPS_LOCK;
   public static final int NUM_LOCK = GLFW_MOD_NUM_LOCK;
 
+  public final double time;
   public final int modifiers;
 
   private boolean isConsumed = false;
 
   protected Event(int modifiers) {
     this.modifiers = modifiers;
+    this.time = glfwGetTime();
+  }
+
+  public double getTime() {
+    return this.time;
   }
 
   public int getModifiers() {

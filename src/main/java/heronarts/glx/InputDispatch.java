@@ -46,6 +46,7 @@ public class InputDispatch implements LXEngine.Dispatch {
   private double cursorX = 0, cursorY = 0;
   private boolean macosControlClick = false;
   private KeyEvent keyEvent = null;
+  private MouseEvent previousMousePress = null;
 
   private final List<Event> lxThreadEventQueue = new ArrayList<Event>();
   private final List<Event> glfwThreadEventQueue = Collections.synchronizedList(new ArrayList<Event>());
@@ -98,7 +99,18 @@ public class InputDispatch implements LXEngine.Dispatch {
       }
     }
 
-    this.glfwThreadEventQueue.add(new MouseEvent(action, button, (float) this.cursorX, (float) this.cursorY, mods));
+    // Create the mouse event
+    MouseEvent mouseEvent = new MouseEvent(action, button, (float) this.cursorX, (float) this.cursorY, mods);
+
+    // Detect double-presses
+    if (action == GLFW_PRESS) {
+      if ((this.previousMousePress != null) && ((mouseEvent.getTime() - this.previousMousePress.getTime()) < 0.5)) {
+        mouseEvent.setCount(this.previousMousePress.getCount() + 1);
+      }
+      this.previousMousePress = mouseEvent;
+    }
+
+    this.glfwThreadEventQueue.add(mouseEvent);
   }
 
   void glfwScrollCallback(long window, double dx, double dy) {
