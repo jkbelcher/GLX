@@ -215,7 +215,9 @@ public class GLX extends LX {
 
     glfwSetWindowCloseCallback(this.window, (window) -> {
       System.out.println("Trying to close window...");
-      // TODO(mcslee): check with LX for needing a save work prompt
+      if (!confirmChangedSaved("quit")) {
+        glfwSetWindowShouldClose(this.window, false);
+      }
     });
 
     glfwSetWindowSizeCallback(this.window, (window, width, height) -> {
@@ -302,7 +304,6 @@ public class GLX extends LX {
     while (!glfwWindowShouldClose(this.window)) {
       // Poll for input events
       this.inputDispatch.poll();
-
       draw();
 
       // Copy something to the clipboard
@@ -362,30 +363,37 @@ public class GLX extends LX {
     if (this.dialogShowing) {
       return;
     }
-    new Thread() {
-      @Override
-      public void run() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-          aFilterPatterns.put(stack.UTF8("*.lxp"));
-          aFilterPatterns.flip();
-          dialogShowing = true;
-          String path = tinyfd_openFileDialog(
-            "Open Project",
-            mediaPath(),
-            aFilterPatterns,
-            "LX Project files (*.lxp)",
-            false
-          );
-          dialogShowing = false;
-          if (path != null) {
-            engine.addTask(() -> {
-              openProject(new File(path));
-            });
+    if (confirmChangedSaved("open another project")) {
+      new Thread() {
+        @Override
+        public void run() {
+          try (MemoryStack stack = MemoryStack.stackPush()) {
+            PointerBuffer aFilterPatterns = stack.mallocPointer(1);
+            aFilterPatterns.put(stack.UTF8("*.lxp"));
+            aFilterPatterns.flip();
+            dialogShowing = true;
+            String path = tinyfd_openFileDialog(
+              "Open Project",
+              mediaPath(),
+              aFilterPatterns,
+              "LX Project files (*.lxp)",
+              false
+            );
+            dialogShowing = false;
+            if (path != null) {
+              engine.addTask(() -> {
+                openProject(new File(path));
+              });
+            }
           }
         }
-      }
-    }.start();
+      }.start();
+    }
+  }
+
+  @Override
+  protected boolean showConfirmUnsavedProjectDialog(String message) {
+    return tinyfd_messageBox("Project has unsaved changes", "Your project has unsaved changes, really " + message + "?", "yesno", "question", false);
   }
 
   public String mediaPath() {
