@@ -183,7 +183,13 @@ public class GLX extends LX {
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
     // Create GLFW window
-    this.window = glfwCreateWindow(this.windowWidth, this.windowHeight, "LXStudio", NULL, NULL);
+    this.window = glfwCreateWindow(
+      this.windowWidth,
+      this.windowHeight,
+      "LXStudio",
+      NULL,
+      NULL
+    );
     if (this.window == NULL) {
       throw new RuntimeException("Failed to create the GLFW window");
     }
@@ -262,6 +268,10 @@ public class GLX extends LX {
     System.out.println("Using BGFX renderer: " + rendererName);
 
     // bgfx_set_debug(BGFX_DEBUG_TEXT);
+  }
+
+  protected void setWindowSize(int windowWidth, int windowHeight) {
+    glfwSetWindowSize(this.window, windowWidth, windowHeight);
   }
 
   private void initializePlatformData() {
