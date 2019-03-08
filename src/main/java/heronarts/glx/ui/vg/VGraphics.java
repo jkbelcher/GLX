@@ -26,6 +26,7 @@ package heronarts.glx.ui.vg;
 
 import static org.lwjgl.system.MemoryUtil.*;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -36,8 +37,10 @@ import org.lwjgl.nanovg.NVGColor;
 import org.lwjgl.nanovg.NVGLUFramebuffer;
 import org.lwjgl.nanovg.NVGPaint;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import heronarts.glx.GLX;
+import heronarts.glx.GLXUtils;
 import heronarts.glx.View;
 
 import static org.lwjgl.bgfx.BGFX.*;
@@ -146,9 +149,11 @@ public class VGraphics {
     public final int height;
     public final Paint paint;
     private final NVGColor tint = NVGColor.create();
+    private final ByteBuffer imageData;
 
-    private Image(int id, int w, int h) {
+    private Image(int id, ByteBuffer imageData, int w, int h) {
       this.id = id;
+      this.imageData = imageData;
       this.width = w;
       this.height = h;
       this.paint = imagePattern(0, 0, w, h, id);
@@ -173,6 +178,11 @@ public class VGraphics {
       this.tint.g(g);
       this.tint.b(b);
       this.tint.a(a);
+    }
+
+    public void dispose() {
+      nvgDeleteImage(vg, this.id);
+      MemoryUtil.memFree(this.imageData);
     }
   }
 
@@ -486,18 +496,30 @@ public class VGraphics {
     return this;
   }
 
-  public Font createFontMem(String name, ByteBuffer fontData) {
+  public Image loadImage(String imagePath) throws IOException {
+    return createImageMem(GLXUtils.loadResource("resources/images/" + imagePath));
+  }
+
+  public Image loadIcon(String iconPath) throws IOException {
+    return createImageMem(GLXUtils.loadResource("resources/icons/" + iconPath));
+  }
+
+  public Font loadFont(String fontName, String fontPath) throws IOException {
+    return createFontMem(fontName, GLXUtils.loadResource("resources/fonts/" + fontPath));
+  }
+
+  private Font createFontMem(String name, ByteBuffer fontData) {
     int font = nvgCreateFontMem(this.vg, name, fontData, 0);
     return new Font(font, name);
   }
 
-  public Image createImageMem(ByteBuffer imageData) {
+  private Image createImageMem(ByteBuffer imageData) {
     int image = nvgCreateImageMem(this.vg, 0, imageData);
     try (MemoryStack stack = MemoryStack.stackPush()) {
       IntBuffer width = stack.mallocInt(1);
       IntBuffer height = stack.mallocInt(1);
       nvgImageSize(this.vg, image, width, height);
-      return new Image(image, width.get(0), height.get(0));
+      return new Image(image, imageData, width.get(0), height.get(0));
     }
   }
 

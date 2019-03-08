@@ -25,9 +25,6 @@
 package heronarts.glx.ui;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import heronarts.glx.GLXUtils;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 
@@ -96,37 +93,31 @@ public class UITheme {
   public final VGraphics.Image iconPreferences;
 
   UITheme(VGraphics vg) throws IOException {
-    ByteBuffer arialData = GLXUtils.loadResource("resources/fonts/Arial Unicode.ttf");
-    this.controlFont = vg.createFontMem("Arial Unicode MS", arialData);
+    this.controlFont = vg.loadFont("Arial Unicode MS", "Arial Unicode.ttf");
     this.controlFont.fontSize(14);
     LX.initTimer.log("P3LX: UI: Theme: controlFont");
 
-    ByteBuffer arialBlackData = GLXUtils.loadResource("resources/fonts/Arial Black.ttf");
-    this.labelFont = this.deviceFont = this.windowTitleFont = vg.createFontMem("Arial Black", arialBlackData);
+    this.labelFont = this.deviceFont = this.windowTitleFont = vg.loadFont("Arial Black", "Arial Black.ttf");
     this.labelFont.fontSize(13);
     LX.initTimer.log("P3LX: UI: Theme: windowTitleFont");
 
-    this.iconNote = loadIcon(vg, "icon-note.png");
-    this.iconTempo = loadIcon(vg, "icon-tempo.png");
-    this.iconControl = loadIcon(vg, "icon-control.png");
-    this.iconTrigger = loadIcon(vg, "icon-trigger.png");
-    this.iconTriggerSource = loadIcon(vg, "icon-trigger-source.png");
-    this.iconLoop = loadIcon(vg, "icon-loop.png");
-    this.iconMap = loadIcon(vg, "icon-map.png");
-    this.iconArm = loadIcon(vg, "icon-arm.png");
-    this.iconLfo = loadIcon(vg, "icon-lfo.png");
-    this.iconLoad = loadIcon(vg, "icon-load.png");
-    this.iconSave = loadIcon(vg, "icon-save.png");
-    this.iconSaveAs = loadIcon(vg, "icon-save-as.png");
-    this.iconNew = loadIcon(vg, "icon-new.png");
-    this.iconOpen = loadIcon(vg, "icon-open.png");
-    this.iconKeyboard = loadIcon(vg, "icon-keyboard.png");
-    this.iconPreferences = loadIcon(vg, "icon-preferences.png");
+    this.iconNote = vg.loadIcon("icon-note.png");
+    this.iconTempo = vg.loadIcon("icon-tempo.png");
+    this.iconControl = vg.loadIcon("icon-control.png");
+    this.iconTrigger = vg.loadIcon("icon-trigger.png");
+    this.iconTriggerSource = vg.loadIcon("icon-trigger-source.png");
+    this.iconLoop = vg.loadIcon("icon-loop.png");
+    this.iconMap = vg.loadIcon("icon-map.png");
+    this.iconArm = vg.loadIcon("icon-arm.png");
+    this.iconLfo = vg.loadIcon("icon-lfo.png");
+    this.iconLoad = vg.loadIcon("icon-load.png");
+    this.iconSave = vg.loadIcon("icon-save.png");
+    this.iconSaveAs = vg.loadIcon("icon-save-as.png");
+    this.iconNew = vg.loadIcon("icon-new.png");
+    this.iconOpen = vg.loadIcon("icon-open.png");
+    this.iconKeyboard = vg.loadIcon("icon-keyboard.png");
+    this.iconPreferences = vg.loadIcon("icon-preferences.png");
     LX.initTimer.log("P3LX: UI: Theme: Icons");
-  }
-
-  private static VGraphics.Image loadIcon(VGraphics vg, String iconPath) throws IOException {
-    return vg.createImageMem(GLXUtils.loadResource("resources/icons/" + iconPath));
   }
 
   /**
