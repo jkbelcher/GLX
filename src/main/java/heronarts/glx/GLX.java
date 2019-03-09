@@ -344,7 +344,7 @@ public class GLX extends LX {
           dialogShowing = true;
           String path = tinyfd_saveFileDialog(
             "Save Project",
-            mediaPath() + File.separator + "default.lxp",
+            getMediaPath() + File.separator + "default.lxp",
             aFilterPatterns,
             "LX Project files (*.lxp)"
          );
@@ -374,7 +374,7 @@ public class GLX extends LX {
             dialogShowing = true;
             String path = tinyfd_openFileDialog(
               "Open Project",
-              mediaPath(),
+              getMediaPath(),
               aFilterPatterns,
               "LX Project files (*.lxp)",
               false
@@ -394,11 +394,6 @@ public class GLX extends LX {
   @Override
   protected boolean showConfirmUnsavedProjectDialog(String message) {
     return tinyfd_messageBox("Project has unsaved changes", "Your project has unsaved changes, really " + message + "?", "yesno", "question", false);
-  }
-
-  public String mediaPath() {
-    // TODO(mcslee): this should be a sane documents folder
-    return ".";
   }
 
   public File saveFile(String path) {
