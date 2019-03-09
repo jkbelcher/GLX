@@ -105,7 +105,14 @@ public class Tex2d {
     this.modelMatrix.get(this.modelMatrixBuf);
     bgfx_set_transform(this.modelMatrixBuf);
     bgfx_set_texture(0, this.uniformTexture, texHandle, 0xffffffff);
-    bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_PT_TRISTRIP, 0);
+    bgfx_set_state(
+      BGFX_STATE_WRITE_RGB |
+      BGFX_STATE_WRITE_A |
+      BGFX_STATE_WRITE_Z |
+      BGFX_STATE_BLEND_ALPHA |
+      BGFX_STATE_PT_TRISTRIP,
+      0
+    );
     bgfx_set_vertex_buffer(0, this.vbh, 0, VERTEX_BUFFER_DATA.length);
     bgfx_submit(view.getId(), this.program, 0, false);
   }

@@ -252,7 +252,7 @@ public class VGraphics {
       if (this.isStale) {
         rebuffer();
       }
-      view.setId(this.viewId);
+      view.bind(this.viewId);
       nvgluSetViewFramebuffer(this.viewId, this.buffer);
       nvgluBindFramebuffer(this.buffer);
       return this;

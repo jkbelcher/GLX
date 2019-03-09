@@ -277,13 +277,13 @@ public class UI {
       for (UIObject child : this.mutableChildren) {
         if (child instanceof UI3dContext) {
           UI3dContext context3d = (UI3dContext) child;
-          context3d.view.setId(viewId++);
+          context3d.view.bind(viewId++);
           context3d.draw(this.ui, context3d.view);
         }
       }
 
       // Finally, draw all 2d overlays onto the root view
-      this.view.setId(viewId++);
+      this.view.bind(viewId++);
       for (UIObject child : this.mutableChildren) {
         if (child instanceof UI2dContext) {
           ((UI2dContext) child).draw(this.ui, this.view);
@@ -336,7 +336,7 @@ public class UI {
       super(UI.this, 0, 0, 0, 0);
       this.parent = root;
       setUI(UI.this);
-      setBackgroundColor(UI.BLACK);
+      setBackgroundColor(0);
     }
 
     private void setContent(UI2dComponent overlayContent) {

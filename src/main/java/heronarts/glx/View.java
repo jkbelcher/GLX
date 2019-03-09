@@ -62,16 +62,7 @@ public class View {
     this.projectionMatrixBuf = MemoryUtil.memAllocFloat(16);
     this.viewMatrix.get(this.viewMatrixBuf);
     this.projectionMatrix.get(this.projectionMatrixBuf);
-
-    _setViewClear();
-    _setViewRect();
-    _setViewTransform();
   }
-
-  /**
-   * Subclasses may override
-   */
-  protected void initViewMatrices() {}
 
   public short getId() {
     return this.viewId;
@@ -79,10 +70,19 @@ public class View {
 
   public View setId(short viewId) {
     this.viewId = viewId;
+    return this;
+  }
+
+  public View bind(short viewId) {
+    setId(viewId);
+    return bind();
+  }
+
+  public View bind() {
     bgfx_reset_view(this.viewId);
-    _setViewClear();
-    _setViewRect();
-    _setViewTransform();
+    bgfx_set_view_rect(this.viewId, this.x, this.y, this.width, this.height);
+    bgfx_set_view_clear(this.viewId, this.clearFlags, this.clearColor, this.clearDepth, 0);
+    bgfx_set_view_transform(this.viewId, this.viewMatrixBuf, this.projectionMatrixBuf);
     return this;
   }
 
@@ -106,14 +106,12 @@ public class View {
   public View setCamera(Vector3f eye, Vector3f center, Vector3f up) {
     this.viewMatrix.setLookAtLH(eye, center, up);
     this.viewMatrix.get(this.viewMatrixBuf);
-    _setViewTransform();
     return this;
   }
 
   public View setOrthographic(float x1, float x2, float y1, float y2, float z1, float z2) {
     this.projectionMatrix.setOrthoLH(x1, x2, y1, y2, z1, z2, this.glx.zZeroToOne);
     this.projectionMatrix.get(this.projectionMatrixBuf);
-    _setViewTransform();
     return this;
   }
 
@@ -121,7 +119,6 @@ public class View {
   public View setPerspective(float radians, float aspectRatio, float zNear, float zFar) {
     this.projectionMatrix.setPerspectiveLH(radians, aspectRatio, zNear, zFar, this.glx.zZeroToOne);
     this.projectionMatrix.get(this.projectionMatrixBuf);
-    _setViewTransform();
     return this;
   }
 
@@ -130,7 +127,6 @@ public class View {
     this.viewMatrix.get(this.viewMatrixBuf);
     this.projectionMatrix.setOrthoLH(0, width, height, 0, -1, 1, this.glx.zZeroToOne);
     this.projectionMatrix.get(this.projectionMatrixBuf);
-    _setViewTransform();
     return this;
   }
 
@@ -139,31 +135,21 @@ public class View {
     this.y = y;
     this.width = width;
     this.height = height;
-    _setViewRect();
     return this;
   }
 
   public View setClearColor(int rgba) {
-    if (this.clearColor != rgba) {
-      this.clearColor = rgba;
-      _setViewClear();
-    }
+    this.clearColor = rgba;
     return this;
   }
 
   public View setClearFlags(int clearFlags) {
-    if (this.clearFlags != clearFlags) {
-      this.clearFlags = clearFlags;
-      _setViewClear();
-    }
+    this.clearFlags = clearFlags;
     return this;
   }
 
   public View setClearDepth(float clearDepth) {
-    if (this.clearDepth != clearDepth) {
-      this.clearDepth = clearDepth;
-      _setViewClear();
-    }
+    this.clearDepth = clearDepth;
     return this;
   }
 
@@ -177,18 +163,6 @@ public class View {
       context.getHeight()
     );
     return this;
-  }
-
-  protected void _setViewClear() {
-    bgfx_set_view_clear(this.viewId, this.clearFlags, this.clearColor, this.clearDepth, 0);
-  }
-
-  protected void _setViewRect() {
-    bgfx_set_view_rect(this.viewId, this.x, this.y, this.width, this.height);
-  }
-
-  protected void _setViewTransform() {
-    bgfx_set_view_transform(this.viewId, this.viewMatrixBuf, this.projectionMatrixBuf);
   }
 
   public void dispose() {
