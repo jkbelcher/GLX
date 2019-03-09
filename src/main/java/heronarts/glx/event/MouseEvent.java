@@ -22,6 +22,9 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class MouseEvent extends Event {
 
+  public static final double REPEAT_CLICK_TIME = 0.5;
+  public static final double REPEAT_CLICK_PX = 3;
+
   public static final int BUTTON_NONE = -1;
   public static final int BUTTON_1 = GLFW_MOUSE_BUTTON_1;
   public static final int BUTTON_2 = GLFW_MOUSE_BUTTON_2;
@@ -110,6 +113,13 @@ public class MouseEvent extends Event {
   public MouseEvent setCount(int count) {
     this.count = count;
     return this;
+  }
+
+  public boolean isRepeat(MouseEvent that) {
+    return
+      (that.time - this.time) < REPEAT_CLICK_TIME &&
+      Math.abs(that.x - this.x) < REPEAT_CLICK_PX &&
+      Math.abs(that.y - this.y) < REPEAT_CLICK_PX;
   }
 
   public int getCount() {

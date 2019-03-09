@@ -678,17 +678,6 @@ public interface UIItemList {
       return itemIndex;
     }
 
-    // TODO(mcslee): restore this behavior in onMousePressed
-//    private void onMouseClicked(MouseEvent mouseEvent, float mx, float my) {
-//      if (!this.mouseChevronPress && !this.isMomentary && !this.singleClickActivate && (mouseEvent.getCount() == 2)) {
-//        int index = getMouseItemIndex(my);
-//        if (index >= 0) {
-//          setFocusIndex(index);
-//          activate();
-//        }
-//      }
-//    }
-
     private void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
       this.mouseActivate = -1;
       this.mouseChevronPress = false;
@@ -705,9 +694,13 @@ public interface UIItemList {
             }
           } else {
             this.mouseChevronPress = (mx < SECTION_CHEVRON_WIDTH) && (getFocusedItem() instanceof Section);
-            if (this.isMomentary || this.singleClickActivate || this.mouseChevronPress) {
-              this.mouseActivate = this.focusIndex;
+            if (this.mouseChevronPress) {
               activate();
+            } else if (this.singleClickActivate || (mouseEvent.getCount() == 2)) {
+              activate();
+              if (this.isMomentary) {
+                this.mouseActivate = this.focusIndex;
+              }
             }
           }
         }
