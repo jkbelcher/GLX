@@ -326,7 +326,7 @@ public class GLX extends LX {
   }
 
   // Prevent stacking up multiple dialogs
-  private volatile boolean dialogShowing = new Boolean(false);
+  private volatile boolean dialogShowing = false;
 
   public void showSaveDialog() {
     if (this.dialogShowing) {
