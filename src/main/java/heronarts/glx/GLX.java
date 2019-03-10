@@ -188,7 +188,7 @@ public class GLX extends LX {
     this.window = glfwCreateWindow(
       this.windowWidth,
       this.windowHeight,
-      "LXStudio",
+      "LX Studio",
       NULL,
       NULL
     );

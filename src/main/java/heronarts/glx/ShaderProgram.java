@@ -26,7 +26,13 @@ public class ShaderProgram {
   }
 
   public void submit(View view) {
-    bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_BLEND_ALPHA, 0);
+    bgfx_set_state(
+      BGFX_STATE_WRITE_RGB |
+      BGFX_STATE_WRITE_A |
+      BGFX_STATE_WRITE_Z |
+      BGFX_STATE_BLEND_ALPHA,
+      0
+    );
     setUniforms(view);
     setVertexBuffers(view);
     bgfx_submit(view.getId(), this.handle, 0, false);
