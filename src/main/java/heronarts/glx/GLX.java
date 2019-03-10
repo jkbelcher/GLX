@@ -143,7 +143,9 @@ public class GLX extends LX {
 
   /**
    * Subclasses may override to create a custom structured UI
-   * @throws IOException
+   *
+   * @throws IOException if required UI assets could not be loaded
+   * @return The instantiated UI object
    */
   protected UI buildUI() throws IOException {
     return new UI(this);

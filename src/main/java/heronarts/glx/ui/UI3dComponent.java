@@ -80,8 +80,8 @@ public abstract class UI3dComponent extends UIObject {
 
   /**
    * Draw the given component into the View context
-   * @param ui
-   * @param view
+   * @param ui UI context
+   * @param view View to draw into
    */
   public final void draw(UI ui, View view) {
     onDraw(ui, view);

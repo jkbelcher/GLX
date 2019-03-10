@@ -60,9 +60,12 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   }
 
   /**
-   * Renders the content of the context to its framebuffer.
+   * Renders the content of the context to its own framebuffer. Note that this
+   * method assumes that all nested VGraphics instances beneath this one in the
+   * tree have themselves already been rendered. This is because NanoVG is not
+   * re-entrant and we share one instance.
    *
-   * @param vg
+   * @param vg VGraphics instance
    */
   protected final void render(VGraphics vg) {
     // Bind the framebuffer, which rebuilds if necessary
@@ -79,6 +82,14 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     this.needsBlit = true;
   }
 
+  /**
+   * Draws the context into a parent view. This method assumes that this
+   * context's framebuffer texture has already been generated and is ready
+   * to be drawn.
+   *
+   * @param ui UI context
+   * @param view Parent view to draw into
+   */
   @Override
   public final void draw(UI ui, View view) {
     if (!isVisible()) {
@@ -91,6 +102,14 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     view.image(this);
   }
 
+  /**
+   * Draws this context into the given graphics context. Note that in this case
+   * we assume our framebuffer is already drawn and that we're just blitting
+   * it into a parent 2d context.
+   *
+   * @param ui UI context
+   * @param vg Graphics context
+   */
   @Override
   public void draw(UI ui, VGraphics vg) {
     if (!isVisible()) {
