@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.lwjgl.nanovg.NVGColor;
-import org.lwjgl.nanovg.NVGLUFramebuffer;
+import org.lwjgl.nanovg.NVGLUFramebufferBGFX;
 import org.lwjgl.nanovg.NVGPaint;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -201,7 +201,7 @@ public class VGraphics {
   }
 
   public class Framebuffer {
-    private NVGLUFramebuffer buffer;
+    private NVGLUFramebufferBGFX buffer;
     public final Paint paint = new Paint();
     private int width;
     private int height;
@@ -231,8 +231,8 @@ public class VGraphics {
       return this.buffer.image();
     }
 
-    public int texture() {
-      return this.buffer.texture();
+    public int handle() {
+      return this.buffer.handle();
     }
 
     public int getWidth() {

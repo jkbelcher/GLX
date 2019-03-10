@@ -47,7 +47,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   }
 
   public short getTexture() {
-    return (short) this.framebuffer.texture();
+    return (short) this.framebuffer.handle();
   }
 
   public UI2dContext setView(short viewId) {
