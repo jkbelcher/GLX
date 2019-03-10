@@ -268,8 +268,6 @@ public class GLX extends LX {
       throw new RuntimeException("Error identifying bgfx renderer");
     }
     System.out.println("Using BGFX renderer: " + rendererName);
-
-    // bgfx_set_debug(BGFX_DEBUG_TEXT);
   }
 
   protected void setWindowSize(int windowWidth, int windowHeight) {
@@ -394,11 +392,6 @@ public class GLX extends LX {
   @Override
   protected boolean showConfirmUnsavedProjectDialog(String message) {
     return tinyfd_messageBox("Project has unsaved changes", "Your project has unsaved changes, really " + message + "?", "yesno", "question", false);
-  }
-
-  public File saveFile(String path) {
-    // TODO(mcslee): should be in ~/Documents/LXStudio/ or something
-    return new File(path);
   }
 
   private String _setSystemClipboardString = null;
