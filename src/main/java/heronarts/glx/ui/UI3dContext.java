@@ -162,7 +162,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   /**
    * Max velocity used to damp changes to rotation (theta/phi)
    */
-  public final MutableParameter rotationVelocity = new MutableParameter("RVel", 4*Math.PI);
+  public final MutableParameter rotationVelocity = new MutableParameter("RVel", 16*Math.PI);
 
   /**
    * Acceleration used to change rotation (theta/phi)
@@ -873,19 +873,19 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     if (this.interactionMode.getEnum() == InteractionMode.MOVE) {
       amount *= -1;
     }
-    if (keyCode == java.awt.event.KeyEvent.VK_LEFT) {
+    if (keyCode == KeyEvent.VK_LEFT) {
       keyEvent.consume();
       this.camera.theta.incrementValue(amount);
       updateFocusedCamera();
-    } else if (keyCode == java.awt.event.KeyEvent.VK_RIGHT) {
+    } else if (keyCode == KeyEvent.VK_RIGHT) {
       keyEvent.consume();
       this.camera.theta.incrementValue(-amount);
       updateFocusedCamera();
-    } else if (keyCode == java.awt.event.KeyEvent.VK_UP) {
+    } else if (keyCode == KeyEvent.VK_UP) {
       keyEvent.consume();
       this.camera.phi.incrementValue(-amount);
       updateFocusedCamera();
-    } else if (keyCode == java.awt.event.KeyEvent.VK_DOWN) {
+    } else if (keyCode == KeyEvent.VK_DOWN) {
       keyEvent.consume();
       this.camera.phi.incrementValue(amount);
       updateFocusedCamera();
