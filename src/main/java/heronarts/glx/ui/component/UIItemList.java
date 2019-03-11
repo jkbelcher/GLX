@@ -422,6 +422,12 @@ public interface UIItemList {
       this.list.redraw();
     }
 
+    private void clearItems() {
+      this.items.clear();
+      setContentHeight(ROW_MARGIN);
+      this.list.redraw();
+    }
+
     private void setSingleClickActivate(boolean singleClickActivate) {
       this.singleClickActivate = singleClickActivate;
     }
@@ -903,6 +909,11 @@ public interface UIItemList {
       return this;
     }
 
+    public UIItemList clearItems() {
+      this.impl.clearItems();
+      return this;
+    }
+
     public List<? extends Item> getItems() {
       return this.impl.items;
     }
@@ -1043,6 +1054,11 @@ public interface UIItemList {
 
     public UIItemList setItems(List<? extends Item> items) {
       this.impl.setItems(items);
+      return this;
+    }
+
+    public UIItemList clearItems() {
+      this.impl.clearItems();
       return this;
     }
 
@@ -1191,6 +1207,13 @@ public interface UIItemList {
    * @return this
    */
   public UIItemList setItems(List<? extends Item> items);
+
+  /**
+   * Clears all items in the list
+   *
+   * @return this
+   */
+  public UIItemList clearItems();
 
   /**
    * Get the items in the list
