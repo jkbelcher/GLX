@@ -228,6 +228,7 @@ public class GLX extends LX {
         try (MemoryStack stack = MemoryStack.stackPush()) {
           DoubleBuffer xPos = stack.mallocDouble(1);
           DoubleBuffer yPos = stack.mallocDouble(1);
+          glfwGetCursorPos(this.window, xPos, yPos);
           this.inputDispatch.onFocus(xPos.get(0), yPos.get(0));
         }
       }
