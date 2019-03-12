@@ -55,6 +55,11 @@ public class InputDispatch implements LXEngine.Dispatch {
     this.lx = lx;
   }
 
+  void onFocus(double cursorX, double cursorY) {
+    this.cursorX = cursorX;
+    this.cursorY = cursorY;
+  }
+
   void glfwKeyCallback(long window, int key, int scancode, int action, int mods) {
     this.modifiers = mods;
     this.glfwThreadEventQueue.add(this.keyEvent = new KeyEvent(key, scancode, action, mods));

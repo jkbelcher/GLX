@@ -26,14 +26,18 @@ import static org.lwjgl.util.tinyfd.TinyFileDialogs.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.file.Files;
+
 import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.bgfx.BGFXPlatform.*;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.bgfx.BGFXInit;
 import org.lwjgl.bgfx.BGFXPlatformData;
+import org.lwjgl.glfw.GLFWDropCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWNativeCocoa;
 import org.lwjgl.glfw.GLFWNativeWin32;
@@ -215,6 +219,20 @@ public class GLX extends LX {
       this.frameBufferHeight = ySize.get(0);
     }
 
+    glfwSetWindowFocusCallback(this.window, (window, focused) -> {
+      if (focused) {
+        // Update the cursor position callback... if the window wasn't focused
+        // and the user re-focused it with a click followed by mouse drag, then
+        // the CursorPosCallback won't have had a chance to fire yet. So
+        // we give it a kick whenever the window refocuses.
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+          DoubleBuffer xPos = stack.mallocDouble(1);
+          DoubleBuffer yPos = stack.mallocDouble(1);
+          this.inputDispatch.onFocus(xPos.get(0), yPos.get(0));
+        }
+      }
+    });
+
     glfwSetWindowCloseCallback(this.window, (window) -> {
       System.out.println("Trying to close window...");
       if (!confirmChangedSaved("quit")) {
@@ -234,6 +252,34 @@ public class GLX extends LX {
       this.frameBufferWidth = width;
       this.frameBufferHeight = height;
       // TODO(mcslee): should we redraw here? seems redundant...
+    });
+
+    glfwSetDropCallback(this.window, (window, count, names) -> {
+      if (count == 1) {
+        try {
+          File file = new File(GLFWDropCallback.getName(names, 0));
+          if (file.exists() && file.isFile()) {
+            if (file.getName().endsWith(".lxp")) {
+              if (confirmChangedSaved("open project " + file.getName())) {
+                this.engine.addTask(() -> {
+                  openProject(file);
+                });
+              }
+            } else if (file.getName().endsWith(".jar")) {
+              File destination = new File(getMediaFolder(LX.Media.CONTENT), file.getName());
+              if (destination.exists()) {
+                // TODO(mcslee): confirm content overwrite
+                System.err.println(file.getName() + " already exists in content folder");
+              } else {
+                System.out.println("Importing content JAR: " + destination.toString());
+                Files.copy(file.toPath(), destination.toPath());
+              }
+            }
+          }
+        } catch (Exception x) {
+          x.printStackTrace();
+        }
+      }
     });
 
     // Register input dispatching callbacks
@@ -344,7 +390,7 @@ public class GLX extends LX {
           dialogShowing = true;
           String path = tinyfd_saveFileDialog(
             "Save Project",
-            getMediaPath() + File.separator + "default.lxp",
+            getMediaFolder(LX.Media.PROJECTS).toString() + File.separator + "default.lxp",
             aFilterPatterns,
             "LX Project files (*.lxp)"
          );
@@ -374,7 +420,7 @@ public class GLX extends LX {
             dialogShowing = true;
             String path = tinyfd_openFileDialog(
               "Open Project",
-              getMediaPath(),
+              new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
               aFilterPatterns,
               "LX Project files (*.lxp)",
               false
