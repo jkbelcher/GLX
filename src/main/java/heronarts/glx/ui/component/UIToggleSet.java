@@ -42,12 +42,24 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
 
   private DiscreteParameter parameter = null;
 
+  private int activeColor = 0;
+  private boolean hasActiveColor = false;
+
   public UIToggleSet() {
     this(0, 0, 0, 0);
   }
 
   public UIToggleSet(float x, float y, float w, float h) {
     super(x, y, w, h);
+  }
+
+  public UIToggleSet setActiveColor(int activeColor) {
+    if (!this.hasActiveColor || (this.activeColor != activeColor)) {
+      this.hasActiveColor = true;
+      this.activeColor = activeColor;
+      redraw();
+    }
+    return this;
   }
 
   @Override
@@ -184,20 +196,13 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     vg.fill();
     vg.stroke();
 
-    vg.beginPath();
-    vg.strokeColor(ui.theme.getControlBorderColor());
-    for (int b : this.boundaries) {
-      vg.line(b + .5f, .5f, b + .5f, this.height - 1);
-    }
-    vg.stroke();
-
     // Active item
     if (this.value >= 0) {
       int leftBoundary = (this.value > 0) ? this.boundaries[this.value - 1] : 0;
       int rightBoundary = this.boundaries[this.value];
       vg.beginPath();
-      vg.fillColor(ui.theme.getPrimaryColor());
-      vg.rect(leftBoundary + 1, 1, rightBoundary - leftBoundary - 1, this.height - 2);
+      vg.fillColor(this.hasActiveColor ? this.activeColor : ui.theme.getSelectionColor());
+      vg.rect(leftBoundary + 2, 2, rightBoundary - leftBoundary - 3, this.height - 4, 2);
       vg.fill();
     }
 
