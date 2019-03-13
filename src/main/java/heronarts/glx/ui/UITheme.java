@@ -63,7 +63,7 @@ public class UITheme {
 
   private int contextBackgroundColor = controlBackgroundColor;
   private int contextBorderColor = 0xff000000;
-  private int contextHighlightColor = 0xff494949;
+  private int contextHighlightColor = 0xff333333;
 
   private int midiMappingColor = 0x33ff0000;
   private int modulationSourceMappingColor = 0x3300ff00;
