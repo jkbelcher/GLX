@@ -795,7 +795,7 @@ public class UI {
       case KeyEvent.VK_S:
         if (keyEvent.isCommand()) {
           if (keyEvent.isShiftDown() || lx.getProject() == null) {
-            lx.showSaveDialog();
+            lx.showSaveProjectDialog();
           } else {
             lx.saveProject();
           }
@@ -803,7 +803,7 @@ public class UI {
         break;
       case KeyEvent.VK_O:
         if (keyEvent.isCommand()) {
-          lx.showOpenDialog();
+          lx.showOpenProjectDialog();
         }
         break;
 

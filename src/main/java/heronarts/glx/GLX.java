@@ -142,7 +142,6 @@ public class GLX extends LX {
 
     // The program *should* end now, if not it means we hung a thread somewhere...
     System.out.println("Done with the main thread...");
-
   }
 
   /**
@@ -173,6 +172,10 @@ public class GLX extends LX {
 
   public int getFrameBufferHeight() {
     return this.frameBufferHeight;
+  }
+
+  public float getContentScale() {
+    return this.xContentScale;
   }
 
   private void initializeWindow() {
@@ -252,7 +255,6 @@ public class GLX extends LX {
     glfwSetFramebufferSizeCallback(this.window, (window, width, height) -> {
       this.frameBufferWidth = width;
       this.frameBufferHeight = height;
-      // TODO(mcslee): should we redraw here? seems redundant...
     });
 
     glfwSetDropCallback(this.window, (window, count, names) -> {
@@ -377,7 +379,7 @@ public class GLX extends LX {
   // Prevent stacking up multiple dialogs
   private volatile boolean dialogShowing = false;
 
-  public void showSaveDialog() {
+  public void showSaveProjectDialog() {
     if (this.dialogShowing) {
       return;
     }
@@ -406,7 +408,7 @@ public class GLX extends LX {
     }.start();
   }
 
-  public void showOpenDialog() {
+  public void showOpenProjectDialog() {
     if (this.dialogShowing) {
       return;
     }
@@ -436,6 +438,66 @@ public class GLX extends LX {
         }
       }.start();
     }
+  }
+
+  public void showExportModelDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    new Thread() {
+      @Override
+      public void run() {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
+          aFilterPatterns.put(stack.UTF8("*.lxm"));
+          aFilterPatterns.flip();
+          dialogShowing = true;
+          String path = tinyfd_saveFileDialog(
+            "Export Model",
+            getMediaFolder(LX.Media.MODELS).toString() + File.separator + "Model.lxm",
+            aFilterPatterns,
+            "LX Model files (*.lxm)"
+         );
+         dialogShowing = false;
+         if (path != null) {
+           engine.addTask(() -> {
+             structure.exportModel(new File(path));
+           });
+         }
+        }
+      }
+    }.start();
+  }
+
+  public void showImportModelDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    new Thread() {
+      @Override
+      public void run() {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
+          aFilterPatterns.put(stack.UTF8("*.lxm"));
+          aFilterPatterns.flip();
+          dialogShowing = true;
+          String path = tinyfd_openFileDialog(
+            "Import Model",
+            new File(getMediaFolder(LX.Media.MODELS), ".").toString(),
+            aFilterPatterns,
+            "LX Model files (*.lxm)",
+            false
+          );
+          dialogShowing = false;
+          if (path != null) {
+            engine.addTask(() -> {
+              structure.importModel(new File(path));
+            });
+          }
+        }
+      }
+    }.start();
+
   }
 
   @Override
