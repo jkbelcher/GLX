@@ -30,6 +30,7 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
 
   private String label = "";
   private final UIContextMenu contextMenu;
+  private float contextMenuWidth = -1;
 
   public UIContextButton(float x, float y, float w, float h) {
     super(x, y, w, h);
@@ -37,6 +38,15 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
     setFontColor(UI.get().theme.getControlTextColor());
     setBackgroundColor(UI.get().theme.getControlBackgroundColor());
     this.contextMenu = new UIContextMenu(0, 0, UIContextMenu.DEFAULT_WIDTH, 0);
+  }
+
+  public UIContextMenu getContextMenu() {
+    return this.contextMenu;
+  }
+
+  public UIContextButton setContextMenuWidth(float contextMenuWidth) {
+    this.contextMenuWidth = contextMenuWidth;
+    return this;
   }
 
   public UIContextButton setContextActions(UIContextActions.Action[] contextActions) {
@@ -76,6 +86,7 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
 
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+    mouseEvent.consume();
     showMenu();
     this.mouseDown = true;
     redraw();
@@ -99,7 +110,7 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
   }
 
   private void showMenu() {
-    this.contextMenu.setWidth(Math.max(UIContextMenu.DEFAULT_WIDTH, this.width));
+    this.contextMenu.setWidth((this.contextMenuWidth > 0) ? this.contextMenuWidth : Math.max(UIContextMenu.DEFAULT_WIDTH, this.width));
     this.contextMenu.setPosition(this, 0, this.height);
     this.contextMenu.setHighlight(0);
     getUI().showContextOverlay(this.contextMenu);

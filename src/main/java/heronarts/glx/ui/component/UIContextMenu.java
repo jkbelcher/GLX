@@ -27,12 +27,14 @@ import heronarts.glx.ui.vg.VGraphics;
 
 public class UIContextMenu extends UI2dComponent {
 
-  private static final float ROW_HEIGHT = 18;
+  private static final float DEFAULT_ROW_HEIGHT = 18;
   public static final float DEFAULT_WIDTH = 120;
 
-  private UIContextActions.Action[] actions;
+  private UIContextActions.Action[] actions = new UIContextActions.Action[0];
 
   private int highlight = -1;
+  private float rowHeight = DEFAULT_ROW_HEIGHT;
+  private float padding = 0;
 
   public UIContextMenu(float x, float y, float w, float h) {
     super(x, y, w, h);
@@ -41,10 +43,30 @@ public class UIContextMenu extends UI2dComponent {
     setBorderColor(UI.get().theme.getContextBorderColor());
   }
 
+  public UIContextMenu setPadding(float padding) {
+    if (this.padding != padding) {
+      this.padding = padding;
+      updateHeight();
+    }
+    return this;
+  }
+
+  public UIContextMenu setRowHeight(float rowHeight) {
+    if (this.rowHeight != rowHeight) {
+      this.rowHeight = rowHeight;
+      updateHeight();
+    }
+    return this;
+  }
+
   public UIContextMenu setActions(UIContextActions.Action[] actions) {
     this.actions = actions;
-    setHeight(this.actions.length * ROW_HEIGHT);
+    updateHeight();
     return this;
+  }
+
+  private void updateHeight() {
+    setHeight(this.actions.length * this.rowHeight + 2 * this.padding + 2);
   }
 
   public UIContextMenu setHighlight(int highlight) {
@@ -67,22 +89,33 @@ public class UIContextMenu extends UI2dComponent {
    */
   @Override
   public void onDraw(UI ui, VGraphics vg) {
+    if (this.padding > 0) {
+      vg.beginPath();
+      vg.fillColor(ui.theme.getDeviceFocusedBackgroundColor());
+      vg.rect(0, 0, this.width, this.height, getBorderRounding());
+      vg.fill();
+      vg.beginPath();
+      vg.fillColor(getBackgroundColor());
+      vg.rect(this.padding, this.padding, this.width - 2 * this.padding, this.height - 2*this.padding, 2);
+      vg.fill();
+    }
+
     if (this.highlight >= 0) {
       vg.beginPath();
-      vg.rect(0, this.highlight * ROW_HEIGHT, this.width, ROW_HEIGHT);
+      vg.rect(this.padding + 2, this.padding + 2 + this.highlight * this.rowHeight, this.width - 2 * this.padding - 4, this.rowHeight - 2, 2);
       vg.fillColor(ui.theme.getContextHighlightColor());
       vg.fill();
     }
 
-    float yp = 0;
+    float yp = 1;
     for (UIContextActions.Action action : this.actions) {
       vg.beginPath();
       vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
       vg.fillColor(ui.theme.getControlTextColor());
       vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
-      vg.text(4, yp + ROW_HEIGHT / 2, clipTextToWidth(vg, action.getLabel(), this.width - 6));
+      vg.text(this.padding + 4, this.padding + yp + this.rowHeight / 2, clipTextToWidth(vg, action.getLabel(), this.width - 6 - 2 * this.padding));
       vg.fill();
-      yp += ROW_HEIGHT;
+      yp += this.rowHeight;
     }
   }
 
@@ -113,12 +146,12 @@ public class UIContextMenu extends UI2dComponent {
 
   @Override
   public void onMouseMoved(MouseEvent mouseEvent, float x, float y) {
-    setHighlight((int) (y / ROW_HEIGHT));
+    setHighlight((int) ((y - this.padding - 1) / this.rowHeight));
   }
 
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float x, float y) {
-    int index = (int) (y / ROW_HEIGHT);
+    int index = (int) ((y - this.padding - 1) / this.rowHeight);
     if (index >= 0 && index < this.actions.length) {
       this.actions[index].onContextAction(getUI());
     }
