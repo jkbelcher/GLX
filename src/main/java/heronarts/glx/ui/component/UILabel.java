@@ -160,6 +160,7 @@ public class UILabel extends UI2dComponent {
 
   @Override
   public String getDescription() {
-    return this.label;
+    String description = super.getDescription();
+    return (description != null) ? description : this.label;
   }
 }
