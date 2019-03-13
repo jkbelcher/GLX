@@ -105,7 +105,8 @@ public abstract class UI2dComponent extends UIObject {
 
   @Override
   public UI2dComponent setDescription(String description) {
-    return (UI2dComponent) super.setDescription(description);
+    super.setDescription(description);
+    return this;
   }
 
   /**
@@ -518,6 +519,10 @@ public abstract class UI2dComponent extends UIObject {
       redraw();
     }
     return this;
+  }
+
+  public int getBorderRounding() {
+    return this.borderRounding;
   }
 
   public UI2dComponent setFocusCorners(boolean focusCorners) {
