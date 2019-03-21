@@ -44,6 +44,9 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   private String activeLabel = "";
   private String inactiveLabel = "";
 
+  private boolean hasIconColor = false;
+  private int iconColor = UI.WHITE;
+
   private VGraphics.Image activeIcon = null;
   private VGraphics.Image inactiveIcon = null;
 
@@ -88,6 +91,23 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   public UIButton setTriggerable(boolean triggerable) {
     this.triggerable = triggerable;
+    return this;
+  }
+
+  public UIButton setIconColor(boolean iconColor) {
+    if (this.hasIconColor != iconColor) {
+      this.hasIconColor = iconColor;
+      redraw();
+    }
+    return this;
+  }
+
+  public UIButton setIconColor(int iconColor) {
+    if (!this.hasIconColor || (this.iconColor != iconColor)) {
+      this.hasIconColor = true;
+      this.iconColor = iconColor;
+      redraw();
+    }
     return this;
   }
 
@@ -190,7 +210,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     VGraphics.Image icon = this.active ? this.activeIcon : this.inactiveIcon;
     if (icon != null) {
       if (!this.active) {
-        icon.setTint(getFontColor());
+        icon.setTint(this.hasIconColor ? this.iconColor : getFontColor());
       }
       vg.beginPath();
       vg.image(icon, this.width/2 - icon.width/2 + this.iconOffsetX, this.height/2 - icon.height/2 + this.iconOffsetY);

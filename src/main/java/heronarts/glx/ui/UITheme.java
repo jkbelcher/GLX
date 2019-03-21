@@ -61,6 +61,8 @@ public class UITheme {
   private int controlDisabledTextColor = 0xff707070;
   private int controlDisabledColor = 0xff303030;
 
+  private int iconInactiveColor = 0xff999999;
+
   private int contextBackgroundColor = controlBackgroundColor;
   private int contextBorderColor = 0xff000000;
   private int contextHighlightColor = 0xff333333;
@@ -85,6 +87,14 @@ public class UITheme {
   public final VGraphics.Image iconOpen;
   public final VGraphics.Image iconKeyboard;
   public final VGraphics.Image iconPreferences;
+  public final VGraphics.Image iconUndo;
+  public final VGraphics.Image iconRedo;
+  public final VGraphics.Image iconTempoDown;
+  public final VGraphics.Image iconTempoUp;
+  public final VGraphics.Image iconOscInput;
+  public final VGraphics.Image iconOscOutput;
+  public final VGraphics.Image iconPatternTransition;
+  public final VGraphics.Image iconPatternRotate;
 
   UITheme(VGraphics vg) throws IOException {
     this.controlFont = vg.loadFont("Arial Unicode MS", "Arial Unicode.ttf");
@@ -111,6 +121,14 @@ public class UITheme {
     this.iconOpen = vg.loadIcon("icon-open.png");
     this.iconKeyboard = vg.loadIcon("icon-keyboard.png");
     this.iconPreferences = vg.loadIcon("icon-preferences.png");
+    this.iconUndo = vg.loadIcon("icon-undo.png");
+    this.iconRedo = vg.loadIcon("icon-redo.png");
+    this.iconTempoDown = vg.loadIcon("icon-tempo-down.png");
+    this.iconTempoUp = vg.loadIcon("icon-tempo-up.png");
+    this.iconOscInput = vg.loadIcon("icon-osc-input.png");
+    this.iconOscOutput = vg.loadIcon("icon-osc-output.png");
+    this.iconPatternTransition = vg.loadIcon("icon-pattern-transition.png");
+    this.iconPatternRotate = vg.loadIcon("icon-pattern-rotate.png");
     LX.initTimer.log("P3LX: UI: Theme: Icons");
   }
 
@@ -586,6 +604,10 @@ public class UITheme {
    */
   public int getControlDisabledColor() {
     return this.controlDisabledColor;
+  }
+
+  public int getIconInactiveColor() {
+    return this.iconInactiveColor;
   }
 
   /**
