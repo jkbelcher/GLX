@@ -97,6 +97,14 @@ public class GLX extends LX {
   protected GLX(Flags flags, LXModel model) throws IOException {
     super(flags, model);
 
+    // Get initial window size from preferences
+    int preferenceWidth = this.preferences.getWindowWidth();
+    int preferenceHeight = this.preferences.getWindowHeight();
+    if (preferenceWidth > 0 && preferenceHeight > 0) {
+      this.windowWidth = preferenceWidth;
+      this.windowHeight = preferenceHeight;
+    }
+
     initializeWindow();
     this.zZeroToOne = !bgfx_get_caps().homogeneousDepth();
 
