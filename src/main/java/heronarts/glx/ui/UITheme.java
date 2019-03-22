@@ -61,6 +61,7 @@ public class UITheme {
   private int controlDisabledTextColor = 0xff707070;
   private int controlDisabledColor = 0xff303030;
 
+  private int iconDisabledColor = 0xff505050;
   private int iconInactiveColor = 0xff999999;
 
   private int contextBackgroundColor = controlBackgroundColor;
@@ -604,6 +605,10 @@ public class UITheme {
    */
   public int getControlDisabledColor() {
     return this.controlDisabledColor;
+  }
+
+  public int getIconDisabledColor() {
+    return this.iconDisabledColor;
   }
 
   public int getIconInactiveColor() {
