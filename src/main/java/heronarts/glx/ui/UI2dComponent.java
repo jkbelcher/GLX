@@ -171,7 +171,7 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   @Override
-  public UIObject setVisible(boolean visible) {
+  public UI2dComponent setVisible(boolean visible) {
     if (isVisible() != visible) {
       super.setVisible(visible);
       if (this.parent instanceof UI2dContainer) {
