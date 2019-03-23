@@ -221,7 +221,7 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
    * @return Element
    */
   @Override
-  public UIObject getContentTarget() {
+  public UI2dContainer getContentTarget() {
     return this.contentTarget;
   }
 
@@ -245,6 +245,16 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
 
   public UI2dContainer setContentSize(float w, float h) {
     this.contentTarget.setSize(w, h);
+    return this;
+  }
+
+  public UI2dContainer removeAllChildren() {
+    UI2dContainer contentTarget = getContentTarget();
+    for (UIObject child : contentTarget.mutableChildren) {
+      ((UI2dComponent) child).parent = null;
+    }
+    contentTarget.mutableChildren.clear();
+    reflow();
     return this;
   }
 
