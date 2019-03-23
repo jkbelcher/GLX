@@ -22,8 +22,8 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class KeyEvent extends Event {
 
-  // Right now we're just wrapping GLFW... but application code should reference our own
-  // codes in case this needs to change in the future.
+  // Right now we're just wrapping GLFW... but application code should reference
+  // our own codes in case this needs to change in the future.
 
   public static final int VK_UNKNOWN = GLFW_KEY_UNKNOWN;
   public static final int VK_SPACE = GLFW_KEY_SPACE;
@@ -205,6 +205,10 @@ public class KeyEvent extends Event {
     return this.scanCode;
   }
 
+  public boolean isCommand(int keyCode) {
+    return isCommand() && (this.keyCode == keyCode);
+  }
+
   public boolean isRepeat() {
     return this.action == Action.REPEAT;
   }
@@ -215,7 +219,9 @@ public class KeyEvent extends Event {
 
   @Override
   public String toString() {
-    return "KeyEvent action=" + this.action + " keyCode=" + this.keyCode + " keyChar=" + this.keyChar + " scanCode=" + this.scanCode + " modifiers=" + this.modifiers;
+    return "KeyEvent action=" + this.action + " keyCode=" + this.keyCode
+      + " keyChar=" + this.keyChar + " scanCode=" + this.scanCode
+      + " modifiers=" + this.modifiers;
   }
 
 }

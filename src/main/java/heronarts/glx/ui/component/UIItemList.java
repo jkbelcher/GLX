@@ -761,7 +761,7 @@ public interface UIItemList {
       } else {
         if (keyCode == KeyEvent.VK_UP) {
           consume = true;
-          if (this.isReorderable && (keyEvent.isMetaDown() || keyEvent.isControlDown())) {
+          if (this.isReorderable && keyEvent.isCommand()) {
             if (this.focusIndex > 0) {
               Item item = this.items.remove(this.focusIndex);
               this.focusIndex = this.focusIndex - 1;
@@ -777,7 +777,7 @@ public interface UIItemList {
           }
         } else if (keyCode == KeyEvent.VK_DOWN) {
           consume = true;
-          if (this.isReorderable && (keyEvent.isMetaDown() || keyEvent.isControlDown())) {
+          if (this.isReorderable && keyEvent.isCommand()) {
             if (this.focusIndex < this.items.size() - 1) {
               Item item = this.items.remove(this.focusIndex);
               this.focusIndex = this.focusIndex + 1;
@@ -808,7 +808,7 @@ public interface UIItemList {
         } else if (keyCode == KeyEvent.VK_BACKSPACE) {
           consume = true;
           delete();
-        } else if (keyEvent.isControlDown() || keyEvent.isMetaDown()) {
+        } else if (keyEvent.isCommand() && !keyEvent.isShiftDown()) {
           if (keyCode == KeyEvent.VK_D) {
             consume = true;
             delete();
