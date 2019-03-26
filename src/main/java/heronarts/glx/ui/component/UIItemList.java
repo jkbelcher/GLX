@@ -647,13 +647,13 @@ public interface UIItemList {
         vg.strokeColor(ui.theme.getSurfaceColor());
         vg.beginPath();
         vg.rect(
-          PADDING,
-          ROW_MARGIN + this.controlSurfaceFocusIndex * ROW_SPACING,
-          rowWidth - 2*PADDING,
-          Math.min(this.controlSurfaceFocusLength, this.items.size() - this.controlSurfaceFocusIndex) * ROW_SPACING - ROW_MARGIN,
+          PADDING - .5f,
+          ROW_MARGIN + this.controlSurfaceFocusIndex * ROW_SPACING - .5f,
+          rowWidth - 2*PADDING + 1,
+          Math.min(this.controlSurfaceFocusLength, this.items.size() - this.controlSurfaceFocusIndex) * ROW_SPACING - ROW_MARGIN + 1,
           4
         );
-        vg.fill();
+        vg.stroke();
       }
     }
 
