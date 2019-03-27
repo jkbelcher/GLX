@@ -469,6 +469,37 @@ public class GLX extends LX {
     });
   }
 
+  public void showOpenAudioDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    new Thread() {
+      @Override
+      public void run() {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+          PointerBuffer aFilterPatterns = stack.mallocPointer(2);
+          aFilterPatterns.put(stack.UTF8("*.wav"));
+          aFilterPatterns.put(stack.UTF8("*.aiff"));
+          aFilterPatterns.flip();
+          dialogShowing = true;
+          String path = tinyfd_openFileDialog(
+            "Open Audio File",
+            new File(getMediaPath(), ".").toString(),
+            aFilterPatterns,
+            "Audio files (*.wav/aiff)",
+            false
+          );
+          dialogShowing = false;
+          if (path != null) {
+            engine.addTask(() -> {
+              engine.audio.output.file.setValue(path);
+            });
+          }
+        }
+      }
+    }.start();
+  }
+
   public void showExportModelDialog() {
     if (this.dialogShowing) {
       return;
