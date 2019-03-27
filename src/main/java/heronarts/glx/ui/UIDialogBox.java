@@ -38,17 +38,20 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
     this(ui, message, new String[] { "Okay" }, null);
   }
 
+  public UIDialogBox(UI ui, String message, Runnable callback) {
+    this(ui, message, new String[] { "Okay" }, new Runnable[] { callback });
+  }
+
   public UIDialogBox(UI ui, String message, String[] options, Runnable[] callbacks) {
     super((ui.getWidth() - WIDTH) / 2, (ui.getHeight() - 2*HEIGHT) / 2, WIDTH, HEIGHT);
     setBackgroundColor(ui.theme.getDeviceFocusedBackgroundColor());
     setBorderColor(UI.BLACK);
     setBorderRounding(4);
 
-    new UILabel(PADDING, PADDING, this.width - 2*PADDING, this.height - 2*PADDING - BUTTON_ROW)
+    new UILabel(PADDING, PADDING - 2, this.width - 2*PADDING, this.height - 2*PADDING - BUTTON_ROW)
     .setLabel(message)
     .setBreakLines(true)
     .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
-    .setTextOffset(0, 8)
     .addToContainer(this);
 
     float yp = this.height - BUTTON_ROW;

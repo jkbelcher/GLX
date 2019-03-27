@@ -139,6 +139,7 @@ public class UILabel extends UI2dComponent {
     }
     if (this.breakLines) {
       vg.beginPath();
+      vg.textAlign(this.textAlignHorizontal, this.textAlignVertical);
       vg.textBox(tx + this.textOffsetX, ty + this.textOffsetY, this.width - this.leftPadding - this.rightPadding, this.label);
       vg.fill();
     } else {

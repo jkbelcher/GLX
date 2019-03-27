@@ -252,6 +252,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   @Override
   protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     if (this.enabled) {
+      mouseEvent.consume();
       setActive(this.isMomentary ? true : !this.active);
       this.momentaryPressValid = this.isMomentary;
     }
@@ -261,6 +262,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   protected void onMouseReleased(MouseEvent mouseEvent, float mx, float my) {
     if (this.enabled) {
       if (this.isMomentary) {
+        mouseEvent.consume();
         setActive(false);
         if (contains(mx + this.x, my + this.y)) {
           onClick();

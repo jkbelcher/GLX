@@ -362,8 +362,8 @@ public class UI {
     }
 
     @Override
-    public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
-      super.onMousePressed(mouseEvent, mx, my);
+    public void mousePressed(MouseEvent mouseEvent, float mx, float my) {
+      super.mousePressed(mouseEvent, mx, my);
       this.mousePressed = true;
     }
   }
@@ -482,7 +482,7 @@ public class UI {
     lx.command.errorChanged.addListener((p) -> {
       String error = lx.command.getError();
       if (error != null) {
-        showContextOverlay(new UIDialogBox(this, error));
+        showContextOverlay(new UIDialogBox(this, error, () -> { lx.command.popError(); }));
       }
     });
   }
