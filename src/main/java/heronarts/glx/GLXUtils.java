@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
@@ -29,13 +30,71 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import static org.lwjgl.bgfx.BGFX.*;
+import static org.lwjgl.stb.STBImage.*;
 
 public class GLXUtils {
 
   private GLXUtils() {}
+
+  public static class Image {
+
+    private final int[] pixels;
+
+    public final int width;
+    public final int height;
+    public final int components;
+
+    private Image(ByteBuffer imageBuffer) throws IOException {
+      try (MemoryStack stack = MemoryStack.stackPush()) {
+        IntBuffer width = stack.mallocInt(1);
+        IntBuffer height = stack.mallocInt(1);
+        IntBuffer components = stack.mallocInt(1);
+        ByteBuffer bytes = stbi_load_from_memory(imageBuffer, width, height, components, STBI_rgb_alpha);
+        MemoryUtil.memFree(imageBuffer);
+
+        if (bytes == null) {
+          throw new IOException("STBI failed to load image data");
+        }
+
+        this.width = width.get(0);
+        this.height = height.get(0);
+        this.components = components.get(0);
+        this.pixels = new int[this.width * this.height];
+
+        // Swizzle the bytes into order
+        for (int i = 0; i < this.width * this.height; ++i) {
+          int ii = i << 2;
+          byte r = bytes.get(ii);
+          byte g = bytes.get(ii + 1);
+          byte b = bytes.get(ii + 2);
+          byte a = bytes.get(ii + 3);
+          this.pixels[i] = ((a & 0xff) << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+        }
+
+        stbi_image_free(bytes);
+      }
+
+    }
+
+    public int get(int x, int y) {
+      return this.pixels[y*this.width + x];
+    }
+
+    public int getNormalized(float x, float y) {
+      return get(
+        (int) (x * (this.width-1)),
+        (int) (y * (this.height-1))
+      );
+    }
+  }
+
+  public static Image loadImage(String path) throws IOException {
+    return new Image(loadResource(path));
+  }
 
   public static ByteBuffer loadShader(GLX glx, String name) throws IOException {
     String path = "resources/shaders/";
