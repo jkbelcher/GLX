@@ -30,6 +30,7 @@ import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.bgfx.BGFXPlatform.*;
@@ -46,6 +47,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
 
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UIDialogBox;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
@@ -133,6 +135,8 @@ public class GLX extends LX {
     // Stop the LX engine
     System.out.println("Stopping LX engine");
     this.engine.stop();
+
+    // TODO(mcslee): join the LX engine thread? make sure it's really done?
 
     // Clean up after ourselves
     dispose();
@@ -246,10 +250,10 @@ public class GLX extends LX {
     });
 
     glfwSetWindowCloseCallback(this.window, (window) -> {
-      System.out.println("Trying to close window...");
-      if (!confirmChangedSaved("quit")) {
-        glfwSetWindowShouldClose(this.window, false);
-      }
+      glfwSetWindowShouldClose(this.window, false);
+      confirmChangesSaved("quit", () -> {
+        glfwSetWindowShouldClose(this.window, true);
+      });
     });
 
     glfwSetWindowSizeCallback(this.window, (window, width, height) -> {
@@ -268,22 +272,18 @@ public class GLX extends LX {
     glfwSetDropCallback(this.window, (window, count, names) -> {
       if (count == 1) {
         try {
-          File file = new File(GLFWDropCallback.getName(names, 0));
+          final File file = new File(GLFWDropCallback.getName(names, 0));
           if (file.exists() && file.isFile()) {
             if (file.getName().endsWith(".lxp")) {
-              if (confirmChangedSaved("open project " + file.getName())) {
-                this.engine.addTask(() -> {
-                  openProject(file);
-                });
-              }
+              confirmChangesSaved("open project " + file.getName(), () -> {
+                openProject(file);
+              });
             } else if (file.getName().endsWith(".jar")) {
-              File destination = new File(getMediaFolder(LX.Media.CONTENT), file.getName());
+              final File destination = new File(getMediaFolder(LX.Media.CONTENT), file.getName());
               if (destination.exists()) {
-                // TODO(mcslee): confirm content overwrite
-                System.err.println(file.getName() + " already exists in content folder");
+                showConfirmDialog(file.getName() + " already exists in content folder, overwrite?", () -> { importContentJar(file, destination); });
               } else {
-                System.out.println("Importing content JAR: " + destination.toString());
-                Files.copy(file.toPath(), destination.toPath());
+                importContentJar(file, destination);
               }
             }
           }
@@ -364,8 +364,9 @@ public class GLX extends LX {
       draw();
 
       // Copy something to the clipboard
-      if (this._setSystemClipboardString != null) {
-        glfwSetClipboardString(this.window, this._setSystemClipboardString);
+      String copyToClipboard = this._setSystemClipboardString;
+      if (copyToClipboard != null) {
+        glfwSetClipboardString(this.window, copyToClipboard);
         this._setSystemClipboardString = null;
       }
     }
@@ -382,6 +383,26 @@ public class GLX extends LX {
   public void dispose() {
     this.program.dispose();
     super.dispose();
+  }
+
+  protected void importContentJar(File file, File destination) {
+    System.out.println("Importing content JAR: " + destination.toString());
+    try {
+      Files.copy(file.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+      this.engine.addTask(() -> {
+        reloadContent();
+        this.ui.contextualHelpText.setValue("New content imported into " + destination.getName());
+      });
+    } catch (IOException e) {
+      System.err.println("Error copying " + file.getName() + " to content directory");
+      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public void reloadContent() {
+    super.reloadContent();
+    this.ui.contextualHelpText.setValue("External content libraries reloaded");
   }
 
   // Prevent stacking up multiple dialogs
@@ -420,7 +441,7 @@ public class GLX extends LX {
     if (this.dialogShowing) {
       return;
     }
-    if (confirmChangedSaved("open another project")) {
+    confirmChangesSaved("open another project", () -> {
       new Thread() {
         @Override
         public void run() {
@@ -445,7 +466,7 @@ public class GLX extends LX {
           }
         }
       }.start();
-    }
+    });
   }
 
   public void showExportModelDialog() {
@@ -509,8 +530,19 @@ public class GLX extends LX {
   }
 
   @Override
-  protected boolean showConfirmUnsavedProjectDialog(String message) {
-    return tinyfd_messageBox("Project has unsaved changes", "Your project has unsaved changes, really " + message + "?", "yesno", "question", false);
+  protected void showConfirmUnsavedProjectDialog(String message, Runnable confirm) {
+    showConfirmDialog(
+      "Your project has unsaved changes, really " + message + "?",
+      confirm
+    );
+  }
+
+  protected void showConfirmDialog(String message, Runnable confirm) {
+    this.ui.showContextOverlay(new UIDialogBox(this.ui,
+      message,
+      new String[] { "No", "Yes" },
+      new Runnable[] { null, confirm }
+    ));
   }
 
   private String _setSystemClipboardString = null;

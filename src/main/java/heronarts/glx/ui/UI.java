@@ -25,8 +25,6 @@ import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
-import heronarts.lx.LXBus;
-import heronarts.lx.LXChannel;
 import heronarts.lx.LXComponent;
 import heronarts.lx.LXLoopTask;
 import heronarts.lx.LXMappingEngine;
@@ -480,6 +478,13 @@ public class UI {
         }
       }
     });
+
+    lx.command.errorChanged.addListener((p) -> {
+      String error = lx.command.getError();
+      if (error != null) {
+        showContextOverlay(new UIDialogBox(this, error));
+      }
+    });
   }
 
   public UI setHighlightParameterModulation(LXParameterModulation highlightParameterModulation) {
@@ -804,19 +809,6 @@ public class UI {
       case KeyEvent.VK_O:
         if (keyEvent.isCommand()) {
           lx.showOpenProjectDialog();
-        }
-        break;
-
-      // TODO(mcslee): remove these?
-      case KeyEvent.VK_LEFT_BRACKET:
-      case KeyEvent.VK_RIGHT_BRACKET:
-        LXBus bus = this.lx.engine.getFocusedChannel();
-        if (bus instanceof LXChannel) {
-          if (keyCode == KeyEvent.VK_LEFT_BRACKET) {
-            ((LXChannel) bus).goPrev();
-          } else {
-            ((LXChannel) bus).goNext();
-          }
         }
         break;
       }

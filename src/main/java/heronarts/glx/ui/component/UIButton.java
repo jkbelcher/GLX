@@ -53,6 +53,8 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   private boolean triggerable = false;
   protected boolean enabled = true;
 
+  protected boolean momentaryPressValid = false;
+
   private EnumParameter<? extends Object> enumParameter = null;
   private BooleanParameter booleanParameter = null;
 
@@ -200,7 +202,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   @Override
   protected void onDraw(UI ui, VGraphics vg) {
-    if (!this.enabled) {
+    if (!this.enabled || (this.isMomentary && this.active && !this.momentaryPressValid)) {
       vg.beginPath();
       vg.fillColor(ui.theme.getControlDisabledColor());
       vg.rect(1, 1, this.width-2, this.height-2);
@@ -237,9 +239,21 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   @Override
+  protected void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
+    if (this.enabled && this.isMomentary && this.active) {
+      boolean mouseDownMomentary = contains(this.x + mx, this.y + my);
+      if (mouseDownMomentary != this.momentaryPressValid) {
+        this.momentaryPressValid = mouseDownMomentary;
+        redraw();
+      }
+    }
+  }
+
+  @Override
   protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     if (this.enabled) {
       setActive(this.isMomentary ? true : !this.active);
+      this.momentaryPressValid = this.isMomentary;
     }
   }
 
@@ -248,6 +262,9 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     if (this.enabled) {
       if (this.isMomentary) {
         setActive(false);
+        if (contains(mx + this.x, my + this.y)) {
+          onClick();
+        }
       }
     }
   }
@@ -257,6 +274,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
       if (this.enabled) {
         setActive(this.isMomentary ? true : !this.active);
+        this.momentaryPressValid = this.isMomentary;
       }
       keyEvent.consume();
     }
@@ -267,6 +285,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
       if (this.enabled && this.isMomentary) {
         setActive(false);
+        onClick();
       }
       keyEvent.consume();
     }
@@ -314,6 +333,13 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
    * @param active Whether button is active
    */
   protected void onToggle(boolean active) {
+  }
+
+  /**
+   * Subclasses may override when a momentary button is clicked, and the click release
+   * happened within the bounds of the box
+   */
+  protected void onClick() {
   }
 
   public UIButton setActiveColor(int activeColor) {
