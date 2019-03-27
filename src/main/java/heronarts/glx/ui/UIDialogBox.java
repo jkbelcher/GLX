@@ -24,7 +24,7 @@ import heronarts.glx.ui.vg.VGraphics;
 
 public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
 
-  private static final int PADDING = 8;
+  private static final int PADDING = 4;
   private static final int WIDTH = 280;
   private static final int HEIGHT = 80;
 
@@ -32,7 +32,7 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
   private static final int OPTION_PADDING = 4;
   private static final int OPTION_SPACING = OPTION_WIDTH + OPTION_PADDING;
 
-  private static final int BUTTON_ROW = 24;
+  private static final int BUTTON_ROW = 22;
 
   public UIDialogBox(UI ui, String message) {
     this(ui, message, new String[] { "Okay" }, null);
@@ -48,10 +48,13 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
     setBorderColor(UI.BLACK);
     setBorderRounding(4);
 
-    new UILabel(PADDING, PADDING - 2, this.width - 2*PADDING, this.height - 2*PADDING - BUTTON_ROW)
+    new UILabel(PADDING, PADDING, this.width - 2*PADDING, this.height - 2*PADDING - BUTTON_ROW)
     .setLabel(message)
     .setBreakLines(true)
+    .setPadding(4)
     .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
+    .setBackgroundColor(ui.theme.getControlDisabledColor())
+    .setBorderRounding(4)
     .addToContainer(this);
 
     float yp = this.height - BUTTON_ROW;
