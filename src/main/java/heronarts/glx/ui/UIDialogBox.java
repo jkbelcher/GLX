@@ -53,7 +53,7 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
     .setBreakLines(true)
     .setPadding(4)
     .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
-    .setBackgroundColor(ui.theme.getControlDisabledColor())
+    .setBackgroundColor(ui.theme.getDarkBackgroundColor())
     .setBorderRounding(4)
     .addToContainer(this);
 
