@@ -18,6 +18,9 @@
 
 package heronarts.glx.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joml.Vector3f;
 import org.lwjgl.bgfx.BGFX;
 
@@ -49,20 +52,36 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
 
   public static final int NUM_CAMERA_POSITIONS = 6;
 
+  public static interface MovementListener {
+    public void translate(float x, float y, float z);
+    public void rotate(float theta, float phi);
+  }
+
   /**
-   * Mode of interaction from keyboard mouse events
+   * Mode of mouse interaction
    */
-  public enum InteractionMode {
+  public enum MouseMode {
     /**
-     * Camera has a fixed center point, eye rotates around this point and zooms on it
+     * Mouse dragging events alter the camera view
      */
-    ZOOM,
+    VIEW,
 
     /**
-     * Camera has a fixed radius, eye moves around like a FPS video-game
+     * Mouse dragging events invoke object movement callbacks
      */
-    MOVE
-  };
+    OBJECT;
+
+    @Override
+    public String toString() {
+      switch (this) {
+      case OBJECT:
+        return "Move Fixtures";
+      default:
+      case VIEW:
+        return "Move Camera";
+      }
+    }
+  }
 
   public enum ProjectionMode {
     /**
@@ -88,11 +107,11 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   };
 
   /**
-   * Camera motion mode
+   * Mouse interaction mode
    */
-  private EnumParameter<InteractionMode> interactionMode =
-    new EnumParameter<InteractionMode>("Mode", InteractionMode.ZOOM)
-    .setDescription("Camera interaction mode");
+  public EnumParameter<MouseMode> mouseMode =
+    new EnumParameter<MouseMode>("Mouse Mode", MouseMode.VIEW)
+    .setDescription("Mouse interaction mode");
 
   /**
    * Projection mode
@@ -113,7 +132,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
    * Depth of perspective field, exponential factor of radius by exp(10, Depth)
    */
   public final BoundedParameter depth =
-    new BoundedParameter("Depth", 1, 0, 4)
+    new BoundedParameter("Depth", 2, 0, 10)
     .setDescription("Camera's depth of perspective field");
 
   /**
@@ -162,6 +181,19 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
    * Acceleration used to change rotation (theta/phi)
    */
   public final MutableParameter rotationAcceleration = new MutableParameter("RAcl", 0);
+
+  /**
+   * List of movement listeners when in OBJECT mouse mode
+   */
+  private final List<MovementListener> listeners = new ArrayList<MovementListener>();
+
+  public final void addListener(MovementListener listener) {
+    this.listeners.add(listener);
+  }
+
+  public final void removeListener(MovementListener listener) {
+    this.listeners.remove(listener);
+  }
 
   public class Camera implements LXSerializable {
 
@@ -376,26 +408,12 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
         }
       }
     });
+  }
 
-    this.interactionMode.addListener(new LXParameterListener() {
-      public void onParameterChanged(LXParameter p) {
-        Vector3f pos = center;
-        switch (interactionMode.getEnum()) {
-        case ZOOM:
-          pos = center;
-          break;
-        case MOVE:
-          pos = eye;
-          break;
-        }
-        camera.x.setValue(pos.x);
-        camera.y.setValue(pos.y);
-        camera.z.setValue(pos.z);
-        xDamped.setValue(pos.x);
-        yDamped.setValue(pos.y);
-        zDamped.setValue(pos.z);
-      }
-    });
+  @Override
+  public void dispose() {
+    this.view.dispose();
+    super.dispose();
   }
 
   @Override
@@ -504,17 +522,6 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
    */
   public UI3dContext setRadius(float radius) {
     this.camera.radius.setValue(radius);
-    return this;
-  }
-
-  /**
-   * Set interaction mode for mouse/key events.
-   *
-   * @param interactionMode Interaction mode
-   * @return this
-   */
-  public UI3dContext setInteractionMode(InteractionMode interactionMode) {
-    this.interactionMode.setValue(interactionMode);
     return this;
   }
 
@@ -638,31 +645,9 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
    * @return this
    */
   public UI3dContext setCenter(float x, float y, float z) {
-    if (this.interactionMode.getEnum() != InteractionMode.ZOOM) {
-      throw new IllegalStateException("setCenter() only allowed in ZOOM mode");
-    }
-
     this.camera.x.setValue(this.center.x = x);
     this.camera.y.setValue(this.center.y = y);
     this.camera.z.setValue(this.center.z = z);
-    return this;
-  }
-
-  /**
-   * Sets the eye position, only respected in MOVE mode
-   *
-   * @param x X-coordinate
-   * @param y Y-coordinate
-   * @param z Z-coordinate
-   * @return this
-   */
-  public UI3dContext setEye(float x, float y, float z) {
-    if (this.interactionMode.getEnum() != InteractionMode.MOVE) {
-      throw new IllegalStateException("setCenter() only allowed in MOVE mode");
-    }
-    this.camera.x.setValue(this.eye.x = x);
-    this.camera.y.setValue(this.eye.y = y);
-    this.camera.z.setValue(this.eye.z = z);
     return this;
   }
 
@@ -702,32 +687,17 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     float py = this.yDamped.getValuef();
     float pz = this.zDamped.getValuef();
 
-    switch (this.interactionMode.getEnum()) {
-    case ZOOM:
-      this.centerDamped.set(px, py, pz);
-      if (initialize) {
-        this.center.set(this.centerDamped);
-      }
-      this.eyeDamped.set(
-        px + rv * cosphi * sintheta,
-        py + rv * sinphi,
-        pz - rv * cosphi * costheta
-      );
-      this.eye.set(this.eyeDamped);
-      break;
-    case MOVE:
-      this.eyeDamped.set(px, py, pz);
-      if (initialize) {
-        this.eye.set(this.eyeDamped);
-      }
-      this.centerDamped.set(
-        px + rv * cosphi * sintheta,
-        py + rv * sinphi,
-        pz + rv * cosphi * costheta
-      );
+    this.centerDamped.set(px, py, pz);
+    if (initialize) {
       this.center.set(this.centerDamped);
-      break;
     }
+    this.eyeDamped.set(
+      px + rv * cosphi * sintheta,
+      py + rv * sinphi,
+      pz - rv * cosphi * costheta
+    );
+    this.eye.set(this.eyeDamped);
+
   }
 
   public final void draw(UI ui, View view) {
@@ -735,10 +705,9 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
       throw new IllegalArgumentException("Not currently supported to draw a 3dContext into a different view");
     }
 
-    // Make sure we clear the view
-    BGFX.bgfx_touch(this.view.getId());
-
     if (!isVisible()) {
+      this.view.bind();
+      BGFX.bgfx_touch(this.view.getId());
       return;
     }
 
@@ -765,16 +734,19 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
       break;
     }
 
+    // Bind the view, touch it to make sure it's cleared in case no children draw
+    this.view.bind();
+    BGFX.bgfx_touch(this.view.getId());
+
     // Draw all the components in the scene
     for (UIObject child : this.mutableChildren) {
       ((UI3dComponent) child).draw(ui, this.view);
     }
-
   }
-
 
   @Override
   protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+    super.onMousePressed(mouseEvent, mx, my);
     if (mouseEvent.getCount() > 1) {
       focus(mouseEvent);
     }
@@ -785,76 +757,107 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     this.animating.stop();
   }
 
+  private enum MouseInteraction {
+    ROTATE_VIEW,
+    ROTATE_OBJECT,
+    ZOOM,
+    TRANSLATE_XY,
+    TRANSLATE_Z,
+  }
+
+  private MouseInteraction getInteraction(MouseEvent mouseEvent) {
+    switch (this.mouseMode.getEnum()) {
+    case OBJECT:
+     if (mouseEvent.isShiftDown()) {
+       if (mouseEvent.isMetaDown() || mouseEvent.isControlDown()) {
+         return MouseInteraction.ROTATE_VIEW;
+       }
+       return MouseInteraction.TRANSLATE_Z;
+      } else if (mouseEvent.isMetaDown() || mouseEvent.isControlDown()) {
+        return MouseInteraction.ROTATE_OBJECT;
+      }
+      return MouseInteraction.TRANSLATE_XY;
+
+    default:
+    case VIEW:
+      if (mouseEvent.isShiftDown()) {
+        return MouseInteraction.ZOOM;
+      } else if (mouseEvent.isMetaDown() || mouseEvent.isControlDown()) {
+        return MouseInteraction.TRANSLATE_XY;
+      }
+      return MouseInteraction.ROTATE_VIEW;
+    }
+  }
+
   @Override
   protected void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-    switch (this.interactionMode.getEnum()) {
-    case ZOOM:
-      if (mouseEvent.isShiftDown()) {
-        float tanPerspective = (float) Math.tan(.5 * this.perspective.getValue() * Math.PI / 180.);
-        this.camera.radius.incrementValue(this.camera.radius.getValue() * dy * 2.f / getHeight() * tanPerspective);
-      } else if (mouseEvent.isMetaDown() || mouseEvent.isControlDown()) {
-        float tanPerspective = (float) Math.tan(.5 * this.perspective.getValue() * Math.PI / 180.);
-        float sinTheta = (float) Math.sin(this.thetaDamped.getValue());
-        float cosTheta = (float) Math.cos(this.thetaDamped.getValue());
-        float sinPhi = (float) Math.sin(this.phiDamped.getValue());
-        float cosPhi = (float) Math.cos(this.phiDamped.getValue());
-
-        float dcx = dx * 2.f / getWidth() * this.radiusDamped.getValuef() * tanPerspective;
-        float dcy = dy * 2.f / getHeight() * this.radiusDamped.getValuef() * tanPerspective;
-
-        this.camera.x.incrementValue(-dcx * cosTheta - dcy * sinTheta * sinPhi);
-        this.camera.y.incrementValue(dcy * cosPhi);
-        this.camera.z.incrementValue(-dcx * sinTheta + dcy * cosTheta * sinPhi);
-
+    MouseInteraction interaction = getInteraction(mouseEvent);
+    switch (interaction) {
+    case ROTATE_VIEW:
+    case ROTATE_OBJECT:
+      float rt = -dx / getWidth() * 1.5f * (float) Math.PI;
+      float rp = dy / getHeight() * 1.5f * (float) Math.PI;
+      if (interaction == MouseInteraction.ROTATE_VIEW) {
+        this.camera.theta.incrementValue(rt);
+        this.camera.phi.incrementValue(rp);
+        updateFocusedCamera();
       } else {
-        this.camera.theta.incrementValue(-dx / getWidth() * 1.5 * Math.PI);
-        this.camera.phi.incrementValue(dy / getHeight() * 1.5 * Math.PI);
-      }
-      break;
-    case MOVE:
-      if (mouseEvent.isMetaDown() || mouseEvent.isControlDown() || mouseEvent.isShiftDown()) {
-
-        float sinTheta = (float) Math.sin(this.thetaDamped.getValue());
-        float cosTheta = (float) Math.cos(this.thetaDamped.getValue());
-        float cosPhi = (float) Math.cos(this.phiDamped.getValue());
-        float tanPerspective = (float) Math.tan(.5 * this.perspective.getValue() * Math.PI / 180.);
-
-        float dcx = dx * 2.f / getWidth() * this.radiusDamped.getValuef() * tanPerspective;
-        float dcy = dy * 2.f / getHeight() * this.radiusDamped.getValuef() * tanPerspective;
-
-        float dex = dcx * cosTheta;
-        float dez = -dcx * sinTheta;
-        float dey = -dcy * cosPhi;
-
-        if (mouseEvent.isShiftDown()) {
-          dex -= dy * sinTheta;
-          dez -= dy * cosTheta;
-          dey = 0;
+        for (MovementListener listener : this.listeners) {
+          listener.rotate(rt, rp);
         }
-        this.camera.x.incrementValue(dex);
-        this.camera.y.incrementValue(dey);
-        this.camera.z.incrementValue(dez);
-      } else {
-        this.camera.theta.incrementValue(dx / getWidth() * Math.PI);
-        this.camera.phi.incrementValue(-dy / getHeight() * Math.PI);
       }
       break;
+
+    case ZOOM:
+      this.camera.radius.incrementValue(dy * 2.f / getHeight() * this.camera.radius.getValue());
+      updateFocusedCamera();
+      break;
+
+    case TRANSLATE_XY:
+    case TRANSLATE_Z:
+      float tanPerspective = (float) Math.tan(.5 * this.perspective.getValue() * Math.PI / 180.);
+      float sinTheta = (float) Math.sin(this.thetaDamped.getValue());
+      float cosTheta = (float) Math.cos(this.thetaDamped.getValue());
+      float sinPhi = (float) Math.sin(this.phiDamped.getValue());
+      float cosPhi = (float) Math.cos(this.phiDamped.getValue());
+
+      float dcx = dx * 2.f / getWidth() * this.radiusDamped.getValuef() * tanPerspective;
+      float dcy = dy * 2.f / getHeight() * this.radiusDamped.getValuef() * tanPerspective;
+
+      float tx = 0, ty = 0, tz = 0;
+      if (interaction == MouseInteraction.TRANSLATE_XY) {
+        // Horizontal mouse movement goes "left and right" on screen
+        // Vertical mouse movement goes "up and down" on screen
+        tx = -dcx * cosTheta - dcy * sinTheta * sinPhi;
+        ty = dcy * cosPhi;
+        tz = -dcx * sinTheta + dcy * cosTheta * sinPhi;
+      } else if (interaction == MouseInteraction.TRANSLATE_Z) {
+        // Horizontal mouse movement is ignored
+        // Vertical mouse movement goes "in and out" of screen
+        tx = -dcy * sinTheta * cosPhi;
+        ty = -dcy * sinPhi;
+        tz = dcy * cosTheta * cosPhi;
+      }
+
+      if (this.mouseMode.getEnum() == MouseMode.VIEW) {
+        this.camera.x.incrementValue(tx);
+        this.camera.y.incrementValue(ty);
+        this.camera.z.incrementValue(tz);
+        updateFocusedCamera();
+      } else {
+        for (MovementListener listener : this.listeners) {
+          listener.translate(tx, ty, tz);
+        }
+      }
+      break;
+
     }
-    updateFocusedCamera();
   }
 
   @Override
   protected void onMouseScroll(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-    switch (this.interactionMode.getEnum()) {
-    case ZOOM:
-      this.camera.radius.incrementValue(-dy / getHeight() * this.camera.radius.getValue());
-      break;
-    case MOVE:
-      float dcx = dy / getHeight() * this.camera.radius.getValuef() * (float) Math.sin(this.thetaDamped.getValuef());
-      float dcz = dy / getHeight() * this.camera.radius.getValuef() * (float) Math.cos(this.thetaDamped.getValuef());
-      setEye(this.eye.x - dcx, this.eye.y, this.eye.z - dcz);
-      break;
-    }
+    float multiplier = mouseEvent.isShiftDown() ? 3 : 1;
+    this.camera.radius.incrementValue(multiplier * -dy / getHeight() * this.camera.radius.getValue());
     updateFocusedCamera();
   }
 
@@ -863,9 +866,6 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     float amount = .02f;
     if (keyEvent.isShiftDown()) {
       amount *= 10.f;
-    }
-    if (this.interactionMode.getEnum() == InteractionMode.MOVE) {
-      amount *= -1;
     }
     if (keyCode == KeyEvent.VK_LEFT) {
       keyEvent.consume();
@@ -886,7 +886,6 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     }
   }
 
-  private static final String KEY_MODE = "mode";
   private static final String KEY_ANIMATION = "animation";
   private static final String KEY_ANIMATION_TIME = "animationTime";
   private static final String KEY_CAMERA = "camera";
@@ -901,7 +900,6 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
 
   @Override
   public void save(LX lx, JsonObject object) {
-    object.addProperty(KEY_MODE, this.interactionMode.getValuei());
     object.addProperty(KEY_ANIMATION, this.animation.isOn());
     object.addProperty(KEY_ANIMATION_TIME, this.animationTime.getValue());
     object.addProperty(KEY_PROJECTION, this.projection.getValuei());
@@ -920,7 +918,6 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     this.animating.stop();
     this.animation.setValue(false);
 
-    LXSerializable.Utils.loadInt(this.interactionMode, object, KEY_MODE);
     LXSerializable.Utils.loadDouble(this.animationTime, object, KEY_ANIMATION_TIME);
     LXSerializable.Utils.loadInt(this.projection, object, KEY_PROJECTION);
     LXSerializable.Utils.loadDouble(this.perspective, object, KEY_PERSPECTIVE);

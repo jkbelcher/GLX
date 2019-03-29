@@ -46,6 +46,8 @@ import org.lwjgl.glfw.GLFWNativeX11;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
 
+import heronarts.glx.shader.Shape;
+import heronarts.glx.shader.Tex2d;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UIDialogBox;
 import heronarts.glx.ui.vg.VGraphics;
@@ -56,6 +58,10 @@ import heronarts.lx.model.LXModel;
 public class GLX extends LX {
 
   private long window;
+
+  private long handCursor;
+  private long useCursor = 0;
+  private boolean needsCursorUpdate = false;
 
   private int windowWidth = 1280;
   private int windowHeight = 720;
@@ -79,18 +85,20 @@ public class GLX extends LX {
   public final class Programs {
 
     public final Tex2d tex2d;
+    public final Shape shape;
 
     public Programs(GLX glx) {
       this.tex2d = new Tex2d(glx);
+      this.shape = new Shape(glx);
     }
 
     public void dispose() {
       this.tex2d.dispose();
+      this.shape.dispose();
     }
-
   }
 
-  protected final Programs program;
+  public final Programs program;
 
   protected GLX(Flags flags) throws IOException {
     this(flags, null);
@@ -300,6 +308,9 @@ public class GLX extends LX {
     glfwSetMouseButtonCallback(this.window, this.inputDispatch::glfwMouseButtonCallback);
     glfwSetScrollCallback(window, this.inputDispatch::glfwScrollCallback);
 
+    // Create hand editing cursor
+    this.handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+
     // Initialize BGFX platform data
     initializePlatformData();
 
@@ -361,6 +372,12 @@ public class GLX extends LX {
     while (!glfwWindowShouldClose(this.window)) {
       // Poll for input events
       this.inputDispatch.poll();
+
+      if (this.needsCursorUpdate) {
+        glfwSetCursor(this.window, this.useCursor);
+        this.needsCursorUpdate = false;
+      }
+
       draw();
 
       // Copy something to the clipboard
@@ -381,8 +398,14 @@ public class GLX extends LX {
 
   @Override
   public void dispose() {
+    glfwDestroyCursor(this.handCursor);
     this.program.dispose();
     super.dispose();
+  }
+
+  public void useHandCursor(boolean useHandCursor) {
+    this.useCursor = useHandCursor ? this.handCursor : 0;
+    this.needsCursorUpdate = true;
   }
 
   protected void importContentJar(File file, File destination) {

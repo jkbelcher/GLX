@@ -65,6 +65,10 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     });
   }
 
+  public void dispose() {
+    this.visible.dispose();
+  }
+
   protected UI getUI() {
     return this.ui;
   }
@@ -530,7 +534,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
         getUI().showContextOverlay(
           new UIContextMenu(mx, my, UIContextMenu.DEFAULT_WIDTH, 0)
           .setActions(contextActions.toArray(new UIContextActions.Action[0]))
-          .setPosition((UI2dComponent) this, (int) mx, (int) my)
+          .setPosition(this, (int) mx, (int) my)
         );
       }
     }

@@ -61,7 +61,7 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
     float xp = this.width / 2 - options.length * OPTION_SPACING / 2 + OPTION_PADDING / 2;
     for (int i = 0; i < options.length; ++i) {
       final int ii = i;
-      new UIButton(xp, yp, OPTION_WIDTH, 16) {
+      new UIButton.Action(xp, yp, OPTION_WIDTH, 16) {
         @Override
         protected void onClick() {
           getUI().hideContextOverlay();
@@ -70,9 +70,7 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
           }
         }
       }
-      .setMomentary(true)
       .setLabel(options[i])
-      .setBorderRounding(8)
       .addToContainer(this);
       xp += OPTION_SPACING;
     }

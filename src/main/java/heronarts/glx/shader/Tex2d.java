@@ -16,7 +16,7 @@
  * @author Mark C. Slee <mark@heronarts.com>
  */
 
-package heronarts.glx;
+package heronarts.glx.shader;
 
 import static org.lwjgl.bgfx.BGFX.*;
 
@@ -27,6 +27,12 @@ import java.nio.FloatBuffer;
 import org.joml.Matrix4f;
 import org.lwjgl.bgfx.BGFXVertexDecl;
 import org.lwjgl.system.MemoryUtil;
+
+import heronarts.glx.GLX;
+import heronarts.glx.GLXUtils;
+import heronarts.glx.Texture;
+import heronarts.glx.VertexBuffer;
+import heronarts.glx.View;
 
 public class Tex2d {
 
@@ -43,12 +49,8 @@ public class Tex2d {
   protected final Matrix4f modelMatrix = new Matrix4f();
   protected final FloatBuffer modelMatrixBuf;
 
-  private final static float[][] VERTEX_BUFFER_DATA = {
-    {0f, 0f, 0f, 0f, 0f },
-    {1f, 0f, 0f, 1f, 0f },
-    {0f, 1f, 0f, 0f, 1f },
-    {1f, 1f, 0f, 1f, 1f }
-  };
+  private final static float[][] VERTEX_BUFFER_DATA = { { 0f, 0f, 0f, 0f, 0f },
+    { 1f, 0f, 0f, 1f, 0f }, { 0f, 1f, 0f, 0f, 1f }, { 1f, 1f, 0f, 1f, 1f } };
 
   public Tex2d(GLX glx) {
 
@@ -57,28 +59,31 @@ public class Tex2d {
 
     this.vertexDecl = BGFXVertexDecl.calloc();
     bgfx_vertex_decl_begin(this.vertexDecl, glx.getRenderer());
-    bgfx_vertex_decl_add(this.vertexDecl, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
-    bgfx_vertex_decl_add(this.vertexDecl, BGFX_ATTRIB_TEXCOORD0, 2, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+    bgfx_vertex_decl_add(this.vertexDecl, BGFX_ATTRIB_POSITION, 3,
+      BGFX_ATTRIB_TYPE_FLOAT, false, false);
+    bgfx_vertex_decl_add(this.vertexDecl, BGFX_ATTRIB_TEXCOORD0, 2,
+      BGFX_ATTRIB_TYPE_FLOAT, false, false);
     bgfx_vertex_decl_end(this.vertexDecl);
 
-    this.vertexBuffer = MemoryUtil.memAlloc(VERTEX_BUFFER_DATA.length * 5 * Float.BYTES);
+    this.vertexBuffer = MemoryUtil
+      .memAlloc(VERTEX_BUFFER_DATA.length * 5 * Float.BYTES);
     for (float[] fl : VERTEX_BUFFER_DATA) {
       for (float f : fl) {
         this.vertexBuffer.putFloat(f);
       }
     }
     this.vertexBuffer.flip();
-    this.vbh = bgfx_create_vertex_buffer(bgfx_make_ref(this.vertexBuffer), this.vertexDecl, BGFX_BUFFER_NONE);
+    this.vbh = bgfx_create_vertex_buffer(bgfx_make_ref(this.vertexBuffer),
+      this.vertexDecl, BGFX_BUFFER_NONE);
 
     try {
       this.vsCode = GLXUtils.loadShader(glx, "vs_view2d");
       this.fsCode = GLXUtils.loadShader(glx, "fs_view2d");
       this.program = bgfx_create_program(
         bgfx_create_shader(bgfx_make_ref(this.vsCode)),
-        bgfx_create_shader(bgfx_make_ref(this.fsCode)),
-        true
-      );
-      this.uniformTexture = bgfx_create_uniform("s_texColor", BGFX_UNIFORM_TYPE_SAMPLER, 1);
+        bgfx_create_shader(bgfx_make_ref(this.fsCode)), true);
+      this.uniformTexture = bgfx_create_uniform("s_texColor",
+        BGFX_UNIFORM_TYPE_SAMPLER, 1);
     } catch (IOException iox) {
       throw new RuntimeException(iox);
     }
@@ -89,35 +94,27 @@ public class Tex2d {
     this.modelMatrix.get(this.modelMatrixBuf);
     bgfx_set_transform(this.modelMatrixBuf);
     bgfx_set_texture(0, this.uniformTexture, texture.getHandle(), 0xffffffff);
-    bgfx_set_state(
-      BGFX_STATE_WRITE_RGB |
-      BGFX_STATE_WRITE_A |
-      BGFX_STATE_WRITE_Z |
-      BGFX_STATE_BLEND_ALPHA,
-      0
-    );
-    bgfx_set_vertex_buffer(0, vertexBuffer.getHandle(), 0, vertexBuffer.getNumVertices());
+    bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A
+      | BGFX_STATE_WRITE_Z | BGFX_STATE_BLEND_ALPHA, 0);
+    bgfx_set_vertex_buffer(0, vertexBuffer.getHandle(), 0,
+      vertexBuffer.getNumVertices());
     bgfx_submit(view.getId(), this.program, 0, false);
   }
 
-  public void submit(View view, short texHandle, float x, float y, float w, float h) {
+  public void submit(View view, short texHandle, float x, float y, float w,
+    float h) {
     this.modelMatrix.identity().translate(x, y, 0).scale(w, h, 1);
     this.modelMatrix.get(this.modelMatrixBuf);
     bgfx_set_transform(this.modelMatrixBuf);
     bgfx_set_texture(0, this.uniformTexture, texHandle, 0xffffffff);
-    bgfx_set_state(
-      BGFX_STATE_WRITE_RGB |
-      BGFX_STATE_WRITE_A |
-      BGFX_STATE_WRITE_Z |
-      BGFX_STATE_BLEND_ALPHA |
-      BGFX_STATE_PT_TRISTRIP,
-      0
-    );
+    bgfx_set_state(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A
+      | BGFX_STATE_WRITE_Z | BGFX_STATE_BLEND_ALPHA | BGFX_STATE_PT_TRISTRIP,
+      0);
     bgfx_set_vertex_buffer(0, this.vbh, 0, VERTEX_BUFFER_DATA.length);
     bgfx_submit(view.getId(), this.program, 0, false);
   }
 
-  void dispose() {
+  public void dispose() {
     MemoryUtil.memFree(this.vertexBuffer);
     MemoryUtil.memFree(this.vsCode);
     MemoryUtil.memFree(this.fsCode);
@@ -126,4 +123,5 @@ public class Tex2d {
     bgfx_destroy_uniform(this.uniformTexture);
     bgfx_destroy_program(this.program);
   }
+
 }

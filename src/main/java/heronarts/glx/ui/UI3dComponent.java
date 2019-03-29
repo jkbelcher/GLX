@@ -78,6 +78,9 @@ public abstract class UI3dComponent extends UIObject {
    * @param view View to draw into
    */
   public final void draw(UI ui, View view) {
+    if (!isVisible()) {
+      return;
+    }
     onDraw(ui, view);
     for (UIObject child : this.children) {
       ((UI3dComponent) child).draw(ui, view);

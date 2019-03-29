@@ -29,11 +29,11 @@ import com.google.gson.JsonObject;
 
 import heronarts.glx.DynamicVertexBuffer;
 import heronarts.glx.GLX;
-import heronarts.glx.ShaderProgram;
 import heronarts.glx.Texture;
 import heronarts.glx.VertexBuffer;
 import heronarts.glx.VertexDeclaration;
 import heronarts.glx.View;
+import heronarts.glx.shader.ShaderProgram;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI3dComponent;
 import heronarts.lx.LX;
@@ -140,7 +140,7 @@ public class UIPointCloud extends UI3dComponent implements LXModel.Listener, LXS
   }
 
   public final BoundedParameter pointSize =
-    new BoundedParameter("Point Size", 3, 0, 100)
+    new BoundedParameter("Point Size", 3, 1, 101)
     .setDescription("Size of points rendered in the preview display");
 
   private final GLX lx;
@@ -171,6 +171,7 @@ public class UIPointCloud extends UI3dComponent implements LXModel.Listener, LXS
     setModel(lx.getModel());
   }
 
+  @Override
   public void dispose() {
     this.texture.dispose();
     this.modelBuffer.dispose();

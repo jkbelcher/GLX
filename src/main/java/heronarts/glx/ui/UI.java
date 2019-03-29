@@ -269,7 +269,7 @@ public class UI {
       for (UIObject child : this.mutableChildren) {
         if (child instanceof UI3dContext) {
           UI3dContext context3d = (UI3dContext) child;
-          context3d.view.bind(viewId++);
+          context3d.view.setId(viewId++);
           context3d.draw(this.ui, context3d.view);
         }
       }
@@ -795,7 +795,7 @@ public class UI {
   private void _engineThreadDefaultKeyEvent(KeyEvent keyEvent) {
     int keyCode = keyEvent.getKeyCode();
     KeyEvent.Action action = keyEvent.getAction();
-    if (action == KeyEvent.Action.RELEASE) {
+    if (action == KeyEvent.Action.PRESS) {
       switch (keyCode) {
       case KeyEvent.VK_S:
         if (keyEvent.isCommand()) {
