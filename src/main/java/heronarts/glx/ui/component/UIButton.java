@@ -35,6 +35,19 @@ import heronarts.lx.parameter.LXParameterListener;
 
 public class UIButton extends UIParameterComponent implements UIControlTarget, UITriggerSource, UITriggerTarget, UIFocus {
 
+  public static class Action extends UIButton {
+    public Action(float w, float h) {
+      this(0, 0, w, h);
+    }
+
+    public Action(float x, float y, float w, float h) {
+      super(x, y, w, h);
+      setBorderRounding(8);
+      setMomentary(true);
+    }
+
+  }
+
   protected boolean active = false;
   protected boolean isMomentary = false;
 
