@@ -209,7 +209,7 @@ public class GLX extends LX {
     // Configure GLFW
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
 
     // Create GLFW window
     this.window = glfwCreateWindow(
@@ -240,6 +240,12 @@ public class GLX extends LX {
       glfwGetFramebufferSize(this.window, xSize, ySize);
       this.frameBufferWidth = xSize.get(0);
       this.frameBufferHeight = ySize.get(0);
+
+      System.out.println(
+        "window: " + this.windowWidth + "x" + this.windowHeight + "\n" +
+        "frame: " + this.frameBufferWidth + "x" + this.frameBufferHeight + "\n" +
+        "content: " + this.xContentScale + "x" + this.yContentScale
+      );
     }
 
     glfwSetWindowFocusCallback(this.window, (window, focused) -> {
