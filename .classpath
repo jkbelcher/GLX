@@ -2,13 +2,25 @@
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/LX"/>
-	<classpathentry kind="lib" path="/LX/lib/coremidi4j-0.9.jar"/>
-	<classpathentry kind="lib" path="/LX/lib/gson-2.8.0.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/LWJGL3"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/LX/lib/coremidi4j-0.9.jar"/>
+	<classpathentry kind="lib" path="/LX/lib/gson-2.8.0.jar"/>
+	<classpathentry kind="lib" path="lwjgl/joml-1.9.13.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx-natives-macos.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw-natives-macos.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-nanovg-natives-macos.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-nanovg.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-stb-natives-macos.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-stb.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd-natives-macos.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-natives-macos.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
