@@ -22,5 +22,11 @@
 	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-natives-macos.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx-natives-windows.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw-natives-windows.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-nanovg-natives-windows.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-natives-windows.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-stb-natives-windows.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd-natives-windows.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

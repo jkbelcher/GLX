@@ -5,7 +5,8 @@
     "joml"
   ],
   "platform": [
-    "macos"
+    "macos",
+    "windows"
   ],
   "descriptions": true,
   "compact": false,
@@ -17,8 +18,10 @@
   "language": "groovy",
   "contents": [
     "lwjgl",
-    "lwjgl-nanovg",
+    "lwjgl-stb",
     "lwjgl-bgfx",
-    "lwjgl-glfw"
+    "lwjgl-glfw",
+    "lwjgl-nanovg",
+    "lwjgl-tinyfd"
   ]
 }
