@@ -270,6 +270,7 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
   @Override
   protected void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
     if (this.enabled && this.editable && !this.editing && this.normalizedMouseEditing && this.parameter != null) {
+      mouseEvent.consume();
       float delta = dy / 100.f;
       if (mouseEvent.isShiftDown()) {
         delta /= 10;
