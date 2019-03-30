@@ -450,7 +450,14 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
       this.y = y;
       this.width = width;
       this.height = height;
-      this.view.setRect(this.x, this.y, this.width, this.height);
+
+      // Note that we transform our rect by UI content scaling factor
+      this.view.setRect(
+        (int) (this.x * this.ui.getContentScaleX()),
+        (int) (this.y * this.ui.getContentScaleY()),
+        (int) (this.width * this.ui.getContentScaleX()),
+        (int) (this.height * this.ui.getContentScaleY())
+      );
     }
     return this;
   }

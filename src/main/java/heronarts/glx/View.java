@@ -44,10 +44,25 @@ public class View {
   protected final Matrix4f projectionMatrix = new Matrix4f();
   protected final FloatBuffer projectionMatrixBuf;
 
+  /**
+   * Constructs a default view of the entire framebuffer
+   *
+   * @param glx GLX instance
+   */
   public View(GLX glx) {
-    this(glx, 0, 0, glx.getWindowWidth(), glx.getWindowHeight());
+    this(glx, 0, 0, glx.getFrameBufferWidth(), glx.getFrameBufferHeight());
   }
 
+  /**
+   * Constructs a view of the given bounds. Bounds are expressed in framebuffer
+   * coordinate space, with no awareness of content-scaling
+   *
+   * @param glx LX instance
+   * @param x Top-left x position in framebuffer coordinates
+   * @param y Top-left y position in framebuffer coordinates
+   * @param w Width in framebuffer coordinates
+   * @param h Height in framebuffer coordinates
+   */
   public View(GLX glx, int x, int y, int w, int h) {
     this.glx = glx;
     this.viewId = 0;
@@ -122,6 +137,10 @@ public class View {
     return this;
   }
 
+  public View setScreenOrtho() {
+    return setScreenOrtho(this.width, this.height);
+  }
+
   public View setScreenOrtho(float width, float height) {
     this.viewMatrix.identity();
     this.viewMatrix.get(this.viewMatrixBuf);
@@ -130,6 +149,16 @@ public class View {
     return this;
   }
 
+  /**
+   * Sets the coordinates of this view in framebuffer coordinate space, independent of content
+   * scaling.
+   *
+   * @param x Top-left x in framebuffer pixels
+   * @param y Top-left y in framebuffer pixels
+   * @param width Width in framebuffer pixels
+   * @param height Height in framebuffer pixels
+   * @return this
+   */
   public View setRect(int x, int y, int width, int height) {
     this.x = x;
     this.y = y;
@@ -153,14 +182,23 @@ public class View {
     return this;
   }
 
+  /**
+   * Renders the given 2d context into this view
+   *
+   * @param context rendered 2d view
+   * @return this
+   */
   public View image(UI2dContext context) {
+    // NOTE: context coordinates are in UI coordinate space. But the tex2d program
+    // is in framebuffer coordinate space. We need to scale the bounds by the content
+    // scale factor here to move from context's UI-space to framebuffer-space
     this.glx.program.tex2d.submit(
       this,
       bgfx_get_texture(context.getTexture(), 0),
-      context.getX(),
-      context.getY(),
-      context.getWidth(),
-      context.getHeight()
+      context.getX() * this.glx.getContentScaleX(),
+      context.getY() * this.glx.getContentScaleY(),
+      context.getWidth() * this.glx.getContentScaleX(),
+      context.getHeight() * this.glx.getContentScaleY()
     );
     return this;
   }

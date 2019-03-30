@@ -67,8 +67,9 @@ public class GLX extends LX {
   private int windowHeight = 720;
   private int frameBufferWidth = 0;
   private int frameBufferHeight = 0;
-  float xContentScale = 1;
-  float yContentScale = 1;
+
+  float contentScaleX = 1;
+  float contentScaleY = 1;
 
   private int bgfxRenderer = BGFX_RENDERER_TYPE_COUNT;
   private int bgfxFormat = 0;
@@ -194,8 +195,12 @@ public class GLX extends LX {
     return this.frameBufferHeight;
   }
 
-  public float getContentScale() {
-    return this.xContentScale;
+  public float getContentScaleX() {
+    return this.contentScaleX;
+  }
+
+  public float getContentScaleY() {
+    return this.contentScaleY;
   }
 
   private void initializeWindow() {
@@ -228,8 +233,8 @@ public class GLX extends LX {
       FloatBuffer xScale = stack.mallocFloat(1);
       FloatBuffer yScale = stack.mallocFloat(1);
       glfwGetWindowContentScale(this.window, xScale, yScale);
-      this.xContentScale = xScale.get(0);
-      this.yContentScale = yScale.get(0);
+      this.contentScaleX = xScale.get(0);
+      this.contentScaleY = yScale.get(0);
 
       IntBuffer xSize = stack.mallocInt(1);
       IntBuffer ySize = stack.mallocInt(1);
@@ -241,10 +246,13 @@ public class GLX extends LX {
       this.frameBufferWidth = xSize.get(0);
       this.frameBufferHeight = ySize.get(0);
 
+      this.windowWidth = (int) (this.frameBufferWidth / this.contentScaleX);
+      this.windowHeight = (int) (this.frameBufferHeight / this.contentScaleY);
+
       System.out.println(
         "window: " + this.windowWidth + "x" + this.windowHeight + "\n" +
         "frame: " + this.frameBufferWidth + "x" + this.frameBufferHeight + "\n" +
-        "content: " + this.xContentScale + "x" + this.yContentScale
+        "content: " + this.contentScaleX + "x" + this.contentScaleY
       );
     }
 
@@ -271,9 +279,18 @@ public class GLX extends LX {
     });
 
     glfwSetWindowSizeCallback(this.window, (window, width, height) -> {
-      this.windowWidth = width;
-      this.windowHeight = height;
-      bgfx_reset(this.windowWidth, this.windowHeight, BGFX_RESET_VSYNC, this.bgfxFormat);
+//      this.windowWidth = width;
+//      this.windowHeight = height;
+    });
+
+    glfwSetWindowContentScaleCallback(this.window, (window, contentScaleX, contentScaleY) -> {
+      System.out.println("content scale changed");
+      this.contentScaleX = contentScaleX;
+      this.contentScaleY = contentScaleY;
+      this.windowWidth = (int) (this.frameBufferWidth / this.contentScaleX);
+      this.windowHeight = (int) (this.frameBufferHeight / this.contentScaleY);
+
+      // TODO(mcslee): update ui.contentScale reference...
       ui.resize();
       draw();
     });
@@ -281,6 +298,11 @@ public class GLX extends LX {
     glfwSetFramebufferSizeCallback(this.window, (window, width, height) -> {
       this.frameBufferWidth = width;
       this.frameBufferHeight = height;
+      this.windowWidth = (int) (this.frameBufferWidth / this.contentScaleX);
+      this.windowHeight = (int) (this.frameBufferHeight / this.contentScaleY);
+      bgfx_reset(this.frameBufferWidth, this.frameBufferHeight, BGFX_RESET_VSYNC, this.bgfxFormat);
+      ui.resize();
+      draw();
     });
 
     glfwSetDropCallback(this.window, (window, count, names) -> {
@@ -330,7 +352,7 @@ public class GLX extends LX {
         .deviceId((short) 0)
         .callback(null)
         .allocator(null)
-        .resolution(res -> res.width(this.windowWidth).height(this.windowHeight).reset(BGFX_RESET_VSYNC));
+        .resolution(res -> res.width(this.frameBufferWidth).height(this.frameBufferHeight).reset(BGFX_RESET_VSYNC));
       if (!bgfx_init(init)) {
         throw new RuntimeException("Error initializing bgfx renderer");
       }

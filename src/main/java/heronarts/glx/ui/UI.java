@@ -67,19 +67,37 @@ public class UI {
       this.view = new View(this.ui.lx);
       this.view.setClearFlags(BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
       this.view.setClearColor(0);
-      this.view.setScreenOrtho(getWidth(), getHeight());
+      this.view.setScreenOrtho();
     }
 
     protected void resize() {
-      this.view.setRect(0, 0, (int) getWidth(), (int) getHeight());
-      this.view.setScreenOrtho(getWidth(), getHeight());
+      // Note that our getWidth() / getHeight() methods are in UI-space. We must multiply by
+      // the content scale factor when setting the view bounds, which are in framebuffer
+      // space.
+      this.view.setRect(
+        0,
+        0,
+        (int) (getWidth() * this.ui.getContentScaleX()),
+        (int) (getHeight() * this.ui.getContentScaleY())
+      );
+      this.view.setScreenOrtho();
     }
 
+    /**
+     * Returns the width of the UI, in UI-domain pixels
+     *
+     * @return UI width, in UI-coordinate space
+     */
     @Override
     public float getWidth() {
       return this.ui.lx.getWindowWidth();
     }
 
+    /**
+     * Returns the height of the UI, in UI-domain pixels
+     *
+     * @return UI height, in UI-coordinate space
+     */
     @Override
     public float getHeight() {
       return this.ui.lx.getWindowHeight();
@@ -692,6 +710,14 @@ public class UI {
 
   void redraw(UI2dComponent object) {
     this.threadSafeRedrawQueue.add(object);
+  }
+
+  public float getContentScaleX() {
+    return this.lx.getContentScaleX();
+  }
+
+  public float getContentScaleY() {
+    return this.lx.getContentScaleY();
   }
 
   public int getWidth() {

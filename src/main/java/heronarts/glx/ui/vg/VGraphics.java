@@ -204,12 +204,11 @@ public class VGraphics {
     private boolean isStale = false;
 
     public Framebuffer(int w, int h, int imageFlags) {
-      this.buffer = nvgluCreateFramebuffer(vg, w, h, imageFlags);
-      this.paint.imagePattern(0, 0, w, h, this.buffer.image());
       this.width = w;
       this.height = h;
       this.imageFlags = imageFlags;
       this.viewId = 0;
+      makeBuffer();
     }
 
     public Framebuffer markStale() {
@@ -262,21 +261,31 @@ public class VGraphics {
 
     public void rebuffer() {
       nvgluDeleteFramebuffer(this.buffer);
+      makeBuffer();
+      this.isStale = false;
+    }
+
+    private void makeBuffer() {
       this.buffer = nvgluCreateFramebuffer(vg, this.width, this.height, this.imageFlags);
       this.paint.imagePattern(0, 0, this.width, this.height, this.buffer.image());
-      this.isStale = false;
+
+      // Note what happens here... the framebuffer is in framebuffer-pixel space. But
+      // when we're going to paint it into another UI2dContext, those pixels will be in
+      // UI-space. Therefore, we need to transform the image by content-scaling factor.
+      nvgTransformScale(this.paint.paint.xform(), 1 / glx.getContentScaleX(), 1 / glx.getContentScaleY());
     }
 
   }
 
+  private final GLX glx;
   private final View view;
   private final long vg;
   private final NVGColor fillColor = NVGColor.create();
   private final NVGColor strokeColor = NVGColor.create();
   private final Set<Framebuffer> allocatedBuffers = new HashSet<Framebuffer>();
 
-
   public VGraphics(GLX glx) {
+    this.glx = glx;
     this.vg = nvgCreate(true, 0, NULL);
     this.view = new View(glx);
     this.view.setClearFlags(BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
