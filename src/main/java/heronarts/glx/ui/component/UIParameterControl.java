@@ -88,7 +88,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       }
       String oscAddress = LXOscEngine.getOscAddress(parameter);
       if (oscAddress != null) {
-        label += "  —  " + oscAddress;
+        label += "  \u2014  " + oscAddress;
       }
       return label;
     }
