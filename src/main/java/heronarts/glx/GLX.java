@@ -67,9 +67,14 @@ public class GLX extends LX {
   private int windowHeight = 720;
   private int frameBufferWidth = 0;
   private int frameBufferHeight = 0;
+  private int uiWidth = windowWidth;
+  private int uiHeight = windowHeight;
 
   float contentScaleX = 1;
   float contentScaleY = 1;
+
+  float cursorScaleX = 1;
+  float cursorScaleY = 1;
 
   private int bgfxRenderer = BGFX_RENDERER_TYPE_COUNT;
   private int bgfxFormat = 0;
@@ -179,12 +184,12 @@ public class GLX extends LX {
     return this.bgfxRenderer;
   }
 
-  public int getWindowWidth() {
-    return this.windowWidth;
+  public int getUIWidth() {
+    return this.uiWidth;
   }
 
-  public int getWindowHeight() {
-    return this.windowHeight;
+  public int getUIHeight() {
+    return this.uiHeight;
   }
 
   public int getFrameBufferWidth() {
@@ -246,13 +251,18 @@ public class GLX extends LX {
       this.frameBufferWidth = xSize.get(0);
       this.frameBufferHeight = ySize.get(0);
 
-      this.windowWidth = (int) (this.frameBufferWidth / this.contentScaleX);
-      this.windowHeight = (int) (this.frameBufferHeight / this.contentScaleY);
+      this.uiWidth = (int) (this.frameBufferWidth / this.contentScaleX);
+      this.uiHeight = (int) (this.frameBufferHeight / this.contentScaleY);
+
+      this.cursorScaleX = this.uiWidth / (float) this.windowWidth;
+      this.cursorScaleY = this.uiHeight / (float) this.windowHeight;
 
       System.out.println(
         "window: " + this.windowWidth + "x" + this.windowHeight + "\n" +
         "frame: " + this.frameBufferWidth + "x" + this.frameBufferHeight + "\n" +
-        "content: " + this.contentScaleX + "x" + this.contentScaleY
+        "ui: " + this.uiWidth + "x" + this.uiHeight + "\n" +
+        "content: " + this.contentScaleX + "x" + this.contentScaleY + "\n" +
+        "cursor: " + this.cursorScaleX + "x" + this.cursorScaleY + "\n"
       );
     }
 
@@ -266,7 +276,7 @@ public class GLX extends LX {
           DoubleBuffer xPos = stack.mallocDouble(1);
           DoubleBuffer yPos = stack.mallocDouble(1);
           glfwGetCursorPos(this.window, xPos, yPos);
-          this.inputDispatch.onFocus(xPos.get(0), yPos.get(0));
+          this.inputDispatch.onFocus(xPos.get(0) * this.cursorScaleX, yPos.get(0) * this.cursorScaleY);
         }
       }
     });
@@ -279,18 +289,20 @@ public class GLX extends LX {
     });
 
     glfwSetWindowSizeCallback(this.window, (window, width, height) -> {
-//      this.windowWidth = width;
-//      this.windowHeight = height;
+      this.windowWidth = width;
+      this.windowHeight = height;
+      this.cursorScaleX = this.uiWidth / (float) this.windowWidth;
+      this.cursorScaleY = this.uiHeight / (float) this.windowHeight;
     });
 
     glfwSetWindowContentScaleCallback(this.window, (window, contentScaleX, contentScaleY) -> {
       System.out.println("content scale changed");
       this.contentScaleX = contentScaleX;
       this.contentScaleY = contentScaleY;
-      this.windowWidth = (int) (this.frameBufferWidth / this.contentScaleX);
-      this.windowHeight = (int) (this.frameBufferHeight / this.contentScaleY);
-
-      // TODO(mcslee): update ui.contentScale reference...
+      this.uiWidth = (int) (this.frameBufferWidth / this.contentScaleX);
+      this.uiHeight = (int) (this.frameBufferHeight / this.contentScaleY);
+      this.cursorScaleX = this.uiWidth / (float) this.windowWidth;
+      this.cursorScaleY = this.uiHeight / (float) this.windowHeight;
       ui.resize();
       draw();
     });
@@ -298,8 +310,10 @@ public class GLX extends LX {
     glfwSetFramebufferSizeCallback(this.window, (window, width, height) -> {
       this.frameBufferWidth = width;
       this.frameBufferHeight = height;
-      this.windowWidth = (int) (this.frameBufferWidth / this.contentScaleX);
-      this.windowHeight = (int) (this.frameBufferHeight / this.contentScaleY);
+      this.uiWidth = (int) (this.frameBufferWidth / this.contentScaleX);
+      this.uiHeight = (int) (this.frameBufferHeight / this.contentScaleY);
+      this.cursorScaleX = this.uiWidth / (float) this.windowWidth;
+      this.cursorScaleY = this.uiHeight / (float) this.windowHeight;
       bgfx_reset(this.frameBufferWidth, this.frameBufferHeight, BGFX_RESET_VSYNC, this.bgfxFormat);
       ui.resize();
       draw();

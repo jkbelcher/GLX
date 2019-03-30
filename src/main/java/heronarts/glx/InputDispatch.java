@@ -66,6 +66,10 @@ public class InputDispatch implements LXEngine.Dispatch {
   }
 
   void glfwCursorPosCallback(long window, double x, double y) {
+    // Apply cursor position scaling, to go from window-space into ui-space
+    x *= this.lx.cursorScaleX;
+    y *= this.lx.cursorScaleY;
+
     double dx = x - this.cursorX;
     double dy = y - this.cursorY;
     MouseEvent.Action action = this.mouseDragging ? MouseEvent.Action.DRAG : MouseEvent.Action.MOVE;

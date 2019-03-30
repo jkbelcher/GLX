@@ -90,7 +90,7 @@ public class UI {
      */
     @Override
     public float getWidth() {
-      return this.ui.lx.getWindowWidth();
+      return this.ui.lx.getUIWidth();
     }
 
     /**
@@ -100,7 +100,7 @@ public class UI {
      */
     @Override
     public float getHeight() {
-      return this.ui.lx.getWindowHeight();
+      return this.ui.lx.getUIHeight();
     }
 
     @Override
@@ -721,11 +721,11 @@ public class UI {
   }
 
   public int getWidth() {
-    return this.lx.getWindowWidth();
+    return this.lx.getUIWidth();
   }
 
   public int getHeight() {
-    return this.lx.getWindowHeight();
+    return this.lx.getUIHeight();
   }
 
   public void resize() {
