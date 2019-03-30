@@ -197,13 +197,13 @@ public class VGraphics {
   public class Framebuffer {
     private NVGLUFramebufferBGFX buffer;
     public final Paint paint = new Paint();
-    private int width;
-    private int height;
+    private float width;
+    private float height;
     private short viewId;
     private final int imageFlags;
     private boolean isStale = false;
 
-    public Framebuffer(int w, int h, int imageFlags) {
+    public Framebuffer(float w, float h, int imageFlags) {
       this.width = w;
       this.height = h;
       this.imageFlags = imageFlags;
@@ -228,11 +228,11 @@ public class VGraphics {
       return this.buffer.handle();
     }
 
-    public int getWidth() {
+    public float getWidth() {
       return this.width;
     }
 
-    public int getHeight() {
+    public float getHeight() {
       return this.height;
     }
 
@@ -251,7 +251,7 @@ public class VGraphics {
       return this;
     }
 
-    public void markForResize(int w, int h) {
+    public void markForResize(float w, float h) {
       if (this.width != w || this.height != h) {
         this.width = w;
         this.height = h;
@@ -266,7 +266,7 @@ public class VGraphics {
     }
 
     private void makeBuffer() {
-      this.buffer = nvgluCreateFramebuffer(vg, this.width, this.height, this.imageFlags);
+      this.buffer = nvgluCreateFramebuffer(vg, (int) Math.ceil(this.width), (int) Math.ceil(this.height), this.imageFlags);
       this.paint.imagePattern(0, 0, this.width, this.height, this.buffer.image());
 
       // Note what happens here... the framebuffer is in framebuffer-pixel space. But
@@ -295,7 +295,7 @@ public class VGraphics {
     return this.vg;
   }
 
-  public Framebuffer createFramebuffer(int w, int h, int imageFlags) {
+  public Framebuffer createFramebuffer(float w, float h, int imageFlags) {
     Framebuffer framebuffer = new Framebuffer(w, h, imageFlags);
     this.allocatedBuffers.add(framebuffer);
     return framebuffer;

@@ -720,11 +720,11 @@ public class UI {
     return this.lx.getContentScaleY();
   }
 
-  public int getWidth() {
+  public float getWidth() {
     return this.lx.getUIWidth();
   }
 
-  public int getHeight() {
+  public float getHeight() {
     return this.lx.getUIHeight();
   }
 

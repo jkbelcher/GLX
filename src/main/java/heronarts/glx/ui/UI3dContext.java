@@ -325,18 +325,24 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   private static final float MAX_PHI = (float) LX.HALF_PI * .9f;
 
   protected final View view;
-  private int x;
-  private int y;
-  private int width;
-  private int height;
+  private float x;
+  private float y;
+  private float width;
+  private float height;
 
-  protected UI3dContext(UI ui, int x, int y, int w, int h) {
+  protected UI3dContext(UI ui, float x, float y, float w, float h) {
     setUI(ui);
     this.x = x;
     this.y = y;
     this.width = w;
     this.height = h;
-    this.view = new View(ui.lx, x, y, w, h);
+    this.view = new View(
+      ui.lx,
+      (int) (x * ui.getContentScaleX()),
+      (int) (y * ui.getContentScaleY()),
+      (int) (w * ui.getContentScaleX()),
+      (int) (h * ui.getContentScaleY())
+    );
 
     for (int i = 0; i < this.cue.length; ++i) {
       this.cue[i] = new Camera();
@@ -436,15 +442,15 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     return this.height;
   }
 
-  public UI3dContext setPosition(int x, int y) {
+  public UI3dContext setPosition(float x, float y) {
     return setRect(x, y, this.width, this.height);
   }
 
-  public UI3dContext setSize(int width, int height) {
+  public UI3dContext setSize(float width, float height) {
     return setRect(this.x, this.y, width, height);
   }
 
-  public UI3dContext setRect(int x, int y, int width, int height) {
+  public UI3dContext setRect(float x, float y, float width, float height) {
     if (this.x != x || this.y != y || this.width != width || this.height != height) {
       this.x = x;
       this.y = y;

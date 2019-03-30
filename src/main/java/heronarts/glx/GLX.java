@@ -67,8 +67,8 @@ public class GLX extends LX {
   private int windowHeight = 720;
   private int frameBufferWidth = 0;
   private int frameBufferHeight = 0;
-  private int uiWidth = windowWidth;
-  private int uiHeight = windowHeight;
+  private float uiWidth = windowWidth;
+  private float uiHeight = windowHeight;
 
   float contentScaleX = 1;
   float contentScaleY = 1;
@@ -114,11 +114,11 @@ public class GLX extends LX {
     super(flags, model);
 
     // Get initial window size from preferences
-    int preferenceWidth = this.preferences.getWindowWidth();
-    int preferenceHeight = this.preferences.getWindowHeight();
+    float preferenceWidth = this.preferences.getUIWidth();
+    float preferenceHeight = this.preferences.getUIHeight();
     if (preferenceWidth > 0 && preferenceHeight > 0) {
-      this.windowWidth = preferenceWidth;
-      this.windowHeight = preferenceHeight;
+      this.uiWidth = (int) preferenceWidth;
+      this.uiHeight = (int) preferenceHeight;
     }
 
     initializeWindow();
@@ -184,11 +184,11 @@ public class GLX extends LX {
     return this.bgfxRenderer;
   }
 
-  public int getUIWidth() {
+  public float getUIWidth() {
     return this.uiWidth;
   }
 
-  public int getUIHeight() {
+  public float getUIHeight() {
     return this.uiHeight;
   }
 
@@ -223,8 +223,8 @@ public class GLX extends LX {
 
     // Create GLFW window
     this.window = glfwCreateWindow(
-      this.windowWidth,
-      this.windowHeight,
+      (int) this.uiWidth,
+      (int) this.uiHeight,
       "LX Studio",
       NULL,
       NULL
@@ -251,11 +251,21 @@ public class GLX extends LX {
       this.frameBufferWidth = xSize.get(0);
       this.frameBufferHeight = ySize.get(0);
 
-      this.uiWidth = (int) (this.frameBufferWidth / this.contentScaleX);
-      this.uiHeight = (int) (this.frameBufferHeight / this.contentScaleY);
+      this.uiWidth = this.frameBufferWidth / this.contentScaleX;
+      this.uiHeight = this.frameBufferHeight / this.contentScaleY;
 
-      this.cursorScaleX = this.uiWidth / (float) this.windowWidth;
-      this.cursorScaleY = this.uiHeight / (float) this.windowHeight;
+      this.cursorScaleX = this.uiWidth / this.windowWidth;
+      this.cursorScaleY = this.uiHeight / this.windowHeight;
+
+      // TODO(mcslee): nanovg test
+//      this.frameBufferWidth = this.windowWidth;
+//      this.frameBufferHeight = this.windowHeight;
+//      this.contentScaleX = 1.25f;
+//      this.contentScaleY = 1.25f;
+//      this.uiWidth = this.frameBufferWidth / this.contentScaleX;
+//      this.uiHeight = this.frameBufferHeigh t / this.contentScaleY;
+//      this.cursorScaleX = this.uiWidth / this.windowWidth;
+//      this.cursorScaleY = this.uiHeight / this.windowHeight;
 
       System.out.println(
         "window: " + this.windowWidth + "x" + this.windowHeight + "\n" +
@@ -291,18 +301,18 @@ public class GLX extends LX {
     glfwSetWindowSizeCallback(this.window, (window, width, height) -> {
       this.windowWidth = width;
       this.windowHeight = height;
-      this.cursorScaleX = this.uiWidth / (float) this.windowWidth;
-      this.cursorScaleY = this.uiHeight / (float) this.windowHeight;
+      this.cursorScaleX = this.uiWidth / this.windowWidth;
+      this.cursorScaleY = this.uiHeight / this.windowHeight;
     });
 
     glfwSetWindowContentScaleCallback(this.window, (window, contentScaleX, contentScaleY) -> {
       System.out.println("content scale changed");
       this.contentScaleX = contentScaleX;
       this.contentScaleY = contentScaleY;
-      this.uiWidth = (int) (this.frameBufferWidth / this.contentScaleX);
-      this.uiHeight = (int) (this.frameBufferHeight / this.contentScaleY);
-      this.cursorScaleX = this.uiWidth / (float) this.windowWidth;
-      this.cursorScaleY = this.uiHeight / (float) this.windowHeight;
+      this.uiWidth = this.frameBufferWidth / this.contentScaleX;
+      this.uiHeight = this.frameBufferHeight / this.contentScaleY;
+      this.cursorScaleX = this.uiWidth / this.windowWidth;
+      this.cursorScaleY = this.uiHeight / this.windowHeight;
       ui.resize();
       draw();
     });
@@ -310,10 +320,10 @@ public class GLX extends LX {
     glfwSetFramebufferSizeCallback(this.window, (window, width, height) -> {
       this.frameBufferWidth = width;
       this.frameBufferHeight = height;
-      this.uiWidth = (int) (this.frameBufferWidth / this.contentScaleX);
-      this.uiHeight = (int) (this.frameBufferHeight / this.contentScaleY);
-      this.cursorScaleX = this.uiWidth / (float) this.windowWidth;
-      this.cursorScaleY = this.uiHeight / (float) this.windowHeight;
+      this.uiWidth = this.frameBufferWidth / this.contentScaleX;
+      this.uiHeight = this.frameBufferHeight / this.contentScaleY;
+      this.cursorScaleX = this.uiWidth / this.windowWidth;
+      this.cursorScaleY = this.uiHeight / this.windowHeight;
       bgfx_reset(this.frameBufferWidth, this.frameBufferHeight, BGFX_RESET_VSYNC, this.bgfxFormat);
       ui.resize();
       draw();
