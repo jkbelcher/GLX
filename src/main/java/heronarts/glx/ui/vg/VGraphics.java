@@ -36,7 +36,6 @@ import org.lwjgl.system.MemoryUtil;
 import heronarts.glx.GLX;
 import heronarts.glx.GLXUtils;
 import heronarts.glx.View;
-
 import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.nanovg.NanoVGBGFX.*;
@@ -435,6 +434,30 @@ public class VGraphics {
 
   public VGraphics arc(float cx, float cy, float r, float a0, float a1, Winding dir) {
     nvgArc(this.vg, cx, cy, r, a0, a1, dir.asInt());
+    return this;
+  }
+
+  public VGraphics beginPathMoveToArcFill(float cx, float cy, float r, float a0, float a1) {
+    if (a1 - a0 > Math.PI) {
+      // NOTE(bugfix): there's a bug on windows when contentscale is applied.
+      // if the arc spans over PI (180degrees) and becomes convex, then the content
+      // scale becomes lost and the shape is drawn in the wrong place. will have
+      // to figure this out some other time, for now, breaking into two arcs fixes it
+      float aHack = a0 + (a1-a0)/2;
+      beginPath();
+      moveTo(cx, cy);
+      arc(cx, cy, r, a0, aHack);
+      fill();
+      beginPath();
+      moveTo(cx, cy);
+      arc(cx, cy, r, aHack - .1f, a1);
+      fill();
+      return this;
+    }
+    beginPath();
+    moveTo(cx, cy);
+    arc(cx, cy, r, a0, a1);
+    fill();
     return this;
   }
 

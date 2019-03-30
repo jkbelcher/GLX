@@ -115,34 +115,19 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
         switch (modulation.getPolarity()) {
         case BIPOLAR:
           if (modEnd >= modStart) {
-            vg.beginPath();
-            vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
-            vg.arc(ARC_CENTER_X, ARC_CENTER_Y, arcSize, baseEnd, Math.min(ARC_END, modEnd+.1f));
-            vg.fill();
+            vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, baseEnd, Math.min(ARC_END, modEnd+.1f));
 
             vg.fillColor(modColorInv);
-            vg.beginPath();
-            vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
-            vg.arc(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.max(ARC_START, modStart-.1f), baseEnd);
-            vg.fill();
+            vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.max(ARC_START, modStart-.1f), baseEnd);
           } else {
-            vg.beginPath();
-            vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
-            vg.arc(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.max(ARC_START, modEnd-.1f), baseEnd);
-            vg.fill();
+            vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.max(ARC_START, modEnd-.1f), baseEnd);
 
             vg.fillColor(modColorInv);
-            vg.beginPath();
-            vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
-            vg.arc(ARC_CENTER_X, ARC_CENTER_Y, arcSize, baseEnd, Math.min(ARC_END, modStart+.1f));
-            vg.fill();
+            vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, baseEnd, Math.min(ARC_END, modStart+.1f));
           }
           break;
         case UNIPOLAR:
-          vg.beginPath();
-          vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
-          vg.arc(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.max(ARC_START, Math.min(modStart, modEnd)-.1f), Math.min(ARC_END, Math.max(modStart, modEnd)+.1f));
-          vg.fill();
+          vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.max(ARC_START, Math.min(modStart, modEnd)-.1f), Math.min(ARC_END, Math.max(modStart, modEnd)+.1f));
           break;
         }
         arcSize -= 3;
@@ -160,10 +145,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
 
     // Outer fill
     vg.fillColor(ui.theme.getControlBackgroundColor());
-    vg.beginPath();
-    vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
-    vg.arc(ARC_CENTER_X, ARC_CENTER_Y, arcSize, ARC_START, ARC_END);
-    vg.fill();
+    vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, ARC_START, ARC_END);
 
     // Compute colors for base/value fills
     int baseColor;
@@ -180,20 +162,12 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     // Value indication
     if (Math.abs(valueStart - baseEnd) > ARC_MIN) {
       vg.fillColor(baseColor);
-      vg.beginPath();
-      vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
-      vg.arc(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.min(valueStart, baseEnd), Math.max(valueStart, baseEnd));
-      vg.closePath();
-      vg.fill();
+      vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.min(valueStart, baseEnd), Math.max(valueStart, baseEnd));
     }
 
     if (Math.abs(baseEnd - valueEnd) > ARC_MIN) {
       vg.fillColor(valueColor);
-      vg.beginPath();
-      vg.moveTo(ARC_CENTER_X, ARC_CENTER_Y);
-      vg.arc(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.min(baseEnd, valueEnd), Math.max(baseEnd, valueEnd));
-      vg.closePath();
-      vg.fill();
+      vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, Math.min(baseEnd, valueEnd), Math.max(baseEnd, valueEnd));
     }
 
     // Center tick mark for bipolar knobs
