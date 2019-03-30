@@ -9,18 +9,18 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="/LX/lib/coremidi4j-0.9.jar"/>
 	<classpathentry kind="lib" path="/LX/lib/gson-2.8.0.jar"/>
-	<classpathentry kind="lib" path="lwjgl/joml-1.9.13.jar"/>
+	<classpathentry kind="lib" path="lwjgl/joml-1.9.13.jar" sourcepath="lwjgl/joml-1.9.13-sources.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx.jar" sourcepath="lwjgl/lwjgl-bgfx-sources.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw.jar" sourcepath="lwjgl/lwjgl-glfw-sources.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-nanovg-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-nanovg.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-nanovg.jar" sourcepath="lwjgl/lwjgl-nanovg-sources.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-stb-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-stb.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-stb.jar" sourcepath="lwjgl/lwjgl-stb-sources.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd.jar" sourcepath="lwjgl/lwjgl-tinyfd-sources.jar"/>
+	<classpathentry kind="lib" path="lwjgl/lwjgl.jar" sourcepath="lwjgl/lwjgl-sources.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-natives-macos.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx-natives-windows.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw-natives-windows.jar"/>
