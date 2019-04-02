@@ -98,6 +98,7 @@ public class UITheme {
   public final VGraphics.Image iconOscOutput;
   public final VGraphics.Image iconPatternTransition;
   public final VGraphics.Image iconPatternRotate;
+  public final VGraphics.Image iconPlay;
 
   UITheme(VGraphics vg) throws IOException {
     this.controlFont = vg.loadFont("Inter-SemiBold", "Inter-SemiBold.otf");
@@ -108,30 +109,31 @@ public class UITheme {
     this.labelFont.fontSize(12);
     LX.initTimer.log("GLX: UI: Theme: labelFont");
 
-    this.iconNote = vg.loadIcon("icon-note.png");
-    this.iconTempo = vg.loadIcon("icon-tempo.png");
-    this.iconControl = vg.loadIcon("icon-control.png");
-    this.iconTrigger = vg.loadIcon("icon-trigger.png");
-    this.iconTriggerSource = vg.loadIcon("icon-trigger-source.png");
-    this.iconLoop = vg.loadIcon("icon-loop.png");
-    this.iconMap = vg.loadIcon("icon-map.png");
-    this.iconArm = vg.loadIcon("icon-arm.png");
-    this.iconLfo = vg.loadIcon("icon-lfo.png");
-    this.iconLoad = vg.loadIcon("icon-load.png");
-    this.iconSave = vg.loadIcon("icon-save.png");
-    this.iconSaveAs = vg.loadIcon("icon-save-as.png");
-    this.iconNew = vg.loadIcon("icon-new.png");
-    this.iconOpen = vg.loadIcon("icon-open.png");
-    this.iconKeyboard = vg.loadIcon("icon-keyboard.png");
-    this.iconPreferences = vg.loadIcon("icon-preferences.png");
-    this.iconUndo = vg.loadIcon("icon-undo.png");
-    this.iconRedo = vg.loadIcon("icon-redo.png");
-    this.iconTempoDown = vg.loadIcon("icon-tempo-down.png");
-    this.iconTempoUp = vg.loadIcon("icon-tempo-up.png");
-    this.iconOscInput = vg.loadIcon("icon-osc-input.png");
-    this.iconOscOutput = vg.loadIcon("icon-osc-output.png");
-    this.iconPatternTransition = vg.loadIcon("icon-pattern-transition.png");
-    this.iconPatternRotate = vg.loadIcon("icon-pattern-rotate.png");
+    this.iconNote = vg.loadIcon("icon-note@2x.png");
+    this.iconTempo = vg.loadIcon("icon-tempo@2x.png");
+    this.iconControl = vg.loadIcon("icon-control@2x.png");
+    this.iconTrigger = vg.loadIcon("icon-trigger@2x.png");
+    this.iconTriggerSource = vg.loadIcon("icon-trigger-source@2x.png");
+    this.iconLoop = vg.loadIcon("icon-loop@2x.png");
+    this.iconMap = vg.loadIcon("icon-map@2x.png");
+    this.iconArm = vg.loadIcon("icon-arm@2x.png");
+    this.iconLfo = vg.loadIcon("icon-lfo@2x.png");
+    this.iconLoad = vg.loadIcon("icon-load@2x.png");
+    this.iconSave = vg.loadIcon("icon-save@2x.png");
+    this.iconSaveAs = vg.loadIcon("icon-save-as@2x.png");
+    this.iconNew = vg.loadIcon("icon-new@2x.png");
+    this.iconOpen = vg.loadIcon("icon-open@2x.png");
+    this.iconKeyboard = vg.loadIcon("icon-keyboard@2x.png");
+    this.iconPreferences = vg.loadIcon("icon-preferences@2x.png");
+    this.iconUndo = vg.loadIcon("icon-undo@2x.png");
+    this.iconRedo = vg.loadIcon("icon-redo@2x.png");
+    this.iconTempoDown = vg.loadIcon("icon-tempo-down@2x.png");
+    this.iconTempoUp = vg.loadIcon("icon-tempo-up@2x.png");
+    this.iconOscInput = vg.loadIcon("icon-osc-input@2x.png");
+    this.iconOscOutput = vg.loadIcon("icon-osc-output@2x.png");
+    this.iconPatternTransition = vg.loadIcon("icon-pattern-transition@2x.png");
+    this.iconPatternRotate = vg.loadIcon("icon-pattern-rotate@2x.png");
+    this.iconPlay = vg.loadIcon("icon-play@2x.png");
     LX.initTimer.log("GLX: UI: Theme: Icons");
   }
 

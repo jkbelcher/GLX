@@ -144,9 +144,13 @@ public class VGraphics {
     private final NVGColor tint = NVGColor.create();
     private final ByteBuffer imageData;
 
-    private Image(int id, ByteBuffer imageData, int w, int h) {
+    private Image(int id, ByteBuffer imageData, int w, int h, boolean is2x) {
       this.id = id;
       this.imageData = imageData;
+      if (is2x) {
+        w /= 2;
+        h /= 2;
+      }
       this.width = w;
       this.height = h;
       this.paint = imagePattern(0, 0, w, h, id);
@@ -266,12 +270,11 @@ public class VGraphics {
 
     private void makeBuffer() {
       this.buffer = nvgluCreateFramebuffer(vg, (int) Math.ceil(this.width), (int) Math.ceil(this.height), this.imageFlags);
-      this.paint.imagePattern(0, 0, this.width, this.height, this.buffer.image());
 
       // Note what happens here... the framebuffer is in framebuffer-pixel space. But
       // when we're going to paint it into another UI2dContext, those pixels will be in
       // UI-space. Therefore, we need to transform the image by content-scaling factor.
-      nvgTransformScale(this.paint.paint.xform(), 1 / glx.getContentScaleX(), 1 / glx.getContentScaleY());
+      this.paint.imagePattern(0, 0, this.width / glx.getContentScaleX(), this.height / glx.getContentScaleY(), this.buffer.image());
     }
 
   }
@@ -523,11 +526,11 @@ public class VGraphics {
   }
 
   public Image loadImage(String imagePath) throws IOException {
-    return createImageMem(GLXUtils.loadResource("resources/images/" + imagePath));
+    return createImageMem(GLXUtils.loadResource("resources/images/" + imagePath), imagePath.contains("@2x."));
   }
 
   public Image loadIcon(String iconPath) throws IOException {
-    return createImageMem(GLXUtils.loadResource("resources/icons/" + iconPath));
+    return createImageMem(GLXUtils.loadResource("resources/icons/" + iconPath), iconPath.contains("@2x."));
   }
 
   public Font loadFont(String fontName, String fontPath) throws IOException {
@@ -539,13 +542,13 @@ public class VGraphics {
     return new Font(font, name);
   }
 
-  private Image createImageMem(ByteBuffer imageData) {
+  private Image createImageMem(ByteBuffer imageData, boolean is2x) {
     int image = nvgCreateImageMem(this.vg, 0, imageData);
     try (MemoryStack stack = MemoryStack.stackPush()) {
       IntBuffer width = stack.mallocInt(1);
       IntBuffer height = stack.mallocInt(1);
       nvgImageSize(this.vg, image, width, height);
-      return new Image(image, imageData, width.get(0), height.get(0));
+      return new Image(image, imageData, width.get(0), height.get(0), is2x);
     }
   }
 
