@@ -100,13 +100,13 @@ public class UITheme {
   public final VGraphics.Image iconPatternRotate;
 
   UITheme(VGraphics vg) throws IOException {
-    this.controlFont = vg.loadFont("Arial Unicode MS", "Arial Unicode.ttf");
-    this.controlFont.fontSize(14);
-    LX.initTimer.log("P3LX: UI: Theme: controlFont");
+    this.controlFont = vg.loadFont("Inter-SemiBold", "Inter-SemiBold.ttf");
+    this.controlFont.fontSize(12);
+    LX.initTimer.log("GLX: UI: Theme: controlFont");
 
-    this.labelFont = this.deviceFont = this.windowTitleFont = vg.loadFont("Arial Black", "Arial Black.ttf");
-    this.labelFont.fontSize(13);
-    LX.initTimer.log("P3LX: UI: Theme: windowTitleFont");
+    this.labelFont = this.deviceFont = this.windowTitleFont = vg.loadFont("Inter-Black", "Inter-Black.ttf");
+    this.labelFont.fontSize(12);
+    LX.initTimer.log("GLX: UI: Theme: labelFont");
 
     this.iconNote = vg.loadIcon("icon-note.png");
     this.iconTempo = vg.loadIcon("icon-tempo.png");
@@ -132,7 +132,7 @@ public class UITheme {
     this.iconOscOutput = vg.loadIcon("icon-osc-output.png");
     this.iconPatternTransition = vg.loadIcon("icon-pattern-transition.png");
     this.iconPatternRotate = vg.loadIcon("icon-pattern-rotate.png");
-    LX.initTimer.log("P3LX: UI: Theme: Icons");
+    LX.initTimer.log("GLX: UI: Theme: Icons");
   }
 
   /**
