@@ -156,8 +156,12 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     vg.beginPath();
     vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
     vg.text(4 + this.textOffsetX, this.height / 2 + this.textOffsetY, clipTextToWidth(vg, text, this.width - 12));
-    vg.textAlign(VGraphics.Align.RIGHT, VGraphics.Align.MIDDLE);
-    vg.text(this.width-4, this.height / 2 + this.textOffsetY, "\u25BC");
+
+    vg.beginPath();
+    vg.moveTo(this.width-4, this.height / 2 + this.textOffsetY - 2);
+    vg.lineTo(this.width-10, this.height / 2 + this.textOffsetY - 2);
+    vg.lineTo(this.width-7, this.height / 2 + this.textOffsetY + 2);
+    vg.closePath();
     vg.fill();
   }
 
