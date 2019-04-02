@@ -100,11 +100,11 @@ public class UITheme {
   public final VGraphics.Image iconPatternRotate;
 
   UITheme(VGraphics vg) throws IOException {
-    this.controlFont = vg.loadFont("Inter-SemiBold", "Inter-SemiBold.ttf");
+    this.controlFont = vg.loadFont("Inter-SemiBold", "Inter-SemiBold.otf");
     this.controlFont.fontSize(12);
     LX.initTimer.log("GLX: UI: Theme: controlFont");
 
-    this.labelFont = this.deviceFont = this.windowTitleFont = vg.loadFont("Inter-Black", "Inter-Black.ttf");
+    this.labelFont = this.deviceFont = this.windowTitleFont = vg.loadFont("Inter-Black", "Inter-Black.otf");
     this.labelFont.fontSize(12);
     LX.initTimer.log("GLX: UI: Theme: labelFont");
 
