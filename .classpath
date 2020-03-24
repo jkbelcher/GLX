@@ -7,8 +7,6 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/LX/lib/coremidi4j-0.9.jar"/>
-	<classpathentry kind="lib" path="/LX/lib/gson-2.8.0.jar"/>
 	<classpathentry kind="lib" path="lwjgl/joml-1.9.13.jar" sourcepath="lwjgl/joml-1.9.13-sources.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx-natives-macos.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx.jar" sourcepath="lwjgl/lwjgl-bgfx-sources.jar"/>
@@ -28,5 +26,6 @@
 	<classpathentry kind="lib" path="lwjgl/lwjgl-natives-windows.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-stb-natives-windows.jar"/>
 	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd-natives-windows.jar"/>
+	<classpathentry kind="lib" path="/LX/lib/gson-2.8.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
