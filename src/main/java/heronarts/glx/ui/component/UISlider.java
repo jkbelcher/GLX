@@ -24,8 +24,8 @@ import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LXUtils;
 import heronarts.lx.color.LXColor;
+import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.CompoundParameter;
-import heronarts.lx.parameter.LXCompoundModulation;
 
 public class UISlider extends UICompoundParameterControl implements UIFocus {
 

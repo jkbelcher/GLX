@@ -28,12 +28,13 @@ import heronarts.lx.LX;
 import heronarts.lx.LXComponent;
 import heronarts.lx.LXLoopTask;
 import heronarts.lx.LXMappingEngine;
-import heronarts.lx.LXModulationEngine;
+import heronarts.lx.command.LXCommandEngine;
 import heronarts.lx.midi.LXMidiEngine;
 import heronarts.lx.midi.LXMidiMapping;
+import heronarts.lx.modulation.LXModulationEngine;
+import heronarts.lx.modulation.LXParameterModulation;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
-import heronarts.lx.parameter.LXParameterModulation;
 import heronarts.lx.parameter.StringParameter;
 import java.io.File;
 import java.io.IOException;
@@ -501,9 +502,20 @@ public class UI {
     });
 
     lx.command.errorChanged.addListener((p) -> {
-      String error = lx.command.getError();
+      final LXCommandEngine.Error error = lx.command.getError();
       if (error != null) {
-        showContextOverlay(new UIDialogBox(this, error, () -> { lx.command.popError(); }));
+        if (error.cause != null) {
+          showContextOverlay(new UIDialogBox(
+            this,
+            error.message,
+            new String[] { "Copy Stack Trace", "Okay" },
+            new Runnable[] {
+              () -> { lx.setSystemClipboardString(error.getStackTrace()); },
+              () -> { lx.command.popError(); }
+            }));
+        } else {
+          showContextOverlay(new UIDialogBox(this, error.message, () -> { lx.command.popError(); }));
+        }
       }
     });
   }
