@@ -139,15 +139,16 @@ public class GLX extends LX {
   public void run() {
 
     // Start the LX engine thread
-    System.out.println("Starting LX Engine");
+    log("Starting LX Engine...");
     this.engine.setInputDispatch(this.inputDispatch);
     this.engine.start();
 
     // Enter the core rendering loop
+    log("Bootstrap complete, running main loop.");
     loop();
 
     // Stop the LX engine
-    System.out.println("Stopping LX engine");
+    log("Stopping LX engine...");
     this.engine.stop();
 
     // TODO(mcslee): join the LX engine thread? make sure it's really done?
@@ -167,7 +168,7 @@ public class GLX extends LX {
     glfwSetErrorCallback(null).free();
 
     // The program *should* end now, if not it means we hung a thread somewhere...
-    System.out.println("Done with the main thread...");
+    log("Done with main thread, GLX shutdown complete. Thanks for playing. <3");
   }
 
   /**
@@ -267,13 +268,11 @@ public class GLX extends LX {
 //      this.cursorScaleX = this.uiWidth / this.windowWidth;
 //      this.cursorScaleY = this.uiHeight / this.windowHeight;
 
-      System.out.println(
-        "window: " + this.windowWidth + "x" + this.windowHeight + "\n" +
-        "frame: " + this.frameBufferWidth + "x" + this.frameBufferHeight + "\n" +
-        "ui: " + this.uiWidth + "x" + this.uiHeight + "\n" +
-        "content: " + this.contentScaleX + "x" + this.contentScaleY + "\n" +
-        "cursor: " + this.cursorScaleX + "x" + this.cursorScaleY + "\n"
-      );
+      log("GLX window: " + this.windowWidth + "x" + this.windowHeight);
+      log("GLX frame: " + this.frameBufferWidth + "x" + this.frameBufferHeight);
+      log("GLX ui: " + this.uiWidth + "x" + this.uiHeight);
+      log("GLX content: " + this.contentScaleX + "x" + this.contentScaleY);
+      log("GLX cursor: " + this.cursorScaleX + "x" + this.cursorScaleY);
     }
 
     glfwSetWindowFocusCallback(this.window, (window, focused) -> {
@@ -306,7 +305,7 @@ public class GLX extends LX {
     });
 
     glfwSetWindowContentScaleCallback(this.window, (window, contentScaleX, contentScaleY) -> {
-      System.out.println("content scale changed");
+      log("content scale changed");
       this.contentScaleX = contentScaleX;
       this.contentScaleY = contentScaleY;
       this.uiWidth = this.frameBufferWidth / this.contentScaleX;
@@ -348,7 +347,7 @@ public class GLX extends LX {
             }
           }
         } catch (Exception x) {
-          x.printStackTrace();
+          error(x, "Exception on drop-file handler: " + x.getLocalizedMessage());
         }
       }
     });
@@ -389,7 +388,7 @@ public class GLX extends LX {
     if ("NULL".equals(rendererName)) {
       throw new RuntimeException("Error identifying bgfx renderer");
     }
-    System.out.println("Using BGFX renderer: " + rendererName);
+    log("Using BGFX renderer: " + rendererName);
   }
 
   protected void setWindowSize(int windowWidth, int windowHeight) {
@@ -461,7 +460,7 @@ public class GLX extends LX {
   }
 
   protected void importContentJar(File file, File destination) {
-    System.out.println("Importing content JAR: " + destination.toString());
+    log("Importing content JAR: " + destination.toString());
     try {
       Files.copy(file.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
       this.engine.addTask(() -> {
@@ -469,8 +468,7 @@ public class GLX extends LX {
         this.ui.contextualHelpText.setValue("New content imported into " + destination.getName());
       });
     } catch (IOException e) {
-      System.err.println("Error copying " + file.getName() + " to content directory");
-      e.printStackTrace();
+      error(e, "Error copying " + file.getName() + " to content directory");
     }
   }
 
@@ -656,6 +654,20 @@ public class GLX extends LX {
   @Override
   public void setSystemClipboardString(String str) {
     this._setSystemClipboardString = str;
+  }
+
+  private static final String GLX_PREFIX = "GLX";
+
+  public static void log(String message) {
+    LX._log(GLX_PREFIX, message);
+  }
+
+  public static void error(Exception x, String message) {
+    LX._error(GLX_PREFIX, x, message);
+  }
+
+  public static void error(String message) {
+    LX._error(GLX_PREFIX, message);
   }
 
 }
