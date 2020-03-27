@@ -28,11 +28,18 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
   private static final int WIDTH = 280;
   private static final int HEIGHT = 80;
 
-  private static final int OPTION_WIDTH = 60;
+  public static final int OPTION_WIDTH = 60;
   private static final int OPTION_PADDING = 4;
-  private static final int OPTION_SPACING = OPTION_WIDTH + OPTION_PADDING;
 
   private static final int BUTTON_ROW = 22;
+
+  private static int[] optionWidthArray(int length) {
+    int[] arr = new int[length];
+    for (int i = 0; i < arr.length; ++i) {
+      arr[i] = OPTION_WIDTH;
+    }
+    return arr;
+  }
 
   public UIDialogBox(UI ui, String message) {
     this(ui, message, new String[] { "Okay" }, null);
@@ -43,6 +50,10 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
   }
 
   public UIDialogBox(UI ui, String message, String[] options, Runnable[] callbacks) {
+    this(ui, message, options, optionWidthArray(options.length), callbacks);
+  }
+
+  public UIDialogBox(UI ui, String message, String[] options, int[] optionWidth, Runnable[] callbacks) {
     super((ui.getWidth() - WIDTH) / 2, (ui.getHeight() - 2*HEIGHT) / 2, WIDTH, HEIGHT);
     setBackgroundColor(ui.theme.getDeviceFocusedBackgroundColor());
     setBorderColor(UI.BLACK);
@@ -57,11 +68,17 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
     .setBorderRounding(4)
     .addToContainer(this);
 
+    int optionTotalWidth = 0;
+    for (int width : optionWidth) {
+      optionTotalWidth += width;
+    }
+    optionTotalWidth += (options.length - 1) * OPTION_PADDING;
+
     float yp = this.height - BUTTON_ROW;
-    float xp = this.width / 2 - options.length * OPTION_SPACING / 2 + OPTION_PADDING / 2;
+    float xp = this.width / 2 - optionTotalWidth / 2;
     for (int i = 0; i < options.length; ++i) {
       final int ii = i;
-      new UIButton.Action(xp, yp, OPTION_WIDTH, 16) {
+      new UIButton.Action(xp, yp, optionWidth[i], 16) {
         @Override
         protected void onClick() {
           getUI().hideContextOverlay();
@@ -72,7 +89,7 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
       }
       .setLabel(options[i])
       .addToContainer(this);
-      xp += OPTION_SPACING;
+      xp += optionWidth[i] + OPTION_PADDING;
     }
   }
 }

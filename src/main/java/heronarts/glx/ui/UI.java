@@ -509,6 +509,7 @@ public class UI {
             this,
             error.message,
             new String[] { "Copy Stack Trace", "Okay" },
+            new int[] { UIDialogBox.OPTION_WIDTH * 2, UIDialogBox.OPTION_WIDTH },
             new Runnable[] {
               () -> { lx.setSystemClipboardString(error.getStackTrace()); },
               () -> { lx.command.popError(); }
