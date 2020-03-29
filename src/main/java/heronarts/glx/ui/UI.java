@@ -716,6 +716,10 @@ public class UI {
     return this;
   }
 
+  public UI showContextDialogMessage(String message) {
+    return showContextOverlay(new UIDialogBox(this, message));
+  }
+
   public UI showContextOverlay(UI2dComponent contextOverlay) {
     this.contextMenuOverlay.setContent(contextOverlay);
     return this;

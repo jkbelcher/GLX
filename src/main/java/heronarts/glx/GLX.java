@@ -466,10 +466,7 @@ public class GLX extends LX {
       this.engine.addTask(() -> {
         reloadContent();
         this.ui.contextualHelpText.setValue("New content imported into " + destination.getName());
-        this.ui.showContextOverlay(new UIDialogBox(
-          this.ui,
-          "Added content JAR: " + destination.getName()
-        ));
+        this.ui.showContextDialogMessage("Added content JAR: " + destination.getName());
       });
     } catch (IOException e) {
       error(e, "Error copying " + file.getName() + " to content directory");
