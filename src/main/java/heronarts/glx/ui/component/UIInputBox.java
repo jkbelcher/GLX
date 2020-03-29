@@ -153,9 +153,13 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     }
     if (this.enabled && !this.editing) {
       this.editing = true;
-      this.editBuffer = "";
+      this.editBuffer = getEditBufferValue();
     }
     redraw();
+  }
+
+  protected String getEditBufferValue() {
+    return "";
   }
 
   @Override
@@ -274,7 +278,11 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
         } else if (keyCode == KeyEvent.VK_BACKSPACE) {
           keyEvent.consume();
           if (this.editBuffer.length() > 0) {
-            this.editBuffer = this.editBuffer.substring(0, this.editBuffer.length() - 1);
+            if (keyEvent.isShiftDown() || keyEvent.isControlDown() || keyEvent.isMetaDown()) {
+              this.editBuffer = "";
+            } else {
+              this.editBuffer = this.editBuffer.substring(0, this.editBuffer.length() - 1);
+            }
             redraw();
           }
         } else if (keyCode == KeyEvent.VK_ESCAPE) {
@@ -291,8 +299,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           redraw();
         } else if (keyCode == KeyEvent.VK_ENTER) {
           keyEvent.consume();
-          this.editing = true;
-          this.editBuffer = "";
+          this.edit();
           redraw();
         } else if ((keyCode == KeyEvent.VK_LEFT) || (keyCode == KeyEvent.VK_DOWN)) {
           decrementValue(keyEvent);
