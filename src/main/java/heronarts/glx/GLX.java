@@ -473,9 +473,8 @@ public class GLX extends LX {
     }
   }
 
-  @Override
   public void reloadContent() {
-    super.reloadContent();
+    this.registry.reloadContent();
     this.ui.contextualHelpText.setValue("External content libraries reloaded");
   }
 

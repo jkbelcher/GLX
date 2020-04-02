@@ -22,6 +22,7 @@ import static org.lwjgl.bgfx.BGFX.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.Objects;
 
 import org.lwjgl.system.MemoryUtil;
 
@@ -180,9 +181,7 @@ public class UIPointCloud extends UI3dComponent implements LXModel.Listener, LXS
   }
 
   private void setModel(LXModel model) {
-    if (model == null) {
-      throw new IllegalArgumentException("May not set null model on point cloud");
-    }
+    Objects.requireNonNull(model, "May not set null model on UIPointCloud");
     if (this.model != model) {
       if (this.model != null) {
         this.model.removeListener(this);
