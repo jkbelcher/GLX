@@ -20,6 +20,7 @@ package heronarts.glx.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.joml.Vector3f;
 import org.lwjgl.bgfx.BGFX;
@@ -188,10 +189,17 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   private final List<MovementListener> listeners = new ArrayList<MovementListener>();
 
   public final void addListener(MovementListener listener) {
+    Objects.requireNonNull(listener, "Cannot add null UI3dContext.MovementListener");
+    if (this.listeners.contains(listener)) {
+      throw new IllegalStateException("Cannot add duplicate UI3dContext.MovementListener: " + listener);
+    }
     this.listeners.add(listener);
   }
 
   public final void removeListener(MovementListener listener) {
+    if (!this.listeners.contains(listener)) {
+      throw new IllegalStateException("Cannot remove non-registered UI3dContext.MovementListener: " + listener);
+    }
     this.listeners.remove(listener);
   }
 
@@ -808,7 +816,11 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     switch (interaction) {
     case ROTATE_VIEW:
     case ROTATE_OBJECT:
-      float rt = -dx / getWidth() * 1.5f * (float) Math.PI;
+      // NOTE: this is counter-intuitive but the rotation in the theta plane is divided relative
+      // to height, as we're almost always in a non-square aspect ratio and want horizontal rotation
+      // to feel consistent with vertical, in terms of same number of pixels mouse-movement should
+      // yield same number of degrees rotation independent of the plane
+      float rt = -dx / getHeight() * 1.5f * (float) Math.PI;
       float rp = dy / getHeight() * 1.5f * (float) Math.PI;
       if (interaction == MouseInteraction.ROTATE_VIEW) {
         this.camera.theta.incrementValue(rt);
@@ -834,7 +846,10 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
       float sinPhi = (float) Math.sin(this.phiDamped.getValue());
       float cosPhi = (float) Math.cos(this.phiDamped.getValue());
 
-      float dcx = dx * 2.f / getWidth() * this.radiusDamped.getValuef() * tanPerspective;
+      // NOTE: this is counter-intuitive but don't be fooled, the dcx value is intentionally
+      // divided by the height, not the width, because aspect ratio is factored into perspective
+      float dcx = dx * 2.f / getHeight() * this.radiusDamped.getValuef() * tanPerspective;
+
       float dcy = dy * 2.f / getHeight() * this.radiusDamped.getValuef() * tanPerspective;
 
       float tx = 0, ty = 0, tz = 0;
