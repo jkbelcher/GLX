@@ -22,8 +22,6 @@ import static org.lwjgl.bgfx.BGFX.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.util.Objects;
-
 import org.lwjgl.system.MemoryUtil;
 
 import com.google.gson.JsonObject;
@@ -44,7 +42,7 @@ import heronarts.lx.model.LXModel;
 import heronarts.lx.model.LXPoint;
 import heronarts.lx.parameter.BoundedParameter;
 
-public class UIPointCloud extends UI3dComponent implements LXModel.Listener, LXSerializable {
+public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   private class Program extends ShaderProgram {
     private short uniformTexture;
@@ -152,14 +150,11 @@ public class UIPointCloud extends UI3dComponent implements LXModel.Listener, LXS
   private VertexBuffer modelBuffer;
   private DynamicVertexBuffer colorBuffer;
 
-  // This is the model that is active in the engine and we listen to for changes
-  private LXModel model;
-
   // This is the model that our current vertex buffers (UI thread) is based upon,
-  // which could be 1 frame behind the engine!
-  private LXModel bufferModel;
+  // which could be a frame behind the engine!
+  private LXModel model = null;
 
-  private boolean updateModelBuffer = false;
+  private int modelGeometryRevision = -1;
 
   public UIPointCloud(GLX lx) {
     this.lx = lx;
@@ -167,9 +162,6 @@ public class UIPointCloud extends UI3dComponent implements LXModel.Listener, LXS
     this.texture = new Texture("led.ktx");
     this.colorBuffer = null;
     this.modelBuffer = null;
-    this.model = null;
-    this.bufferModel = null;
-    setModel(lx.getModel());
   }
 
   @Override
@@ -180,29 +172,11 @@ public class UIPointCloud extends UI3dComponent implements LXModel.Listener, LXS
     this.program.dispose();
   }
 
-  private void setModel(LXModel model) {
-    Objects.requireNonNull(model, "May not set null model on UIPointCloud");
-    if (this.model != model) {
-      if (this.model != null) {
-        this.model.removeListener(this);
-      }
-      this.model = model;
-      model.addListener(this);
-    }
-  }
-
-  @Override
-  public void onModelUpdated(LXModel model) {
-    // Mark the model buffer as needing an update
-    this.updateModelBuffer = true;
-  }
-
   private void buildModelBuffer() {
     if (this.modelBuffer != null) {
       this.modelBuffer.dispose();
     }
     this.modelBuffer = new ModelBuffer(lx);
-    this.updateModelBuffer = false;
   }
 
   private void buildColorBuffer() {
@@ -215,27 +189,27 @@ public class UIPointCloud extends UI3dComponent implements LXModel.Listener, LXS
   @Override
   public void onDraw(UI ui, View view) {
     LXEngine.Frame frame = this.lx.uiFrame;
-    setModel(frame.getModel());
+    LXModel frameModel = frame.getModel();
+    int frameModelGeometryRevision = frameModel.getGeometryRevision();
 
     // Empty model? Don't do anything.
-    if (this.model.size == 0) {
+    if (frameModel.size == 0) {
       return;
     }
 
     // Is our buffer model out of date? Rebuild it if so...
-    if (this.bufferModel != this.model) {
+    if (this.model != frameModel) {
+      LXModel oldModel = this.model;
+      this.model = frameModel;
+      this.modelGeometryRevision = frameModelGeometryRevision;
       buildModelBuffer();
-      // Only need to rebuild the color buffer if its size has changed
-      if (this.bufferModel == null || (this.bufferModel.size != this.model.size)) {
+      if ((this.colorBuffer == null) || (oldModel == null) || (oldModel.size != frameModel.size)) {
         buildColorBuffer();
       }
-      // This is now the model our buffers are based upon
-      this.bufferModel = this.model;
-    }
-
-    // Rebuild the model buffer if points in the model have moved
-    if (this.updateModelBuffer) {
+    } else if (this.modelGeometryRevision != frameModelGeometryRevision) {
+      // Model geometry (but not size) has changed, rebuild model buffer
       buildModelBuffer();
+      this.modelGeometryRevision = frameModelGeometryRevision;
     }
 
     // Update the color data
