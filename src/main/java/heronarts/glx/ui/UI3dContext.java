@@ -41,7 +41,6 @@ import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.BoundedParameter;
 import heronarts.lx.parameter.EnumParameter;
 import heronarts.lx.parameter.LXParameter;
-import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.parameter.MutableParameter;
 import heronarts.lx.parameter.ObjectParameter;
 
@@ -357,33 +356,31 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     }
 
     this.focusCamera = new ObjectParameter<Camera>("Camera", this.cue);
-    this.focusCamera.addListener(new LXParameterListener() {
-      public void onParameterChanged(LXParameter p) {
-        Camera selectCamera = focusCamera.getObject();
-        if (!selectCamera.active.isOn()) {
-          // Store state into the camera
-          selectCamera.set(camera);
+    this.focusCamera.addListener((p) -> {
+      Camera selectCamera = this.focusCamera.getObject();
+      if (!selectCamera.active.isOn()) {
+        // Store state into the camera
+        selectCamera.set(this.camera);
+      } else {
+        if (this.animation.isOn() && (selectCamera != this.prevCamera)) {
+          // Trigger animation from current camera to the next
+          this.cameraFrom.set(this.camera);
+          this.cameraTo.set(selectCamera);
+          this.animating.trigger();
         } else {
-          if (animation.isOn() && (selectCamera != prevCamera)) {
-            // Trigger animation from current camera to the next
-            cameraFrom.set(camera);
-            cameraTo.set(selectCamera);
-            animating.trigger();
-          } else {
-            // Immediately update all camera state
-            animating.stop();
-            camera.set(selectCamera);
-            thetaDamped.setValue(camera.theta.getValue());
-            phiDamped.setValue(camera.phi.getValue());
-            radiusDamped.setValue(camera.radius.getValue());
-            xDamped.setValue(camera.x.getValue());
-            yDamped.setValue(camera.y.getValue());
-            zDamped.setValue(camera.z.getValue());
-            computeCamera(true);
-          }
+          // Immediately update all camera state
+          this.animating.stop();
+          this.camera.set(selectCamera);
+          this.thetaDamped.setValue(this.camera.theta.getValue());
+          this.phiDamped.setValue(this.camera.phi.getValue());
+          this.radiusDamped.setValue(this.camera.radius.getValue());
+          this.xDamped.setValue(this.camera.x.getValue());
+          this.yDamped.setValue(this.camera.y.getValue());
+          this.zDamped.setValue(this.camera.z.getValue());
+          computeCamera(true);
         }
-        prevCamera = selectCamera;
       }
+      this.prevCamera = selectCamera;
     });
 
     addLoopTask(this.animating);
@@ -403,22 +400,18 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
 
     computeCamera(true);
 
-    this.camera.radius.addListener(new LXParameterListener() {
-      public void onParameterChanged(LXParameter p) {
-        double value = camera.radius.getValue();
-        if (value < minRadius || value > maxRadius) {
-          camera.radius.setValue(LXUtils.constrain(value, minRadius, maxRadius));
-        }
+    this.camera.radius.addListener((p) -> {
+      double value = this.camera.radius.getValue();
+      if (value < this.minRadius || value > this.maxRadius) {
+        this.camera.radius.setValue(LXUtils.constrain(value, this.minRadius, this.maxRadius));
       }
     });
 
-    this.camera.phi.addListener(new LXParameterListener() {
-      public void onParameterChanged(LXParameter p) {
-        if (phiLock.isOn()) {
-          double value = camera.phi.getValue();
-          if (value < -MAX_PHI || value > MAX_PHI) {
-            camera.phi.setValue(LXUtils.constrain(value, -MAX_PHI, MAX_PHI));
-          }
+    this.camera.phi.addListener((p) -> {
+      if (this.phiLock.isOn()) {
+        double value = this.camera.phi.getValue();
+        if (value < -MAX_PHI || value > MAX_PHI) {
+          this.camera.phi.setValue(LXUtils.constrain(value, -MAX_PHI, MAX_PHI));
         }
       }
     });
