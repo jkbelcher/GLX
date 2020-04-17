@@ -63,6 +63,8 @@ public class GLX extends LX {
   private long useCursor = 0;
   private boolean needsCursorUpdate = false;
 
+  private int displayWidth = -1;
+  private int displayHeight = -1;
   private int windowWidth = 1280;
   private int windowHeight = 720;
   private int frameBufferWidth = 0;
@@ -251,6 +253,13 @@ public class GLX extends LX {
       glfwGetFramebufferSize(this.window, xSize, ySize);
       this.frameBufferWidth = xSize.get(0);
       this.frameBufferHeight = ySize.get(0);
+
+      IntBuffer xPos = stack.mallocInt(1);
+      IntBuffer yPos = stack.mallocInt(1);
+      glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), xPos, yPos, xSize, ySize);
+      this.displayWidth = xSize.get();
+      this.displayHeight = ySize.get();
+      log("GLX display: " + this.displayWidth + " x " + this.displayHeight);
 
       this.uiWidth = this.frameBufferWidth / this.contentScaleX;
       this.uiHeight = this.frameBufferHeight / this.contentScaleY;
