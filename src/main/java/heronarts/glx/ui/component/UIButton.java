@@ -18,6 +18,8 @@
 
 package heronarts.glx.ui.component;
 
+import java.util.Objects;
+
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
@@ -155,6 +157,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton setParameter(EnumParameter<? extends Object> parameter) {
+    Objects.requireNonNull(parameter, "Cannot set null UIButton.setParameter() - use removeParameter() instead");
     if (parameter != this.enumParameter) {
       removeParameter();
       if (parameter != null) {
@@ -169,6 +172,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton setParameter(BooleanParameter parameter) {
+    Objects.requireNonNull(parameter, "Cannot set null UIButton.setParameter() - use removeParameter() instead");
     if (parameter != this.booleanParameter) {
       removeParameter();
       if (parameter != null) {
