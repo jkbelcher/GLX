@@ -47,6 +47,12 @@ public class UILabel extends UI2dComponent {
     super(x, y, w, h);
   }
 
+  /**
+   * Sets the label to render text multi-line
+   *
+   * @param breakLines Whether to break lines
+   * @return this
+   */
   public UILabel setBreakLines(boolean breakLines) {
     if (this.breakLines != breakLines) {
       this.breakLines = breakLines;
