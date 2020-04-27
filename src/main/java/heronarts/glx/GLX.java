@@ -434,6 +434,10 @@ public class GLX extends LX {
   }
 
   private void loop() {
+    long before = System.currentTimeMillis();
+    long now;
+    int frameCount = 0;
+
     while (!glfwWindowShouldClose(this.window)) {
       // Poll for input events
       this.inputDispatch.poll();
@@ -450,6 +454,13 @@ public class GLX extends LX {
       if (copyToClipboard != null) {
         glfwSetClipboardString(this.window, copyToClipboard);
         this._setSystemClipboardString = null;
+      }
+
+      if (++frameCount == 300) {
+        frameCount = 0;
+        now = System.currentTimeMillis();
+        GLX.log("UI thread healthy, running at: " + 300000f / (now - before) + "fps");
+        before = now;
       }
     }
   }

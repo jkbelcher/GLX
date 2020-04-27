@@ -124,7 +124,7 @@ public class InputDispatch implements LXEngine.Dispatch {
     this.glfwThreadEventQueue.add(new MouseEvent(MouseEvent.Action.SCROLL, (float) this.cursorX, (float) this.cursorY, (float) dx, (float) dy, this.modifiers));
   }
 
-  public static final double POLL_TIMEOUT = 1/60.;
+  public static final double POLL_TIMEOUT = 1/30.;
 
   void poll() {
     glfwWaitEventsTimeout(POLL_TIMEOUT);
