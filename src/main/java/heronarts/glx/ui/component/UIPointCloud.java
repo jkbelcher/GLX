@@ -154,7 +154,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   // which could be a frame behind the engine!
   private LXModel model = null;
 
-  private int modelGeometryRevision = -1;
+  private int modelGeneration = -1;
 
   public UIPointCloud(GLX lx) {
     this.lx = lx;
@@ -190,7 +190,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   public void onDraw(UI ui, View view) {
     LXEngine.Frame frame = this.lx.uiFrame;
     LXModel frameModel = frame.getModel();
-    int frameModelGeometryRevision = frameModel.getGeometryRevision();
+    int frameModelGeneration = frameModel.getGeneration();
 
     // Empty model? Don't do anything.
     if (frameModel.size == 0) {
@@ -201,15 +201,15 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     if (this.model != frameModel) {
       LXModel oldModel = this.model;
       this.model = frameModel;
-      this.modelGeometryRevision = frameModelGeometryRevision;
+      this.modelGeneration = frameModelGeneration;
       buildModelBuffer();
       if ((this.colorBuffer == null) || (oldModel == null) || (oldModel.size != frameModel.size)) {
         buildColorBuffer();
       }
-    } else if (this.modelGeometryRevision != frameModelGeometryRevision) {
+    } else if (this.modelGeneration != frameModelGeneration) {
       // Model geometry (but not size) has changed, rebuild model buffer
       buildModelBuffer();
-      this.modelGeometryRevision = frameModelGeometryRevision;
+      this.modelGeneration = frameModelGeneration;
     }
 
     // Update the color data
