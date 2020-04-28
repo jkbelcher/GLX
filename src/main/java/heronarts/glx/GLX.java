@@ -53,6 +53,7 @@ import heronarts.glx.ui.UIDialogBox;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
+import heronarts.lx.command.LXCommand;
 import heronarts.lx.model.LXModel;
 
 public class GLX extends LX {
@@ -625,6 +626,12 @@ public class GLX extends LX {
         }
       }
     }.start();
+  }
+
+  public void showNewModelDialog() {
+    showConfirmDialog("Are you sure you wish to clear the current model?", () -> {
+      this.command.perform(new LXCommand.Structure.NewModel(this.structure));
+    });
   }
 
   public void showImportModelDialog() {
