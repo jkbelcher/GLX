@@ -602,6 +602,14 @@ public class VGraphics {
     return this;
   }
 
+  public float textBoxHeight(String str, float width) {
+    try (MemoryStack stack = MemoryStack.stackPush()) {
+      FloatBuffer bounds = stack.mallocFloat(4);
+      nvgTextBoxBounds(this.vg, 0, 0, width, str, bounds);
+      return bounds.get(3);
+    }
+  }
+
   public float textWidth(String str) {
     return nvgTextBounds(this.vg, 0, 0, str, (FloatBuffer) null);
   }

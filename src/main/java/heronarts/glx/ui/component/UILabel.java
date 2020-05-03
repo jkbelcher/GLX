@@ -33,6 +33,7 @@ public class UILabel extends UI2dComponent {
   private int leftPadding = 0;
   private int bottomPadding = 0;
   private boolean breakLines = false;
+  private boolean autoHeight = false;
 
   /**
    * Label text
@@ -54,8 +55,20 @@ public class UILabel extends UI2dComponent {
    * @return this
    */
   public UILabel setBreakLines(boolean breakLines) {
-    if (this.breakLines != breakLines) {
+    return setBreakLines(breakLines, false);
+  }
+
+  /**
+   * Sets the label to render text multi-line
+   *
+   * @param breakLines Whether to break lines
+   * @param autoHeight Whether to automatically set height
+   * @return this
+   */
+  public UILabel setBreakLines(boolean breakLines, boolean autoHeight) {
+    if (this.breakLines != breakLines || this.autoHeight != autoHeight) {
       this.breakLines = breakLines;
+      this.autoHeight = autoHeight;
       redraw();
     }
     return this;
@@ -148,6 +161,9 @@ public class UILabel extends UI2dComponent {
       vg.textAlign(this.textAlignHorizontal, this.textAlignVertical);
       vg.textBox(tx + this.textOffsetX, ty + this.textOffsetY, this.width - this.leftPadding - this.rightPadding, this.label);
       vg.fill();
+      if (this.autoHeight) {
+        setHeight(vg.textBoxHeight(this.label, this.width - this.leftPadding - this.rightPadding));
+      }
     } else {
       String str = clipTextToWidth(vg, this.label, this.width - this.leftPadding - this.rightPadding);
       vg.beginPath();
