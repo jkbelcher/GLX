@@ -162,7 +162,7 @@ public class UILabel extends UI2dComponent {
       vg.textBox(tx + this.textOffsetX, ty + this.textOffsetY, this.width - this.leftPadding - this.rightPadding, this.label);
       vg.fill();
       if (this.autoHeight) {
-        setHeight(vg.textBoxHeight(this.label, this.width - this.leftPadding - this.rightPadding));
+        setHeight(this.topPadding + this.bottomPadding + vg.textBoxHeight(this.label, this.width - this.leftPadding - this.rightPadding));
       }
     } else {
       String str = clipTextToWidth(vg, this.label, this.width - this.leftPadding - this.rightPadding);
