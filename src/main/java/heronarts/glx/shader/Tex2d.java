@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import org.joml.Matrix4f;
-import org.lwjgl.bgfx.BGFXVertexDecl;
+import org.lwjgl.bgfx.BGFXVertexLayout;
 import org.lwjgl.system.MemoryUtil;
 
 import heronarts.glx.GLX;
@@ -36,7 +36,7 @@ import heronarts.glx.View;
 
 public class Tex2d {
 
-  private BGFXVertexDecl vertexDecl;
+  private BGFXVertexLayout vertexLayout;
   private short program;
   private short uniformTexture;
 
@@ -57,13 +57,13 @@ public class Tex2d {
     this.modelMatrixBuf = MemoryUtil.memAllocFloat(16);
     this.modelMatrix.get(this.modelMatrixBuf);
 
-    this.vertexDecl = BGFXVertexDecl.calloc();
-    bgfx_vertex_decl_begin(this.vertexDecl, glx.getRenderer());
-    bgfx_vertex_decl_add(this.vertexDecl, BGFX_ATTRIB_POSITION, 3,
+    this.vertexLayout = BGFXVertexLayout.calloc();
+    bgfx_vertex_layout_begin(this.vertexLayout, glx.getRenderer());
+    bgfx_vertex_layout_add(this.vertexLayout, BGFX_ATTRIB_POSITION, 3,
       BGFX_ATTRIB_TYPE_FLOAT, false, false);
-    bgfx_vertex_decl_add(this.vertexDecl, BGFX_ATTRIB_TEXCOORD0, 2,
+    bgfx_vertex_layout_add(this.vertexLayout, BGFX_ATTRIB_TEXCOORD0, 2,
       BGFX_ATTRIB_TYPE_FLOAT, false, false);
-    bgfx_vertex_decl_end(this.vertexDecl);
+    bgfx_vertex_layout_end(this.vertexLayout);
 
     this.vertexBuffer = MemoryUtil
       .memAlloc(VERTEX_BUFFER_DATA.length * 5 * Float.BYTES);
@@ -73,8 +73,8 @@ public class Tex2d {
       }
     }
     this.vertexBuffer.flip();
-    this.vbh = bgfx_create_vertex_buffer(bgfx_make_ref(this.vertexBuffer),
-      this.vertexDecl, BGFX_BUFFER_NONE);
+    this.vbh = bgfx_create_vertex_buffer(
+      bgfx_make_ref(this.vertexBuffer), this.vertexLayout, BGFX_BUFFER_NONE);
 
     try {
       this.vsCode = GLXUtils.loadShader(glx, "vs_view2d");
@@ -118,7 +118,7 @@ public class Tex2d {
     MemoryUtil.memFree(this.vertexBuffer);
     MemoryUtil.memFree(this.vsCode);
     MemoryUtil.memFree(this.fsCode);
-    this.vertexDecl.free();
+    this.vertexLayout.free();
     MemoryUtil.memFree(this.modelMatrixBuf);
     bgfx_destroy_uniform(this.uniformTexture);
     bgfx_destroy_program(this.program);

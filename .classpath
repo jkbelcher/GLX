@@ -2,30 +2,15 @@
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/LX"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
-			<attribute name="module" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lwjgl/joml-1.9.13.jar" sourcepath="lwjgl/joml-1.9.13-sources.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx.jar" sourcepath="lwjgl/lwjgl-bgfx-sources.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw.jar" sourcepath="lwjgl/lwjgl-glfw-sources.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-nanovg-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-nanovg.jar" sourcepath="lwjgl/lwjgl-nanovg-sources.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-stb-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-stb.jar" sourcepath="lwjgl/lwjgl-stb-sources.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd.jar" sourcepath="lwjgl/lwjgl-tinyfd-sources.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl.jar" sourcepath="lwjgl/lwjgl-sources.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-natives-macos.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-bgfx-natives-windows.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-glfw-natives-windows.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-nanovg-natives-windows.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-natives-windows.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-stb-natives-windows.jar"/>
-	<classpathentry kind="lib" path="lwjgl/lwjgl-tinyfd-natives-windows.jar"/>
-	<classpathentry kind="lib" path="/LX/lib/gson-2.8.6.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>

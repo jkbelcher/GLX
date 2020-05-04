@@ -23,11 +23,11 @@ import static org.lwjgl.bgfx.BGFX.BGFX_ATTRIB_POSITION;
 import static org.lwjgl.bgfx.BGFX.BGFX_ATTRIB_TEXCOORD0;
 import static org.lwjgl.bgfx.BGFX.BGFX_ATTRIB_TYPE_FLOAT;
 import static org.lwjgl.bgfx.BGFX.BGFX_ATTRIB_TYPE_UINT8;
-import static org.lwjgl.bgfx.BGFX.bgfx_vertex_decl_add;
-import static org.lwjgl.bgfx.BGFX.bgfx_vertex_decl_begin;
-import static org.lwjgl.bgfx.BGFX.bgfx_vertex_decl_end;
+import static org.lwjgl.bgfx.BGFX.bgfx_vertex_layout_add;
+import static org.lwjgl.bgfx.BGFX.bgfx_vertex_layout_begin;
+import static org.lwjgl.bgfx.BGFX.bgfx_vertex_layout_end;
 
-import org.lwjgl.bgfx.BGFXVertexDecl;
+import org.lwjgl.bgfx.BGFXVertexLayout;
 
 public class VertexDeclaration {
 
@@ -35,28 +35,28 @@ public class VertexDeclaration {
   public static int ATTRIB_COLOR0 = 1 << 1;
   public static int ATTRIB_TEXCOORD0 = 1 << 2;
 
-  private final BGFXVertexDecl handle;
+  private final BGFXVertexLayout handle;
   private int stride = 0;
 
   public VertexDeclaration(GLX glx, int attributes) {
-    this.handle = BGFXVertexDecl.calloc();
-    bgfx_vertex_decl_begin(this.handle, glx.getRenderer());
+    this.handle = BGFXVertexLayout.calloc();
+    bgfx_vertex_layout_begin(this.handle, glx.getRenderer());
     if ((attributes & ATTRIB_POSITION) != 0) {
-      bgfx_vertex_decl_add(this.handle, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+      bgfx_vertex_layout_add(this.handle, BGFX_ATTRIB_POSITION, 3, BGFX_ATTRIB_TYPE_FLOAT, false, false);
       this.stride += 3 * Float.BYTES;
     }
     if ((attributes & ATTRIB_COLOR0) != 0) {
-      bgfx_vertex_decl_add(this.handle, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, false);
+      bgfx_vertex_layout_add(this.handle, BGFX_ATTRIB_COLOR0, 4, BGFX_ATTRIB_TYPE_UINT8, true, false);
       this.stride += 4;
     }
     if ((attributes & ATTRIB_TEXCOORD0) != 0) {
-      bgfx_vertex_decl_add(this.handle, BGFX_ATTRIB_TEXCOORD0, 2, BGFX_ATTRIB_TYPE_FLOAT, false, false);
+      bgfx_vertex_layout_add(this.handle, BGFX_ATTRIB_TEXCOORD0, 2, BGFX_ATTRIB_TYPE_FLOAT, false, false);
       this.stride += 2 * Float.BYTES;
     }
-    bgfx_vertex_decl_end(this.handle);
+    bgfx_vertex_layout_end(this.handle);
   }
 
-  public BGFXVertexDecl getHandle() {
+  public BGFXVertexLayout getHandle() {
     return this.handle;
   }
 

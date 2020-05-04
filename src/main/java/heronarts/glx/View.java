@@ -94,10 +94,20 @@ public class View {
   }
 
   public View bind() {
-    bgfx_reset_view(this.viewId);
+
+    // NOTE(mcslee): HACK! bgfx_reset_view disappeared from the C API, working on getting it back
+    // but in the meantime we need these calls - figured out what it was doing from here:
+    // https://github.com/bkaradzic/bgfx/blob/master/src/bgfx_p.h#L1826
+    // bgfx_reset_view(this.viewId);
+    bgfx_set_view_scissor(this.viewId, 0, 0, 0, 0);
+    bgfx_set_view_mode(this.viewId, BGFX_VIEW_MODE_DEFAULT);
+    bgfx_set_view_frame_buffer(this.viewId, BGFX_INVALID_HANDLE);
+
+    // This is the actual code we want, actually GLX specific
     bgfx_set_view_rect(this.viewId, this.x, this.y, this.width, this.height);
     bgfx_set_view_clear(this.viewId, this.clearFlags, this.clearColor, this.clearDepth, 0);
     bgfx_set_view_transform(this.viewId, this.viewMatrixBuf, this.projectionMatrixBuf);
+
     return this;
   }
 
