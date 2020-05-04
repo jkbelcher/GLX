@@ -21,7 +21,7 @@ package heronarts.glx.ui;
 import heronarts.lx.parameter.LXParameter;
 
 /**
- * Interface for UI elements that may offer a modulation target
+ * Interface for UI elements that may offer a direct control target
  */
 public interface UIControlTarget {
   public LXParameter getControlTarget();
