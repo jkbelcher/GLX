@@ -473,9 +473,11 @@ public class GLX extends LX {
   }
 
   private void loop() {
+    final int FRAME_PERF_LOG = 300;
     long before = System.currentTimeMillis();
     long now;
     int frameCount = 0;
+    long drawNanos = 0;
 
     while (!glfwWindowShouldClose(this.window)) {
       // Poll for input events
@@ -486,7 +488,9 @@ public class GLX extends LX {
         this.needsCursorUpdate = false;
       }
 
+      long drawStart = System.nanoTime();
       draw();
+      drawNanos += (System.nanoTime() - drawStart);
 
       // Copy something to the clipboard
       String copyToClipboard = this._setSystemClipboardString;
@@ -495,11 +499,12 @@ public class GLX extends LX {
         this._setSystemClipboardString = null;
       }
 
-      if (++frameCount == 300) {
+      if (++frameCount == FRAME_PERF_LOG) {
         frameCount = 0;
         now = System.currentTimeMillis();
-        GLX.log("UI thread healthy, running at: " + 300000f / (now - before) + "fps");
+        GLX.log("UI thread healthy, running at: " + FRAME_PERF_LOG * 1000f / (now - before) + "fps, average draw time: " + (drawNanos / FRAME_PERF_LOG / 1000) + "us");
         before = now;
+        drawNanos = 0;
       }
     }
   }
