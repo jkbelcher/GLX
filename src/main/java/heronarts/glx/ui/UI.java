@@ -533,6 +533,10 @@ public class UI {
     return this;
   }
 
+  public void redraw() {
+    this.root.redraw();
+  }
+
   public void reflow() {
     // Subclasses may override this method for top-level UI changes
   }
@@ -729,11 +733,11 @@ public class UI {
   }
 
   public float getContentScaleX() {
-    return this.lx.getContentScaleX();
+    return this.lx.getUIContentScaleX();
   }
 
   public float getContentScaleY() {
-    return this.lx.getContentScaleY();
+    return this.lx.getUIContentScaleY();
   }
 
   public float getWidth() {

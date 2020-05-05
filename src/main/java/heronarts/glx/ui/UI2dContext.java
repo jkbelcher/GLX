@@ -37,14 +37,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   public UI2dContext(UI ui, float x, float y, float w, float h) {
     super(x, y, w, h);
     setUI(ui);
-
-    // Framebuffers are in frame-buffer pixel space. If content-scaling
-    // is being applied we must scale.
-    this.framebuffer = ui.vg.createFramebuffer(
-      w * ui.getContentScaleX(),
-      h * ui.getContentScaleY(),
-      0
-    );
+    this.framebuffer = ui.vg.createFramebuffer(w, h, 0);
   }
 
   public short getTexture() {
@@ -71,16 +64,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   protected final void render(VGraphics vg) {
     // Bind the framebuffer, which rebuilds if necessary
     vg.bindFramebuffer(this.framebuffer);
-
-    // NanoVG operates in framebuffer pixel-space, but it is aware of content scaling. So we
-    // pass the framebuffer bounds here, but tell NanoVG what content scaling our UI uses.
-    // NOTE - NanoVG only takes a single scaling parameter. If some machine out there actually
-    // utilizes different X and Y scaling, this is going to be a real mess...
-    vg.beginFrame(
-      this.width * this.ui.getContentScaleX(),
-      this.height * this.ui.getContentScaleY(),
-      this.ui.getContentScaleX()
-    );
+    vg.beginFrame(this.width, this.height);
     super.draw(this.ui, vg);
     vg.endFrame();
 
@@ -141,12 +125,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
 
   @Override
   protected void onResize() {
-    // Reminder! Framebuffers are in frame-buffer pixel space. If content-scaling
-    // is being applied we must scale from UI space to  framebuffer space.
-    this.framebuffer.markForResize(
-      this.width * this.ui.getContentScaleX(),
-      this.height * this.ui.getContentScaleY()
-    );
+    this.framebuffer.markForResize(this.width, this.height);
     redraw();
   }
 

@@ -70,11 +70,13 @@ public class GLX extends LX {
   private int windowHeight = 720;
   private int frameBufferWidth = 0;
   private int frameBufferHeight = 0;
-  private float uiWidth = windowWidth;
-  private float uiHeight = windowHeight;
+  private float uiWidth = 0;
+  private float uiHeight = 0;
 
-  float contentScaleX = 1;
-  float contentScaleY = 1;
+  float systemContentScaleX = 1;
+  float systemContentScaleY = 1;
+
+  float uiZoom = 1;
 
   float cursorScaleX = 1;
   float cursorScaleY = 1;
@@ -117,11 +119,11 @@ public class GLX extends LX {
     super(flags, model);
 
     // Get initial window size from preferences
-    float preferenceWidth = this.preferences.getUIWidth();
-    float preferenceHeight = this.preferences.getUIHeight();
+    int preferenceWidth = this.preferences.getWindowWidth();
+    int preferenceHeight = this.preferences.getWindowHeight();
     if (preferenceWidth > 0 && preferenceHeight > 0) {
-      this.uiWidth = (int) preferenceWidth;
-      this.uiHeight = (int) preferenceHeight;
+      this.windowWidth = preferenceWidth;
+      this.windowHeight = preferenceHeight;
     }
 
     initializeWindow();
@@ -204,12 +206,12 @@ public class GLX extends LX {
     return this.frameBufferHeight;
   }
 
-  public float getContentScaleX() {
-    return this.contentScaleX;
+  public float getUIContentScaleX() {
+    return this.systemContentScaleX * this.uiZoom;
   }
 
-  public float getContentScaleY() {
-    return this.contentScaleY;
+  public float getUIContentScaleY() {
+    return this.systemContentScaleY * this.uiZoom;
   }
 
   private void initializeWindow() {
@@ -220,6 +222,10 @@ public class GLX extends LX {
       throw new RuntimeException("Unable to initialize GLFW");
     }
 
+    // Grab uiZoom from preferences
+    this.uiZoom = this.preferences.uiZoom.getValuef() / 100f;
+    this.preferences.uiZoom.addListener((p) -> { setUIZoom(this.preferences.uiZoom.getValuef() / 100f); });
+
     // Configure GLFW
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
@@ -227,8 +233,8 @@ public class GLX extends LX {
 
     // Create GLFW window
     this.window = glfwCreateWindow(
-      (int) this.uiWidth,
-      (int) this.uiHeight,
+      this.windowWidth,
+      this.windowHeight,
       "LX Studio",
       NULL,
       NULL
@@ -239,18 +245,29 @@ public class GLX extends LX {
 
     // Detect window/framebuffer sizes and content scale
     try (MemoryStack stack = MemoryStack.stackPush()) {
+
+      // NOTE: content scale is different across platforms. On a Retina Mac,
+      // content scale will be 2x and the framebuffer will have dimensions
+      // that are twice that of the window. On Windows, content-scaling is
+      // a setting that might be 125%, 150%, etc. - we'll have to look at
+      // the window and framebuffer sizes to figure this all out
       FloatBuffer xScale = stack.mallocFloat(1);
       FloatBuffer yScale = stack.mallocFloat(1);
       glfwGetWindowContentScale(this.window, xScale, yScale);
-      this.contentScaleX = xScale.get(0);
-      this.contentScaleY = yScale.get(0);
+      this.systemContentScaleX = xScale.get(0);
+      this.systemContentScaleY = yScale.get(0);
 
+      // The window size is in terms of "OS window size" - best thought of
+      // as an abstract setting which may or may not exactly correspond to
+      // pixels (e.g. a Mac retina display may have 2x as many pixels)
       IntBuffer xSize = stack.mallocInt(1);
       IntBuffer ySize = stack.mallocInt(1);
       glfwGetWindowSize(this.window, xSize, ySize);
       this.windowWidth = xSize.get(0);
       this.windowHeight = ySize.get(0);
 
+      // See what is in the framebuffer. A retina Mac probably supplies
+      // 2x the dimensions on framebuffer relative to window.
       glfwGetFramebufferSize(this.window, xSize, ySize);
       this.frameBufferWidth = xSize.get(0);
       this.frameBufferHeight = ySize.get(0);
@@ -267,9 +284,19 @@ public class GLX extends LX {
       }
       log("GLX display: " + this.displayWidth + "x" + this.displayHeight);
 
-      this.uiWidth = this.frameBufferWidth / this.contentScaleX;
-      this.uiHeight = this.frameBufferHeight / this.contentScaleY;
+      // Okay, let's figure out how many "virtual pixels" the GLX UI should
+      // be. Note that on a Mac with 2x retina display, contentScale will be
+      // 2, but the framebuffer will have dimensions twice that of the window.
+      // So we should end up with uiWidth/uiHeight matching the window.
+      // But on Windows it's a different situation, if contentScale > 100%
+      // then we're going to "scale down" our number of UI pixels and draw them
+      // into a larger framebuffer.
+      this.uiWidth = this.frameBufferWidth / this.systemContentScaleX / this.uiZoom;
+      this.uiHeight = this.frameBufferHeight / this.systemContentScaleY / this.uiZoom;
 
+      // To make things even trickier... keep in mind that the OS specifies cursor
+      // movement relative to its window size. We need to scale those onto our
+      // virtual UI window size.
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
 
@@ -286,7 +313,7 @@ public class GLX extends LX {
       log("GLX window: " + this.windowWidth + "x" + this.windowHeight);
       log("GLX frame: " + this.frameBufferWidth + "x" + this.frameBufferHeight);
       log("GLX ui: " + this.uiWidth + "x" + this.uiHeight);
-      log("GLX content: " + this.contentScaleX + "x" + this.contentScaleY);
+      log("GLX content: " + this.systemContentScaleX + "x" + this.systemContentScaleY);
       log("GLX cursor: " + this.cursorScaleX + "x" + this.cursorScaleY);
     }
 
@@ -317,14 +344,14 @@ public class GLX extends LX {
       this.windowHeight = height;
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
+      this.preferences.setWindowSize(this.windowWidth, this.windowHeight);
     });
 
     glfwSetWindowContentScaleCallback(this.window, (window, contentScaleX, contentScaleY) -> {
-      log("content scale changed");
-      this.contentScaleX = contentScaleX;
-      this.contentScaleY = contentScaleY;
-      this.uiWidth = this.frameBufferWidth / this.contentScaleX;
-      this.uiHeight = this.frameBufferHeight / this.contentScaleY;
+      this.systemContentScaleX = contentScaleX;
+      this.systemContentScaleY = contentScaleY;
+      this.uiWidth = this.frameBufferWidth / this.systemContentScaleX / this.uiZoom;
+      this.uiHeight = this.frameBufferHeight / this.systemContentScaleY / this.uiZoom;
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
       ui.resize();
@@ -334,8 +361,8 @@ public class GLX extends LX {
     glfwSetFramebufferSizeCallback(this.window, (window, width, height) -> {
       this.frameBufferWidth = width;
       this.frameBufferHeight = height;
-      this.uiWidth = this.frameBufferWidth / this.contentScaleX;
-      this.uiHeight = this.frameBufferHeight / this.contentScaleY;
+      this.uiWidth = this.frameBufferWidth / this.systemContentScaleX / this.uiZoom;
+      this.uiHeight = this.frameBufferHeight / this.systemContentScaleY / this.uiZoom;
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
       bgfx_reset(this.frameBufferWidth, this.frameBufferHeight, BGFX_RESET_VSYNC, this.bgfxFormat);
@@ -404,6 +431,17 @@ public class GLX extends LX {
       throw new RuntimeException("Error identifying bgfx renderer");
     }
     log("Using BGFX renderer: " + rendererName);
+  }
+
+  private void setUIZoom(float uiScale) {
+    this.uiZoom = uiScale;
+    this.uiWidth = this.frameBufferWidth / this.systemContentScaleX / this.uiZoom;
+    this.uiHeight = this.frameBufferHeight / this.systemContentScaleY / this.uiZoom;
+    this.cursorScaleX = this.uiWidth / this.windowWidth;
+    this.cursorScaleY = this.uiHeight / this.windowHeight;
+    this.vg.notifyContentScaleChanged();
+    this.ui.resize();
+    this.ui.redraw();
   }
 
   protected void setWindowSize(int windowWidth, int windowHeight) {

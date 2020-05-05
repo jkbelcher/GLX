@@ -200,8 +200,11 @@ public class VGraphics {
   public class Framebuffer {
     private NVGLUFramebufferBGFX buffer;
     public final Paint paint = new Paint();
+
+    // NOTE: width and height are in UI pixel space
     private float width;
     private float height;
+
     private short viewId;
     private final int imageFlags;
     private boolean isStale = false;
@@ -229,14 +232,6 @@ public class VGraphics {
 
     public int handle() {
       return this.buffer.handle();
-    }
-
-    public float getWidth() {
-      return this.width;
-    }
-
-    public float getHeight() {
-      return this.height;
     }
 
     public Framebuffer setView(short viewId) {
@@ -269,12 +264,22 @@ public class VGraphics {
     }
 
     private void makeBuffer() {
-      this.buffer = nvgluCreateFramebuffer(vg, (int) Math.ceil(this.width), (int) Math.ceil(this.height), this.imageFlags);
+      // NOTE: the framebuffer needs to be in framebuffer pixel space!
+      // So we multiply our floating-point ui pixel dimensions by the
+      // scaling factor and we round up to the next integer to make sure
+      // we've got enough framebuffer pixels to cover it! Note that this
+      // extra sub-pixel is okay, see the nvgBeginFrame() call where
+      // the actual frame size is passed as a float.
+      this.buffer = nvgluCreateFramebuffer(vg,
+        (int) Math.ceil(this.width * glx.getUIContentScaleX()),
+        (int) Math.ceil(this.height * glx.getUIContentScaleY()),
+        this.imageFlags
+      );
 
       // Note what happens here... the framebuffer is in framebuffer-pixel space. But
       // when we're going to paint it into another UI2dContext, those pixels will be in
-      // UI-space. Therefore, we need to transform the image by content-scaling factor.
-      this.paint.imagePattern(0, 0, this.width / glx.getContentScaleX(), this.height / glx.getContentScaleY(), this.buffer.image());
+      // UI-space. So the paint image pattern is in UI-space width/height
+      this.paint.imagePattern(0, 0, this.width, this.height, this.buffer.image());
     }
 
   }
@@ -310,6 +315,12 @@ public class VGraphics {
   public void deleteFrameBuffer(Framebuffer framebuffer) {
     nvgluDeleteFramebuffer(framebuffer.buffer);
     this.allocatedBuffers.remove(framebuffer);
+  }
+
+  public void notifyContentScaleChanged() {
+    for (Framebuffer framebuffer : this.allocatedBuffers) {
+      framebuffer.markStale();
+    }
   }
 
   public VGraphics fillColor(int argb) {
@@ -376,8 +387,18 @@ public class VGraphics {
     return this;
   }
 
-  public VGraphics beginFrame(float width, float height, float contentScale) {
-    nvgBeginFrame(this.vg, width, height, contentScale);
+  public VGraphics beginFrame(float width, float height) {
+    // NOTE: The nvgBeginFrame call wants width and height in
+    // post-scaled framebuffer space, and it also needs
+    // to know what the content scaling factor is. It only
+    // takes one scaling factor so let's just hope for the
+    // best if X/Y scaling are unequal on some weird system...
+    nvgBeginFrame(
+      this.vg,
+      width * this.glx.getUIContentScaleX(),
+      height * this.glx.getUIContentScaleY(),
+      this.glx.getUIContentScaleX()
+    );
     return this;
   }
 

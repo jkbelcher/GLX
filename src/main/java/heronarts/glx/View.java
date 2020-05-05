@@ -205,10 +205,10 @@ public class View {
     this.glx.program.tex2d.submit(
       this,
       bgfx_get_texture(context.getTexture(), 0),
-      context.getX() * this.glx.getContentScaleX(),
-      context.getY() * this.glx.getContentScaleY(),
-      context.getWidth() * this.glx.getContentScaleX(),
-      context.getHeight() * this.glx.getContentScaleY()
+      context.getX() * this.glx.getUIContentScaleX(),
+      context.getY() * this.glx.getUIContentScaleY(),
+      context.getWidth() * this.glx.getUIContentScaleX(),
+      context.getHeight() * this.glx.getUIContentScaleY()
     );
     return this;
   }
