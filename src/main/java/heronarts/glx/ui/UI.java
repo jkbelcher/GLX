@@ -23,6 +23,7 @@ import heronarts.glx.View;
 import heronarts.glx.event.Event;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
+import heronarts.glx.ui.component.UILabel;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXLoopTask;
@@ -501,6 +502,22 @@ public class UI {
 
     lx.errorChanged.addListener((p) -> { showError(); });
     showError();
+
+    lx.failure.addListener((p) -> {
+      float width = getWidth() * .8f;
+      float height = getHeight() * .8f;
+      showContextOverlay(
+        new UILabel(getWidth() * .1f, getHeight() * .1f, width, height)
+        .setLabel(lx.failure.getString())
+        .setBreakLines(true)
+        .setPadding(8)
+        .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
+        .setBorderColor(this.theme.getAttentionColor())
+        .setBackgroundColor(this.theme.getDarkBackgroundColor())
+        .setBorderRounding(4)
+        .setFontColor(this.theme.getAttentionColor())
+      );
+    });
   }
 
   public void showError() {

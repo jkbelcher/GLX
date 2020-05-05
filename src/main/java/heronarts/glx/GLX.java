@@ -111,12 +111,19 @@ public class GLX extends LX {
 
   public final Programs program;
 
+  public static class Flags extends LX.Flags {
+    public String windowTitle = "GLX";
+  }
+
+  public final Flags flags;
+
   protected GLX(Flags flags) throws IOException {
     this(flags, null);
   }
 
   protected GLX(Flags flags, LXModel model) throws IOException {
     super(flags, model);
+    this.flags = flags;
 
     // Get initial window size from preferences
     int preferenceWidth = this.preferences.getWindowWidth();
@@ -156,7 +163,8 @@ public class GLX extends LX {
     log("Stopping LX engine...");
     this.engine.stop();
 
-    // TODO(mcslee): join the LX engine thread? make sure it's really done?
+    // TODO(mcslee): join the LX engine thread? make sure it's really
+    // done before cleaning up the window assets? doesn't seem necessary
 
     // Clean up after ourselves
     dispose();
@@ -235,7 +243,7 @@ public class GLX extends LX {
     this.window = glfwCreateWindow(
       this.windowWidth,
       this.windowHeight,
-      "LX Studio",
+      this.flags.windowTitle,
       NULL,
       NULL
     );
@@ -478,6 +486,7 @@ public class GLX extends LX {
     long now;
     int frameCount = 0;
     long drawNanos = 0;
+    boolean failed = false;
 
     while (!glfwWindowShouldClose(this.window)) {
       // Poll for input events
@@ -488,9 +497,34 @@ public class GLX extends LX {
         this.needsCursorUpdate = false;
       }
 
-      long drawStart = System.nanoTime();
-      draw();
-      drawNanos += (System.nanoTime() - drawStart);
+      if (!failed) {
+        long drawStart = System.nanoTime();
+        try {
+          draw();
+        } catch (Exception x) {
+          error(x, "UI THREAD FAILURE: Unhandled exception in GLX.draw(): " + x.getLocalizedMessage());
+          fail(x);
+
+          // The above should have set a UI failure window to be drawn...
+          // Take one last whack at re-drawing. This may very well fail and
+          // throw an uncaught error or exception, so be it.
+          try {
+            draw();
+          } catch (Exception ignored) {
+            // Yeah, we thought that may happen.
+          }
+
+          failed = true;
+        }
+        drawNanos += (System.nanoTime() - drawStart);
+        if (!failed && (++frameCount == FRAME_PERF_LOG)) {
+          frameCount = 0;
+          now = System.currentTimeMillis();
+          GLX.log("UI thread healthy, running at: " + FRAME_PERF_LOG * 1000f / (now - before) + "fps, average draw time: " + (drawNanos / FRAME_PERF_LOG / 1000) + "us");
+          before = now;
+          drawNanos = 0;
+        }
+      }
 
       // Copy something to the clipboard
       String copyToClipboard = this._setSystemClipboardString;
@@ -499,13 +533,6 @@ public class GLX extends LX {
         this._setSystemClipboardString = null;
       }
 
-      if (++frameCount == FRAME_PERF_LOG) {
-        frameCount = 0;
-        now = System.currentTimeMillis();
-        GLX.log("UI thread healthy, running at: " + FRAME_PERF_LOG * 1000f / (now - before) + "fps, average draw time: " + (drawNanos / FRAME_PERF_LOG / 1000) + "us");
-        before = now;
-        drawNanos = 0;
-      }
     }
   }
 
