@@ -27,7 +27,6 @@ import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXLoopTask;
 import heronarts.lx.LXMappingEngine;
-import heronarts.lx.command.LXCommandEngine;
 import heronarts.lx.midi.LXMidiEngine;
 import heronarts.lx.midi.LXMidiMapping;
 import heronarts.lx.modulation.LXModulationEngine;
@@ -420,7 +419,7 @@ public class UI {
 
   public UI(final GLX lx) throws IOException {
     if (UI.instance != null) {
-      throw new IllegalStateException("May not instantiate multiple copies of UI");
+      throw new IllegalStateException("May not create multiple instances of UI");
     }
 
     UI.instance = this;
@@ -500,24 +499,27 @@ public class UI {
       }
     });
 
-    lx.command.errorChanged.addListener((p) -> {
-      final LXCommandEngine.Error error = lx.command.getError();
-      if (error != null) {
-        if (error.cause != null) {
-          showContextOverlay(new UIDialogBox(
-            this,
-            error.message,
-            new String[] { "Copy Stack Trace", "Okay" },
-            new int[] { UIDialogBox.OPTION_WIDTH * 2, UIDialogBox.OPTION_WIDTH },
-            new Runnable[] {
-              () -> { lx.setSystemClipboardString(error.getStackTrace()); },
-              () -> { lx.command.popError(); }
-            }));
-        } else {
-          showContextOverlay(new UIDialogBox(this, error.message, () -> { lx.command.popError(); }));
-        }
+    lx.errorChanged.addListener((p) -> { showError(); });
+    showError();
+  }
+
+  public void showError() {
+    final LX.Error error = lx.getError();
+    if (error != null) {
+      if (error.cause != null) {
+        showContextOverlay(new UIDialogBox(
+          this,
+          error.message,
+          new String[] { "Copy Stack Trace", "Okay" },
+          new int[] { UIDialogBox.OPTION_WIDTH * 2, UIDialogBox.OPTION_WIDTH },
+          new Runnable[] {
+            () -> { lx.setSystemClipboardString(error.getStackTrace()); },
+            () -> { lx.popError(); }
+          }));
+      } else {
+        showContextOverlay(new UIDialogBox(this, error.message, () -> { lx.popError(); }));
       }
-    });
+    }
   }
 
   public UI setHighlightParameterModulation(LXParameterModulation highlightParameterModulation) {
