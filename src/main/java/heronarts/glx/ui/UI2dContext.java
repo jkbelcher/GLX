@@ -25,6 +25,8 @@ public class UI2dContext extends UI2dContainer implements UILayer {
 
   private VGraphics.Framebuffer framebuffer;
 
+  boolean isOffscreen = false;
+
   /**
    * Constructs a new UI2dContext
    *
@@ -38,6 +40,11 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     super(x, y, w, h);
     setUI(ui);
     this.framebuffer = ui.vg.createFramebuffer(w, h, 0);
+  }
+
+  public UI2dContext setOffscreen(boolean isOffscreen) {
+    this.isOffscreen = isOffscreen;
+    return this;
   }
 
   public short getTexture() {
@@ -86,7 +93,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
    */
   @Override
   public final void draw(UI ui, View view) {
-    if (!isVisible()) {
+    if (this.isOffscreen || !isVisible()) {
       return;
     }
 
@@ -106,7 +113,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
    */
   @Override
   public void draw(UI ui, VGraphics vg) {
-    if (!isVisible()) {
+    if (this.isOffscreen || !isVisible()) {
       return;
     }
 

@@ -906,9 +906,15 @@ public abstract class UI2dComponent extends UIObject {
    */
   private final void _redrawChildren() {
     this.needsRedraw = true;
-    this.childNeedsRedraw = (this.mutableChildren.size() > 0);
+    this.childNeedsRedraw = false;
     for (UIObject child : this.mutableChildren) {
-      ((UI2dComponent)child)._redrawChildren();
+      if ((child instanceof UI2dContext) && (((UI2dContext) child).isOffscreen)) {
+        // If this is an offscreen 2d context that didn't get a direct redraw
+        // call, don't update it.
+        continue;
+      }
+      this.childNeedsRedraw = true;
+      ((UI2dComponent) child)._redrawChildren();
     }
   }
 
