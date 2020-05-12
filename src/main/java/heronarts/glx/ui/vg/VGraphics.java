@@ -287,6 +287,9 @@ public class VGraphics {
   private final GLX glx;
   private final View view;
   private final long vg;
+  private final NVGPaint paintLinearGradient = NVGPaint.create();
+  private final NVGColor fillColorLinearGradientStart = NVGColor.create();
+  private final NVGColor fillColorLinearGradientEnd = NVGColor.create();
   private final NVGColor fillColor = NVGColor.create();
   private final NVGColor strokeColor = NVGColor.create();
   private final Set<Framebuffer> allocatedBuffers = new HashSet<Framebuffer>();
@@ -323,6 +326,30 @@ public class VGraphics {
     }
   }
 
+  private void _setColor(NVGColor color, int argb) {
+    _setColor(color,
+      (0xff & (argb >>> 16)) / 255f,
+      (0xff & (argb >>> 8)) / 255f,
+      (0xff & argb) / 255f,
+      (argb >>> 24) / 255f
+    );
+  }
+
+  private void _setColor(NVGColor color, float r, float g, float b, float a) {
+    color.a(a);
+    color.r(r);
+    color.g(g);
+    color.b(b);
+  }
+
+  public VGraphics fillLinearGradient(float sx, float sy, float ex, float ey, int scolor, int ecolor) {
+    _setColor(this.fillColorLinearGradientStart, scolor);
+    _setColor(this.fillColorLinearGradientEnd, ecolor);
+    nvgLinearGradient(this.vg, sx, sy, ex, ey, this.fillColorLinearGradientStart, this.fillColorLinearGradientEnd, this.paintLinearGradient);
+    nvgFillPaint(this.vg, this.paintLinearGradient);
+    return this;
+  }
+
   public VGraphics fillColor(int argb) {
     return fillColor(
       (0xff & (argb >>> 16)) / 255f,
@@ -337,10 +364,7 @@ public class VGraphics {
   }
 
   public VGraphics fillColor(float r, float g, float b, float a) {
-    this.fillColor.a(a);
-    this.fillColor.r(r);
-    this.fillColor.g(g);
-    this.fillColor.b(b);
+    _setColor(this.fillColor, r, g, b, a);
     nvgFillColor(this.vg, this.fillColor);
     return this;
   }
