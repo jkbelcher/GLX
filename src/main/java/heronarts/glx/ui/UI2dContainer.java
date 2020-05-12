@@ -43,24 +43,44 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
 
   ArrowKeyFocus arrowKeyFocus = ArrowKeyFocus.NONE;
 
-  private int topPadding = 0, rightPadding = 0, bottomPadding = 0, leftPadding = 0;
+  private float topPadding = 0, rightPadding = 0, bottomPadding = 0, leftPadding = 0;
 
-  private int childMarginX = 0, childMarginY = 0;
+  private float childMarginX = 0, childMarginY = 0;
 
   private float minHeight = 0, minWidth = 0;
 
   private UI2dContainer contentTarget;
+
+  public static UI2dContainer newHorizontalContainer(float height) {
+    return newHorizontalContainer(height, 0);
+  }
+
+  public static UI2dContainer newHorizontalContainer(float height, float childMargin) {
+    return new UI2dContainer(0, 0, 0, height)
+      .setLayout(UI2dContainer.Layout.HORIZONTAL)
+      .setChildMargin(childMargin);
+  }
+
+  public static UI2dContainer newVerticalContainer(float width) {
+    return newVerticalContainer(width, 0);
+  }
+
+  public static UI2dContainer newVerticalContainer(float width, float childMargin) {
+    return new UI2dContainer(0, 0, width, 0)
+      .setLayout(UI2dContainer.Layout.VERTICAL)
+      .setChildMargin(childMargin);
+  }
 
   public UI2dContainer(float x, float y, float w, float h) {
     super(x, y, w, h);
     this.contentTarget = this;
   }
 
-  public UI2dContainer setPadding(int padding) {
+  public UI2dContainer setPadding(float padding) {
     return setPadding(padding, padding, padding, padding);
   }
 
-  public UI2dContainer setPadding(int topPadding, int rightPadding, int bottomPadding, int leftPadding) {
+  public UI2dContainer setPadding(float topPadding, float rightPadding, float bottomPadding, float leftPadding) {
     boolean redraw = false;
     if (this.topPadding != topPadding) {
       this.topPadding = topPadding;
@@ -84,11 +104,11 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     return this;
   }
 
-  public UI2dContainer setChildMargin(int childMargin) {
+  public UI2dContainer setChildMargin(float childMargin) {
     return setChildMargin(childMargin, childMargin);
   }
 
-  public UI2dContainer setChildMargin(int childMarginY, int childMarginX) {
+  public UI2dContainer setChildMargin(float childMarginY, float childMarginX) {
     if (this.contentTarget.childMarginX != childMarginX) {
       this.contentTarget.childMarginX = childMarginX;
       this.contentTarget.reflow();
