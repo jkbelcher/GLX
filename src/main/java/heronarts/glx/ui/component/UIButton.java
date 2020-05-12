@@ -71,7 +71,6 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   protected boolean momentaryPressValid = false;
   private boolean momentaryPressEngaged = false;
 
-
   private EnumParameter<? extends Object> enumParameter = null;
   private BooleanParameter booleanParameter = null;
 
@@ -293,9 +292,9 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     if (this.enabled) {
       mouseEvent.consume();
-      setActive(this.isMomentary ? true : !this.active);
       this.momentaryPressValid = this.isMomentary;
       this.momentaryPressEngaged = this.isMomentary;
+      setActive(this.isMomentary ? true : !this.active);
     }
   }
 
