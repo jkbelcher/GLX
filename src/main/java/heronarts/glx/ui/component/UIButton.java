@@ -69,6 +69,8 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   protected boolean enabled = true;
 
   protected boolean momentaryPressValid = false;
+  private boolean momentaryPressEngaged = false;
+
 
   private EnumParameter<? extends Object> enumParameter = null;
   private BooleanParameter booleanParameter = null;
@@ -224,16 +226,23 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   @Override
   protected void onDraw(UI ui, VGraphics vg) {
-    if (!this.enabled || (this.isMomentary && this.active && !this.momentaryPressValid)) {
+    // A lighter gray background color when the button is disabled, or it's engaged
+    // with a mouse press but the mouse has moved off the active button
+    if (!this.enabled || (this.momentaryPressEngaged && !this.momentaryPressValid)) {
       vg.beginPath();
       vg.fillColor(ui.theme.getControlDisabledColor());
+      vg.rect(1, 1, this.width-2, this.height-2);
+      vg.fill();
+    } else if (this.momentaryPressEngaged) {
+      vg.beginPath();
+      vg.fillColor(this.activeColor);
       vg.rect(1, 1, this.width-2, this.height-2);
       vg.fill();
     }
 
     VGraphics.Image icon = this.active ? this.activeIcon : this.inactiveIcon;
     if (icon != null) {
-      if (!this.active) {
+      if (!this.active && !this.momentaryPressEngaged) {
         icon.setTint(this.hasIconColor ? this.iconColor : getFontColor());
       }
       vg.beginPath();
@@ -243,7 +252,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     } else {
       String label = this.active ? this.activeLabel : this.inactiveLabel;
       if ((label != null) && (label.length() > 0)) {
-        vg.fillColor(this.active ? UI.WHITE : getFontColor());
+        vg.fillColor((this.active || this.momentaryPressEngaged) ? UI.WHITE : getFontColor());
         vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
         if (this.textAlignVertical == VGraphics.Align.MIDDLE) {
           vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
@@ -261,8 +270,17 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   @Override
+  protected void onBlur() {
+    super.onBlur();
+    if (this.momentaryPressEngaged) {
+      this.momentaryPressEngaged = false;
+      redraw();
+    }
+  }
+
+  @Override
   protected void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-    if (this.enabled && this.isMomentary && this.active) {
+    if (this.enabled && this.momentaryPressEngaged) {
       boolean mouseDownMomentary = contains(this.x + mx, this.y + my);
       if (mouseDownMomentary != this.momentaryPressValid) {
         this.momentaryPressValid = mouseDownMomentary;
@@ -277,6 +295,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       mouseEvent.consume();
       setActive(this.isMomentary ? true : !this.active);
       this.momentaryPressValid = this.isMomentary;
+      this.momentaryPressEngaged = this.isMomentary;
     }
   }
 
@@ -291,14 +310,19 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
         }
       }
     }
+    if (this.momentaryPressEngaged) {
+      this.momentaryPressEngaged = false;
+      redraw();
+    }
   }
 
   @Override
   protected void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
       if (this.enabled) {
-        setActive(this.isMomentary ? true : !this.active);
         this.momentaryPressValid = this.isMomentary;
+        this.momentaryPressEngaged = this.isMomentary;
+        setActive(this.isMomentary ? true : !this.active);
       }
       keyEvent.consume();
     }
@@ -310,6 +334,10 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       if (this.enabled && this.isMomentary) {
         setActive(false);
         onClick();
+      }
+      if (this.momentaryPressEngaged) {
+        this.momentaryPressEngaged = false;
+        redraw();
       }
       keyEvent.consume();
     }
