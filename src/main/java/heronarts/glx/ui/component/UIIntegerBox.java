@@ -77,6 +77,20 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
     return this;
   }
 
+  private int getMinValue() {
+    if (this.parameter != null) {
+      return this.parameter.getMinValue();
+    }
+    return this.minValue;
+  }
+
+  private int getMaxValue() {
+    if (this.parameter != null) {
+      return this.parameter.getMaxValue();
+    }
+    return this.maxValue;
+  }
+
   public UIIntegerBox setEditMultiplier(int editMultiplier) {
     this.editMultiplier = editMultiplier;
     return this;
@@ -87,7 +101,10 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
     if (this.parameter != null) {
       return this.parameter.getNormalized();
     }
-    return (this.value - this.minValue) / (this.maxValue - this.minValue);
+    int min = getMinValue();
+    int max = getMaxValue();
+
+    return (this.value - min) / (double) (max - min);
   }
 
   public int getValue() {
@@ -108,11 +125,13 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
 
   protected UIIntegerBox setValue(int value, boolean pushToParameter) {
     if (this.value != value) {
-      int range = (this.maxValue - this.minValue + 1);
-      while (value < this.minValue) {
+      int min = getMinValue();
+      int max = getMaxValue();
+      int range = (max - min + 1);
+      while (value < min) {
         value += range;
       }
-      this.value = this.minValue + (value - this.minValue) % range;
+      this.value = min + (value - min) % range;
       if (this.parameter != null && pushToParameter) {
         getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, this.value));
       }
