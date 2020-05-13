@@ -179,7 +179,11 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
       }
       this.value = value;
       if (this.parameter != null && pushToParameter) {
-        getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value));
+        if (this.useCommandEngine) {
+          getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value));
+        } else {
+          this.parameter.setValue(value);
+        }
       }
       onToggle(this.value);
       redraw();

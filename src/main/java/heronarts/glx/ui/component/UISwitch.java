@@ -103,7 +103,11 @@ public class UISwitch extends UIParameterControl implements UIFocus, UITriggerTa
         if (this.isMomentary) {
           getBooleanParameter().setValue(true);
         } else {
-          getLX().command.perform(new LXCommand.Parameter.Toggle(getBooleanParameter()));
+          if (this.useCommandEngine) {
+            getLX().command.perform(new LXCommand.Parameter.Toggle(getBooleanParameter()));
+          } else {
+            getBooleanParameter().toggle();
+          }
         }
       }
     }
@@ -134,7 +138,11 @@ public class UISwitch extends UIParameterControl implements UIFocus, UITriggerTa
       if (this.isMomentary) {
         getBooleanParameter().setValue(true);
       } else {
-        getLX().command.perform(new LXCommand.Parameter.Toggle(getBooleanParameter()));
+        if (this.useCommandEngine) {
+          getLX().command.perform(new LXCommand.Parameter.Toggle(getBooleanParameter()));
+        } else {
+          getBooleanParameter().toggle();
+        }
       }
     }
   }

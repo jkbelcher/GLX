@@ -88,7 +88,11 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
       this.actions[i] = new UIContextActions.Action(String.valueOf(i)) {
         @Override
         public void onContextAction(UI ui) {
-          getLX().command.perform(new LXCommand.Parameter.SetValue(parameter, ii));
+          if (useCommandEngine) {
+            getLX().command.perform(new LXCommand.Parameter.SetValue(parameter, ii));
+          } else {
+            parameter.setValue(ii);
+          }
         }
       };
     }
@@ -201,10 +205,18 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
         toggleExpanded();
       } else if (keyCode == KeyEvent.VK_DOWN) {
         keyEvent.consume();
-        getLX().command.perform(new LXCommand.Parameter.Increment(this.parameter));
+        if (this.useCommandEngine) {
+          getLX().command.perform(new LXCommand.Parameter.Increment(this.parameter));
+        } else {
+          this.parameter.increment();
+        }
       } else if (keyCode == KeyEvent.VK_UP) {
         keyEvent.consume();
-        getLX().command.perform(new LXCommand.Parameter.Decrement(this.parameter));
+        if (this.useCommandEngine) {
+          getLX().command.perform(new LXCommand.Parameter.Decrement(this.parameter));
+        } else {
+          this.parameter.decrement();
+        }
       } else if (keyCode == KeyEvent.VK_ESCAPE) {
         if (this.contextMenu.isVisible()) {
           keyEvent.consume();

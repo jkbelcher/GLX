@@ -254,7 +254,11 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
             for (String part : parts) {
               value = value * 60 + Double.parseDouble(part);
             }
-            getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value * multiplier));
+            if (this.useCommandEngine) {
+              getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value * multiplier));
+            } else {
+              this.parameter.setValue(value * multiplier);
+            }
             break;
           default:
             // No colon character allowed for other types
@@ -262,7 +266,11 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
           }
         } else {
           double value = Double.parseDouble(this.editBuffer);
-          getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value));
+          if (this.useCommandEngine) {
+            getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value));
+          } else {
+            this.parameter.setValue(value);
+          }
         }
       } catch (NumberFormatException nfx) {}
     }
@@ -316,9 +324,17 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       keyEvent.consume();
       if (this.parameter instanceof DiscreteParameter) {
         DiscreteParameter dp = (DiscreteParameter) this.parameter;
-        getLX().command.perform(new LXCommand.Parameter.Decrement(dp, keyEvent.isShiftDown() ? dp.getRange() / 10 : 1));
+        if (this.useCommandEngine) {
+          getLX().command.perform(new LXCommand.Parameter.Decrement(dp, keyEvent.isShiftDown() ? dp.getRange() / 10 : 1));
+        } else {
+          dp.decrement(keyEvent.isShiftDown() ? dp.getRange() / 10 : 1);
+        }
       } else if (this.parameter instanceof BooleanParameter) {
-        getLX().command.perform(new LXCommand.Parameter.SetNormalized((BooleanParameter) this.parameter, false));
+        if (this.useCommandEngine) {
+          getLX().command.perform(new LXCommand.Parameter.SetNormalized((BooleanParameter) this.parameter, false));
+        } else {
+          ((BooleanParameter) this.parameter).setValue(false);
+        }
       } else {
         setNormalized(getNormalized() - getIncrement(keyEvent));
       }
@@ -337,9 +353,17 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       keyEvent.consume();
       if (this.parameter instanceof DiscreteParameter) {
         DiscreteParameter dp = (DiscreteParameter) this.parameter;
-        getLX().command.perform(new LXCommand.Parameter.Increment(dp, keyEvent.isShiftDown() ? dp.getRange() / 10 : 1));
+        if (this.useCommandEngine) {
+          getLX().command.perform(new LXCommand.Parameter.Increment(dp, keyEvent.isShiftDown() ? dp.getRange() / 10 : 1));
+        } else {
+          dp.increment(keyEvent.isShiftDown() ? dp.getRange() / 10 : 1);
+        }
       } else if (this.parameter instanceof BooleanParameter) {
-        getLX().command.perform(new LXCommand.Parameter.SetNormalized((BooleanParameter) this.parameter, true));
+        if (this.useCommandEngine) {
+          getLX().command.perform(new LXCommand.Parameter.SetNormalized((BooleanParameter) this.parameter, true));
+        } else {
+          ((BooleanParameter) this.parameter).setValue(true);
+        }
       } else {
         setNormalized(getNormalized() + getIncrement(keyEvent));
       }
