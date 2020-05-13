@@ -19,7 +19,7 @@
 package heronarts.glx.ui;
 
 import heronarts.glx.event.MouseEvent;
-import heronarts.lx.LXUtils;
+import heronarts.lx.utils.LXUtils;
 
 public class UI2dScrollContext extends UI2dContext {
 

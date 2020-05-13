@@ -33,7 +33,6 @@ import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.component.UIInputBox;
 import heronarts.lx.LX;
 import heronarts.lx.LXSerializable;
-import heronarts.lx.LXUtils;
 import heronarts.lx.modulator.Click;
 import heronarts.lx.modulator.DampedParameter;
 import heronarts.lx.modulator.LXPeriodicModulator;
@@ -43,6 +42,7 @@ import heronarts.lx.parameter.EnumParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.MutableParameter;
 import heronarts.lx.parameter.ObjectParameter;
+import heronarts.lx.utils.LXUtils;
 
 /**
  * This is a layer that contains a 3d scene with a camera. Mouse movements

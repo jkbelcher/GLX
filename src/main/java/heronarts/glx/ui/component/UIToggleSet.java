@@ -24,11 +24,11 @@ import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
-import heronarts.lx.LXUtils;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
+import heronarts.lx.utils.LXUtils;
 
 public class UIToggleSet extends UIParameterComponent implements UIFocus, UIControlTarget, LXParameterListener {
 

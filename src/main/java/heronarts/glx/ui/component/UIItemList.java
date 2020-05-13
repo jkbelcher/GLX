@@ -32,7 +32,7 @@ import heronarts.glx.ui.UI2dContainer;
 import heronarts.glx.ui.UI2dScrollContext;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
-import heronarts.lx.LXUtils;
+import heronarts.lx.utils.LXUtils;
 
 /**
  * An ItemList is a scrollable list of elements with a focus state

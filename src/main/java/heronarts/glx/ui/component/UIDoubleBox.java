@@ -24,12 +24,12 @@ import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIModulationSource;
 import heronarts.glx.ui.UIModulationTarget;
-import heronarts.lx.LXUtils;
 import heronarts.lx.parameter.BoundedParameter;
 import heronarts.lx.parameter.CompoundParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
+import heronarts.lx.utils.LXUtils;
 
 public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModulationSource, UIModulationTarget {
 

@@ -23,7 +23,6 @@ import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
-import heronarts.lx.LXUtils;
 import heronarts.lx.color.ColorParameter;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.command.LXCommand;
@@ -31,6 +30,7 @@ import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.CompoundParameter;
 import heronarts.lx.parameter.LXListenableNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
+import heronarts.lx.utils.LXUtils;
 
 public class UIKnob extends UICompoundParameterControl implements UIFocus {
 
