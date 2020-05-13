@@ -14,6 +14,8 @@ import heronarts.lx.parameter.LXParameter;
 
 public abstract class UIParameterComponent extends UI2dComponent implements UIContextActions {
 
+  public static final float DEFAULT_HEIGHT = 16;
+
   protected boolean useCommandEngine = true;
 
   protected UIParameterComponent(float x, float y, float w, float h) {

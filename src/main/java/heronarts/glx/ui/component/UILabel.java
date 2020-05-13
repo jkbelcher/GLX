@@ -28,6 +28,8 @@ import heronarts.glx.ui.vg.VGraphics;
  */
 public class UILabel extends UI2dComponent {
 
+  public static final float DEFAULT_HEIGHT = 12;
+
   private int topPadding = 0;
   private int rightPadding = 0;
   private int leftPadding = 0;
@@ -42,6 +44,15 @@ public class UILabel extends UI2dComponent {
 
   public UILabel() {
     this(0, 0, 0, 0);
+  }
+
+  public UILabel(float w, String label) {
+    this(w, DEFAULT_HEIGHT, label);
+  }
+
+  public UILabel(float w, float h, String label) {
+    this(0, 0, w, h);
+    setLabel(label);
   }
 
   public UILabel(float x, float y, float w, float h) {

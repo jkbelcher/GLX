@@ -32,6 +32,8 @@ import heronarts.lx.parameter.LXParameterListener;
 
 public class UIDropMenu extends UIParameterComponent implements UIFocus, UIControlTarget, LXParameterListener {
 
+  public static final float DEFAULT_HEIGHT = 16;
+
   private DiscreteParameter parameter = null;
 
   public enum Direction {
@@ -47,6 +49,14 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   private boolean enabled = true;
 
   private final UIContextMenu contextMenu;
+
+  public UIDropMenu(float w, DiscreteParameter parameter) {
+    this(w, DEFAULT_HEIGHT, parameter);
+  }
+
+  public UIDropMenu(float w, float h, DiscreteParameter parameter) {
+    this(0, 0, w, h, parameter);
+  }
 
   public UIDropMenu(float x, float y, float w, float h, DiscreteParameter parameter) {
     super(x, y, w, h);
