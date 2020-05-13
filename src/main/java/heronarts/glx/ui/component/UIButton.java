@@ -52,7 +52,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   public static class Trigger extends UIButton {
 
-    public static final int WIDTH = 16;
+    public static final int WIDTH = 18;
 
     public Trigger(UI ui, float x, float y) {
       this(ui, null, x, y);
