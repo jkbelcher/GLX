@@ -25,6 +25,7 @@ import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.CompoundParameter;
+import heronarts.lx.parameter.LXListenableNormalizedParameter;
 import heronarts.lx.utils.LXUtils;
 
 public class UISlider extends UICompoundParameterControl implements UIFocus {
@@ -47,6 +48,11 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
   private boolean hasFillColor = false;
 
   private int fillColor = 0;;
+
+  public UISlider(float w, float h, LXListenableNormalizedParameter parameter) {
+    this(0, 0, w, h);
+    setParameter(parameter);
+  }
 
   public UISlider() {
     this(0, 0, 0, 0);
@@ -227,11 +233,18 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
         vg.fill();
       }
 
-      if (modulated && (fillWidth > 0.5f)) {
-        vg.fillColor(valueColor);
-        vg.beginPath();
-        vg.rect(fillX, topY, fillWidth, GROOVE);
-        vg.fill();
+      if (modulated){
+        if (fillWidth > 0.5f) {
+          vg.fillColor(valueColor);
+          vg.beginPath();
+          vg.rect(fillX, topY, fillWidth, GROOVE);
+          vg.fill();
+        } else if (fillWidth < -0.5f) {
+          vg.fillColor(valueColor);
+          vg.beginPath();
+          vg.rect(fillX + fillWidth, topY, -fillWidth, GROOVE);
+          vg.fill();
+        }
       }
 
       // If we're modulating across the center, draw a small divider
@@ -284,11 +297,18 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
         vg.fill();
       }
 
-      if (modulated && fillSize > 0.5f) {
-        vg.fillColor(valueColor);
-        vg.beginPath();
-        vg.rect(this.width / 2 - GROOVE/2, fillY, GROOVE, fillSize);
-        vg.fill();
+      if (modulated) {
+        if (fillSize > 0.5f) {
+          vg.fillColor(valueColor);
+          vg.beginPath();
+          vg.rect(this.width / 2 - GROOVE/2, fillY, GROOVE, fillSize);
+          vg.fill();
+        } else if (fillSize < -0.5f) {
+          vg.fillColor(valueColor);
+          vg.beginPath();
+          vg.rect(this.width / 2 - GROOVE/2, fillY + fillSize, GROOVE, -fillSize);
+          vg.fill();
+        }
       }
 
       vg.fillColor(HANDLE_COLOR);

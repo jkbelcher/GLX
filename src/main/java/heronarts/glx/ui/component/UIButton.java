@@ -111,6 +111,18 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     this(0, 0, 0, 0);
   }
 
+  public UIButton(float w, float h, BooleanParameter p) {
+    this(0, 0, w, h);
+    setParameter(p);
+    setLabel(p.getLabel());
+  }
+
+  public UIButton(float w, float h, EnumParameter<?> p) {
+    this(0, 0, w, h);
+    setParameter(p);
+    setLabel(p.getLabel());
+  }
+
   public UIButton(float x, float y, float w, float h) {
     super(x, y, w, h);
     setBorderColor(UI.get().theme.getControlBorderColor());
