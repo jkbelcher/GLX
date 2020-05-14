@@ -48,7 +48,11 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
   private final static float ARC_MIN = ARC_RANGE / 255.f; // half a MIDI tick
 
   public UIKnob(LXListenableNormalizedParameter parameter) {
-    this();
+    this(0, 0, parameter);
+  }
+
+  public UIKnob(float x, float y, LXListenableNormalizedParameter parameter) {
+    this(x, y);
     setParameter(parameter);
   }
 

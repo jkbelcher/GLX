@@ -58,7 +58,11 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
   }
 
   public UISlider(Direction direction, float w, float h, LXListenableNormalizedParameter parameter) {
-    this(direction, 0, 0, w, h);
+    this(direction, 0, 0, w, h, parameter);
+  }
+
+  public UISlider(Direction direction, float x, float y, float w, float h, LXListenableNormalizedParameter parameter) {
+    this(direction, x, y, w, h);
     setParameter(parameter);
   }
 
@@ -77,6 +81,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
     this.direction = direction;
     this.handleHeight = h;
   }
+
 
   @Override
   protected void onResize() {
