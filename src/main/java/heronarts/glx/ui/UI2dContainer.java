@@ -85,25 +85,25 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
   }
 
   public UI2dContainer setPadding(float topPadding, float rightPadding, float bottomPadding, float leftPadding) {
-    boolean redraw = false;
+    boolean reflow = false;
     if (this.contentTarget.topPadding != topPadding) {
       this.contentTarget.topPadding = topPadding;
-      redraw = true;
+      reflow = true;
     }
     if (this.contentTarget.rightPadding != rightPadding) {
       this.contentTarget.rightPadding = rightPadding;
-      redraw = true;
+      reflow = true;
     }
     if (this.contentTarget.bottomPadding != bottomPadding) {
       this.contentTarget.bottomPadding = bottomPadding;
-      redraw = true;
+      reflow = true;
     }
     if (this.contentTarget.leftPadding != leftPadding) {
       this.contentTarget.leftPadding = leftPadding;
-      redraw = true;
+      reflow = true;
     }
-    if (redraw) {
-      redraw();
+    if (reflow) {
+      this.contentTarget.reflow();
     }
     return this;
   }
