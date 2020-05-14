@@ -31,8 +31,8 @@ import heronarts.lx.parameter.LXNormalizedParameter;
 
 public class UISwitch extends UIParameterControl implements UIFocus, UITriggerTarget, UITriggerSource {
 
-  public final static int SWITCH_MARGIN = 6;
-  public final static int SWITCH_SIZE = 28;
+  public final static int SWITCH_MARGIN = UIKnob.KNOB_MARGIN;
+  public final static int SWITCH_SIZE = UIKnob.KNOB_SIZE;
   public final static int WIDTH = SWITCH_SIZE + 2*SWITCH_MARGIN;
 
   protected boolean isMomentary = false;
