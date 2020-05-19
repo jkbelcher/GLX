@@ -23,7 +23,7 @@ import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
-import heronarts.lx.color.ColorParameter;
+import heronarts.lx.color.DiscreteColorParameter;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.modulation.LXCompoundModulation;
@@ -108,7 +108,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
         }
 
         // Light ring of value
-        ColorParameter modulationColor = modulation.color;
+        DiscreteColorParameter modulationColor = modulation.color;
         int modColor = ui.theme.getControlDisabledColor();
         int modColorInv = modColor;
         if (isEnabled() && modulation.enabled.isOn()) {

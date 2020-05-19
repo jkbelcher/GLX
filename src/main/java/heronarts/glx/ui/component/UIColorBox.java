@@ -23,19 +23,65 @@ import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UIFocus;
-import heronarts.lx.color.ColorParameter;
+import heronarts.glx.ui.vg.VGraphics;
+import heronarts.lx.color.DiscreteColorParameter;
+import heronarts.lx.utils.LXUtils;
 
 public class UIColorBox extends UI2dComponent implements UIFocus {
 
-  private final ColorParameter parameter;
+  private class UIColorMenu extends UI2dComponent {
 
-  public UIColorBox(UI ui, final ColorParameter parameter, float x, float y, float w, float h) {
+    private final static int SPACING = 4;
+    private final static int BOX_SIZE = 10;
+
+    private UIColorMenu(UI ui) {
+      super(0, 0, 8 * BOX_SIZE + SPACING * 9, 3 * BOX_SIZE + SPACING * 4);
+      setBackgroundColor(ui.theme.getDarkBackgroundColor());
+      setBorderColor(ui.theme.getControlBorderColor());
+    }
+
+    @Override
+    public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+      int xi = LXUtils.constrain((int) ((mx - SPACING) / (BOX_SIZE + SPACING)), 0, 8);
+      int yi = LXUtils.constrain((int) ((my - SPACING) / (BOX_SIZE + SPACING)), 0, 3);
+      parameter.setValue(xi + yi * 8);
+      getUI().hideContextOverlay();
+    }
+
+    @Override
+    public void onDraw(UI ui, VGraphics vg) {
+      int selectedI = parameter.getValuei();
+      for (int i = 0; i < DiscreteColorParameter.COLORS.length; ++i) {
+        int x = i % 8;
+        int y = i / 8;
+        vg.beginPath();
+        vg.fillColor(DiscreteColorParameter.COLORS[i]);
+        vg.strokeColor(0xffffffff);
+        vg.strokeWidth(2);
+        vg.rect((x+1) * SPACING + x * 10, (y+1) * SPACING + y * 10, 10, 10);
+        vg.fill();
+        if (i == selectedI) {
+          vg.stroke();
+        }
+      }
+      vg.strokeWidth(1);
+    }
+  }
+
+  private final UIColorMenu colorMenu;
+
+  private final DiscreteColorParameter parameter;
+
+  public UIColorBox(UI ui, final DiscreteColorParameter parameter, float x, float y, float w, float h) {
     super(x, y, w, h);
     setBorderColor(ui.theme.getControlBorderColor());
     setBackgroundColor(parameter.getColor());
     this.parameter = parameter;
+    this.colorMenu = new UIColorMenu(ui);
+    this.colorMenu.setVisible(false);
     parameter.addListener((p) -> {
       setBackgroundColor(parameter.getColor());
+      this.colorMenu.redraw();
     });
   }
 
@@ -44,27 +90,48 @@ public class UIColorBox extends UI2dComponent implements UIFocus {
     return UIParameterControl.getDescription(this.parameter);
   }
 
-  @Override
-  public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
-    if (mouseEvent.getCount() == 2) {
-      this.parameter.hue.setValue(Math.random() * 360);
+  private void toggleExpanded() {
+    setExpanded(!this.colorMenu.isVisible());
+  }
+
+  private void setExpanded(boolean expanded) {
+    if (this.colorMenu.isVisible() != expanded) {
+      if (expanded) {
+        this.colorMenu.setPosition(this, -this.colorMenu.getWidth() + UIColorMenu.BOX_SIZE + UIColorMenu.SPACING, -UIColorMenu.SPACING);
+        getUI().showContextOverlay(this.colorMenu);
+      } else {
+        getUI().hideContextOverlay();
+      }
     }
   }
 
   @Override
-  public void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-    mouseEvent.consume();
-    this.parameter.hue.setValue((parameter.hue.getValue() + 360 + 2*dx + 2*dy) % 360);
+  public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+    setExpanded(true);
   }
 
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
-    if (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_DOWN) {
-      this.parameter.hue.setValue((this.parameter.hue.getValue() + 300) % 360);
-    } else if (keyCode == KeyEvent.VK_RIGHT || keyCode == KeyEvent.VK_UP) {
-      this.parameter.hue.setValue((this.parameter.hue.getValue() + 60) % 360);
+    if (keyCode == KeyEvent.VK_LEFT) {
+      keyEvent.consume();
+      this.parameter.decrement();
+    } else if (keyCode == KeyEvent.VK_RIGHT) {
+      keyEvent.consume();
+      this.parameter.increment();
+    } else if (keyCode == KeyEvent.VK_DOWN) {
+      keyEvent.consume();
+      this.parameter.increment(8);
+    } else if (keyCode == KeyEvent.VK_UP) {
+      keyEvent.consume();
+      this.parameter.decrement(8);
     } else if (keyCode == KeyEvent.VK_SPACE || keyCode == KeyEvent.VK_ENTER) {
-      this.parameter.hue.setValue(Math.random() * 360);
+      keyEvent.consume();
+      toggleExpanded();
+    } else if (keyCode == KeyEvent.VK_ESCAPE) {
+      if (this.colorMenu.isVisible()) {
+        keyEvent.consume();
+        setExpanded(false);
+      }
     }
   }
 }
