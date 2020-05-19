@@ -103,11 +103,11 @@ public class UITheme {
   UITheme(VGraphics vg) throws IOException {
     this.controlFont = vg.loadFont("Inter-SemiBold", "Inter-SemiBold.otf");
     this.controlFont.fontSize(12);
-    LX.initTimer.log("GLX: UI: Theme: controlFont");
+    LX.initProfiler.log("GLX: UI: Theme: controlFont");
 
     this.labelFont = this.deviceFont = this.windowTitleFont = vg.loadFont("Inter-Black", "Inter-Black.otf");
     this.labelFont.fontSize(12);
-    LX.initTimer.log("GLX: UI: Theme: labelFont");
+    LX.initProfiler.log("GLX: UI: Theme: labelFont");
 
     this.iconNote = vg.loadIcon("icon-note@2x.png");
     this.iconTempo = vg.loadIcon("icon-tempo@2x.png");
@@ -134,7 +134,7 @@ public class UITheme {
     this.iconPatternTransition = vg.loadIcon("icon-pattern-transition@2x.png");
     this.iconPatternRotate = vg.loadIcon("icon-pattern-rotate@2x.png");
     this.iconPlay = vg.loadIcon("icon-play@2x.png");
-    LX.initTimer.log("GLX: UI: Theme: Icons");
+    LX.initProfiler.log("GLX: UI: Theme: Icons");
   }
 
   /**

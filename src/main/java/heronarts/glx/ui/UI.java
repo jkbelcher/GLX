@@ -314,11 +314,11 @@ public class UI {
   private final List<UI2dComponent> glfwThreadRedrawList =
     new ArrayList<UI2dComponent>();
 
-  public class Timer {
+  public class Profiler {
     public long drawNanos = 0;
   }
 
-  public final Timer timer = new Timer();
+  public final Profiler profiler = new Profiler();
 
   public final GLX lx;
   public final VGraphics vg;
@@ -430,11 +430,11 @@ public class UI {
     this.vg = lx.vg;
 
     this.theme = new UITheme(this.vg);
-    LX.initTimer.log("P3LX: UI: Theme");
+    LX.initProfiler.log("P3LX: UI: Theme");
 
     this.root = new UIRoot();
     this.contextMenuOverlay = new UIContextOverlay();
-    LX.initTimer.log("P3LX: UI: Root");
+    LX.initProfiler.log("P3LX: UI: Root");
 
     lx.addProjectListener(new LX.ProjectListener() {
       @Override
@@ -807,7 +807,7 @@ public class UI {
 
     endDraw();
 
-    this.timer.drawNanos = System.nanoTime() - drawStart;
+    this.profiler.drawNanos = System.nanoTime() - drawStart;
   }
 
   protected void beginDraw() {
