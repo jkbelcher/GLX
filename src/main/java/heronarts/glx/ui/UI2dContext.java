@@ -23,7 +23,7 @@ import heronarts.glx.ui.vg.VGraphics;
 
 public class UI2dContext extends UI2dContainer implements UILayer {
 
-  private VGraphics.Framebuffer framebuffer;
+  private final VGraphics.Framebuffer framebuffer;
 
   boolean isOffscreen = false;
 
@@ -57,7 +57,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   }
 
   public VGraphics.Paint getPaint() {
-    return this.framebuffer.paint;
+    return this.framebuffer.getPaint();
   }
 
   /**
@@ -78,7 +78,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     // Note: this super.draw() call will have cleared the
     // needsRedraw and childNeedsRedraw flags on this element
     // and everything below it. That's fine, but we'll mark
-    // ourselves as still needing a blitting operation so
+    // ourselves as needing a blitting operation so
     // that the draw() pass gets our pixels out.
     this.needsBlit = true;
   }
@@ -123,7 +123,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     // ourselves into the vg context.
 
     vg.beginPath();
-    vg.fillPaint(this.framebuffer.paint);
+    vg.fillPaint(this.framebuffer.getPaint());
     vg.rect(0, 0, this.width, this.height);
     vg.fill();
 

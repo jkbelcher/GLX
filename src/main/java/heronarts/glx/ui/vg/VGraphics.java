@@ -198,8 +198,8 @@ public class VGraphics {
   }
 
   public class Framebuffer {
-    private NVGLUFramebufferBGFX buffer;
-    public final Paint paint = new Paint();
+    private NVGLUFramebufferBGFX buffer = null;
+    private final Paint paint = new Paint();
 
     // NOTE: width and height are in UI pixel space
     private float width;
@@ -207,14 +207,14 @@ public class VGraphics {
 
     private short viewId;
     private final int imageFlags;
-    private boolean isStale = false;
+    private boolean initBuffer = true;
+    private boolean isStale = true;
 
     public Framebuffer(float w, float h, int imageFlags) {
       this.width = w;
       this.height = h;
       this.imageFlags = imageFlags;
       this.viewId = 0;
-      makeBuffer();
     }
 
     public Framebuffer markStale() {
@@ -224,6 +224,13 @@ public class VGraphics {
 
     public boolean isStale() {
       return this.isStale;
+    }
+
+    public Paint getPaint() {
+      if (this.buffer == null) {
+        throw new IllegalStateException("Painting before buffer generated");
+      }
+      return this.paint;
     }
 
     public int image() {
@@ -240,7 +247,10 @@ public class VGraphics {
     }
 
     public Framebuffer bind() {
-      if (this.isStale) {
+      if (this.initBuffer) {
+        makeBuffer();
+        this.initBuffer = false;
+      } else if (this.isStale) {
         rebuffer();
       }
       view.bind(this.viewId);
@@ -258,6 +268,9 @@ public class VGraphics {
     }
 
     public void rebuffer() {
+      if (this.buffer == null) {
+        throw new IllegalStateException("Cannot rebuffer null buffer");
+      }
       nvgluDeleteFramebuffer(this.buffer);
       makeBuffer();
       this.isStale = false;
@@ -275,6 +288,10 @@ public class VGraphics {
         (int) Math.ceil(this.height * glx.getUIContentScaleY()),
         this.imageFlags
       );
+
+      if (this.buffer == null) {
+        throw new IllegalStateException("CreateFramebuffer failed!!");
+      }
 
       // Note what happens here... the framebuffer is in framebuffer-pixel space. But
       // when we're going to paint it into another UI2dContext, those pixels will be in
