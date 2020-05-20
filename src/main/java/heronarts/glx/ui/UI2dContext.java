@@ -48,7 +48,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   }
 
   public short getTexture() {
-    return (short) this.framebuffer.handle();
+    return (short) this.framebuffer.getHandle();
   }
 
   public UI2dContext setView(short viewId) {
@@ -96,6 +96,9 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     if (this.isOffscreen || !isVisible()) {
       return;
     }
+
+    // Ensure that our buffer exists
+    this.framebuffer.initialize();
 
     // NOTE: no rendering happens inside this method. The previous render() pass
     // will have ensured that our texture was rendered properly if it

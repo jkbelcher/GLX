@@ -263,16 +263,22 @@ public class UI {
     private static final int MAX_NVG_VIEWS_PER_PASS = 30;
 
     private final Stack<UI2dContext> renderStack = new Stack<UI2dContext>();
+    private final List<UI2dContext> drawList = new ArrayList<UI2dContext>();
 
     public void draw() {
       this.renderStack.clear();
+      this.drawList.clear();
 
       // First pass, we determine which UI2dContexts need rendering, and push
       // them all onto a stack. Each will need its own BGFX view because they have
-      // unique framebuffers.
+      // unique framebuffers. Since we dodn't use locks between the engine and UI
+      // thread for UI hierarchy, we'll also add the relevant UI2dContexts to
+      // a drawList on this single pass over this consistent view of the
+      // CopyOnWriteArrayList that stores the children
       for (UIObject child : this.mutableChildren) {
         if (child instanceof UI2dContext) {
           ((UI2dContext) child).populateRenderStack(renderStack);
+          this.drawList.add(((UI2dContext) child));
         }
       }
 
@@ -292,12 +298,13 @@ public class UI {
         }
       }
 
-      // Finally, draw all 2d overlays onto the root view
+      // Finally, draw all 2d overlays onto the root view. Note that we don't
+      // iterate over mutableChildren here because it could have changed. Instead
+      // we use the drawList that we compiled above when we were preparing the
+      // UI2dContext objects for rendering.
       this.view.bind(viewId++);
-      for (UIObject child : this.mutableChildren) {
-        if (child instanceof UI2dContext) {
-          ((UI2dContext) child).draw(this.ui, this.view);
-        }
+      for (UI2dContext child : this.drawList) {
+        child.draw(this.ui, this.view);
       }
     }
   }

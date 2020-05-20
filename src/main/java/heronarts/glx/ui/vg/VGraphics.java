@@ -36,6 +36,8 @@ import org.lwjgl.system.MemoryUtil;
 import heronarts.glx.GLX;
 import heronarts.glx.GLXUtils;
 import heronarts.glx.View;
+import heronarts.lx.LX;
+
 import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.nanovg.NanoVGBGFX.*;
@@ -208,7 +210,7 @@ public class VGraphics {
     private short viewId;
     private final int imageFlags;
     private boolean initBuffer = true;
-    private boolean isStale = true;
+    private boolean isStale = false;
 
     public Framebuffer(float w, float h, int imageFlags) {
       this.width = w;
@@ -227,22 +229,26 @@ public class VGraphics {
     }
 
     public Paint getPaint() {
-      if (this.buffer == null) {
-        throw new IllegalStateException("Painting before buffer generated");
-      }
+      initialize();
       return this.paint;
     }
 
-    public int image() {
-      return this.buffer.image();
-    }
-
-    public int handle() {
+    public int getHandle() {
+      initialize();
       return this.buffer.handle();
     }
 
     public Framebuffer setView(short viewId) {
       this.viewId = viewId;
+      return this;
+    }
+
+    public Framebuffer initialize() {
+      if (this.initBuffer) {
+        LX.error(new Exception(), "Framebuffer had to initialize itself before a bind() call ever occurred");
+        makeBuffer();
+        this.initBuffer = false;
+      }
       return this;
     }
 
@@ -290,7 +296,7 @@ public class VGraphics {
       );
 
       if (this.buffer == null) {
-        throw new IllegalStateException("CreateFramebuffer failed!!");
+        throw new RuntimeException("nvgluCreateFramebuffer failed!! Not a good situation.");
       }
 
       // Note what happens here... the framebuffer is in framebuffer-pixel space. But
