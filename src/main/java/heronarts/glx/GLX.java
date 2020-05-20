@@ -487,6 +487,7 @@ public class GLX extends LX {
     int frameCount = 0;
     long drawNanos = 0;
     boolean failed = false;
+    boolean firstFrame = true;
 
     while (!glfwWindowShouldClose(this.window)) {
       // Poll for input events
@@ -531,6 +532,13 @@ public class GLX extends LX {
       if (copyToClipboard != null) {
         glfwSetClipboardString(this.window, copyToClipboard);
         this._setSystemClipboardString = null;
+      }
+
+      // TODO(mcslee): figure out why this is necessary. it's some weird condition to
+      // do with framebuffer initialization.
+      if (firstFrame) {
+        this.ui.redraw();
+        firstFrame = false;
       }
 
     }
