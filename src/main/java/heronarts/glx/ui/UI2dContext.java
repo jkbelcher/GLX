@@ -98,6 +98,9 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     }
 
     // Ensure that our buffer exists
+    // NOTE: this shouldn't be commonly necessary, but catches some
+    // subtle engine-vs-UI thread condition where a new UI2dContext has
+    // been added and
     this.framebuffer.initialize();
 
     // NOTE: no rendering happens inside this method. The previous render() pass
