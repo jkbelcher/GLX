@@ -23,7 +23,6 @@ import static org.lwjgl.glfw.GLFW.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.lwjgl.system.Platform;
 
 import heronarts.glx.event.Event;
@@ -69,7 +68,6 @@ public class InputDispatch implements LXEngine.Dispatch {
     // Apply cursor position scaling, to go from window-space into ui-space
     x *= this.lx.cursorScaleX;
     y *= this.lx.cursorScaleY;
-
     double dx = x - this.cursorX;
     double dy = y - this.cursorY;
     MouseEvent.Action action = this.mouseDragging ? MouseEvent.Action.DRAG : MouseEvent.Action.MOVE;
@@ -127,7 +125,41 @@ public class InputDispatch implements LXEngine.Dispatch {
   public static final double POLL_TIMEOUT = 1/30.;
 
   void poll() {
+    // It doesn't seem like V-Sync always works, definitely not on a Mac...
+    // or we're getting stupidly high 100+ FPS framerate if we leave this
+    // as just poll.
+    // glfwPollEvents();
+
+    // So we're going to do wait instead with a timeout such
+    // that we'll only draw at max rate when input is active, otherwise
+    // throttle to a reasonable framerate
     glfwWaitEventsTimeout(POLL_TIMEOUT);
+  }
+
+  private Event coalesceEvents(Event thisEvent, Event prevEvent) {
+    if ((thisEvent instanceof MouseEvent) && (prevEvent instanceof MouseEvent)) {
+      MouseEvent mouseEvent = (MouseEvent) thisEvent;
+      MouseEvent prevMouseEvent = (MouseEvent) prevEvent;
+      if (mouseEvent.action == prevMouseEvent.action) {
+        switch (mouseEvent.action) {
+        case SCROLL:
+        case MOVE:
+        case DRAG:
+          return new MouseEvent(
+            mouseEvent.time,
+            mouseEvent.action,
+            mouseEvent.x,
+            mouseEvent.y,
+            mouseEvent.dx + prevMouseEvent.dx,
+            mouseEvent.dy + prevMouseEvent.dy,
+            mouseEvent.modifiers
+          );
+        default:
+          return null;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -148,6 +180,25 @@ public class InputDispatch implements LXEngine.Dispatch {
     // horrible message queue passing... the event handlers in UI objects are allowed
     // to directly call the LX engine interfaces to change parameter values, etc. without
     // fucking up the engine thread state
+
+    // Do a first pass over the array, coalescing any events that are of the same
+    // motion types. This will particularly save us on doing unnecessary parameter
+    // or scroll updates.
+    Event lastEvent = null;
+    for (int i = 0; i < this.lxThreadEventQueue.size(); ++i) {
+      Event event = this.lxThreadEventQueue.get(i);
+      Event coalesce = coalesceEvents(event, lastEvent);
+      if (coalesce != null) {
+        this.lxThreadEventQueue.set(i-1, coalesce);
+        this.lxThreadEventQueue.remove(i);
+        lastEvent = coalesce;
+        --i;
+      } else {
+        lastEvent = event;
+      }
+    }
+
+    // Now process all of them in the UI layer
     for (Event event : this.lxThreadEventQueue) {
       if (event instanceof MouseEvent) {
         this.lx.ui.mouseEvent((MouseEvent) event);

@@ -43,7 +43,7 @@ public class MouseEvent extends Event {
     DRAG,
     PRESS,
     RELEASE,
-    SCROLL
+    SCROLL;
   };
 
   private static Action glfwAction(int action) {
@@ -79,7 +79,17 @@ public class MouseEvent extends Event {
   public MouseEvent(Action action, float x, float y, float dx, float dy, int modifiers) {
     super(modifiers);
     this.action = action;
-    this.button = -1;
+    this.button = BUTTON_NONE;
+    this.x = x;
+    this.y = y;
+    this.dx = dx;
+    this.dy = dy;
+  }
+
+  public MouseEvent(double time, Action action, float x, float y, float dx, float dy, int modifiers) {
+    super(modifiers, time);
+    this.action = action;
+    this.button = BUTTON_NONE;
     this.x = x;
     this.y = y;
     this.dx = dx;

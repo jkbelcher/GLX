@@ -53,8 +53,12 @@ public abstract class Event {
   private boolean isConsumed = false;
 
   protected Event(int modifiers) {
+    this(modifiers, glfwGetTime());
+  }
+
+  protected Event(int modifiers, double time) {
     this.modifiers = modifiers;
-    this.time = glfwGetTime();
+    this.time = time;
   }
 
   public double getTime() {
