@@ -55,8 +55,18 @@ public class UILabel extends UI2dComponent {
     setLabel(label);
   }
 
+  public UILabel(float x, float y, float w, String label) {
+    this(x, y, w, DEFAULT_HEIGHT);
+    setLabel(label);
+  }
+
   public UILabel(float x, float y, float w, float h) {
     super(x, y, w, h);
+  }
+
+  public UILabel(float x, float y, float w, float h, String label) {
+    this(x, y, w, h);
+    setLabel(label);
   }
 
   /**
