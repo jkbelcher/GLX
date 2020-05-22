@@ -537,6 +537,8 @@ public class GLX extends LX {
       // TODO(mcslee): figure out why this is necessary. it's some weird condition to
       // do with framebuffer initialization.
       if (firstFrame) {
+        // We seem to get a good result here because it happens AFTER we've done the initial
+        // project load from the engine thread
         this.ui.redraw();
         firstFrame = false;
       }
