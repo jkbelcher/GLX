@@ -18,6 +18,7 @@
 
 package heronarts.glx.ui.component;
 
+import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
@@ -68,18 +69,20 @@ public class UIColorPicker extends UI2dComponent implements UIFocus {
 
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+    final float overlap = 6;
+
     switch (this.corner) {
     case BOTTOM_LEFT:
-      this.uiColorOverlay.setPosition(this, -this.uiColorOverlay.getWidth(), this.height);
+      this.uiColorOverlay.setPosition(this, overlap - this.uiColorOverlay.getWidth(), this.height - overlap);
       break;
     case BOTTOM_RIGHT:
-      this.uiColorOverlay.setPosition(this, this.width, this.height);
+      this.uiColorOverlay.setPosition(this, this.width - overlap, this.height - overlap);
       break;
     case TOP_LEFT:
-      this.uiColorOverlay.setPosition(this, -this.uiColorOverlay.getWidth(), -this.uiColorOverlay.getHeight());
+      this.uiColorOverlay.setPosition(this, overlap - this.uiColorOverlay.getWidth(), overlap - this.uiColorOverlay.getHeight());
       break;
     case TOP_RIGHT:
-      this.uiColorOverlay.setPosition(this, this.width, -this.uiColorOverlay.getHeight());
+      this.uiColorOverlay.setPosition(this, this.width - overlap, overlap - this.uiColorOverlay.getHeight());
       break;
     }
     getUI().showContextOverlay(this.uiColorOverlay);
@@ -87,14 +90,15 @@ public class UIColorPicker extends UI2dComponent implements UIFocus {
 
   private class UIColorOverlay extends UI2dContainer {
     UIColorOverlay() {
-      super(0, 0, 240, UISwatch.HEIGHT);
+      super(0, 0, 240, UISwatch.HEIGHT + 8);
       setBackgroundColor(UI.get().theme.getDeviceBackgroundColor());
       setBorderColor(UI.get().theme.getControlBorderColor());
+      setBorderRounding(6);
 
       new UISwatch().addToContainer(this);
 
       float xp = UISwatch.WIDTH;
-      float yp = 8;
+      float yp = 16;
       new UIDoubleBox(xp, yp, 60, color.hue).addToContainer(this);
       new UILabel(xp, yp + 16, 60, "Hue").setTextAlignment(VGraphics.Align.CENTER).addToContainer(this);
 
@@ -110,7 +114,7 @@ public class UIColorPicker extends UI2dComponent implements UIFocus {
 
     }
 
-    private class UISwatch extends UI2dComponent {
+    private class UISwatch extends UI2dComponent implements UIFocus{
 
       private static final float PADDING = 8;
 
@@ -129,8 +133,9 @@ public class UIColorPicker extends UI2dComponent implements UIFocus {
       private static final float HEIGHT = GRID_HEIGHT + 2*PADDING;
 
       public UISwatch() {
-        super(0, 0, WIDTH, HEIGHT);
+        super(4, 4, WIDTH, HEIGHT);
         color.addListener((p) -> { redraw(); });
+        setFocusCorners(false);
       }
 
       @Override
@@ -190,15 +195,14 @@ public class UIColorPicker extends UI2dComponent implements UIFocus {
         vg.lineTo(xp + BRIGHT_SLIDER_WIDTH + 6, yp - 4);
         vg.closePath();
         vg.fill();
-
-
       }
 
       private boolean draggingBrightness = false;
 
       @Override
       public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
-        this.draggingBrightness = (mx >= BRIGHT_SLIDER_X);
+        mouseEvent.consume();
+        this.draggingBrightness = (mx > GRID_X + GRID_WIDTH);
         if (!this.draggingBrightness) {
           setHueSaturation(mx, my);
         }
@@ -213,6 +217,7 @@ public class UIColorPicker extends UI2dComponent implements UIFocus {
 
       @Override
       public void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
+        mouseEvent.consume();
         if (this.draggingBrightness) {
           if (dy != 0) {
             float brightness = color.brightness.getBaseValuef();
@@ -221,6 +226,24 @@ public class UIColorPicker extends UI2dComponent implements UIFocus {
           }
         } else {
           setHueSaturation(mx, my);
+        }
+      }
+
+      @Override
+      public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
+        float inc = keyEvent.isShiftDown() ? 10 : 2;
+        if (keyCode == KeyEvent.VK_UP) {
+          keyEvent.consume();
+          color.saturation.setValue(LXUtils.clampf(color.saturation.getBaseValuef() + inc, 0, 100));
+        } else if (keyCode == KeyEvent.VK_DOWN) {
+          keyEvent.consume();
+          color.saturation.setValue(LXUtils.clampf(color.saturation.getBaseValuef() - inc, 0, 100));
+        } else if (keyCode == KeyEvent.VK_LEFT) {
+          keyEvent.consume();
+          color.hue.setValue(LXUtils.clampf(color.hue.getBaseValuef() - 3*inc, 0, 360));
+        } else if (keyCode == KeyEvent.VK_RIGHT) {
+          keyEvent.consume();
+          color.hue.setValue(LXUtils.clampf(color.hue.getBaseValuef() + 3*inc, 0, 360));
         }
       }
 
