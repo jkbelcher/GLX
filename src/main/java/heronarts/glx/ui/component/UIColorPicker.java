@@ -24,6 +24,7 @@ import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UI2dContainer;
 import heronarts.glx.ui.UIFocus;
+import heronarts.glx.ui.UITimerTask;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.color.ColorParameter;
 import heronarts.lx.color.LXColor;
@@ -54,12 +55,22 @@ public class UIColorPicker extends UI2dComponent implements UIFocus {
   public UIColorPicker(float x, float y, float w, float h, ColorParameter color) {
     super(x, y, w, h);
     setBorderColor(UI.get().theme.getControlBorderColor());
-    this.color = color;
     setBackgroundColor(color.getColor());
-    color.addListener((p) -> {
-      setBackgroundColor(color.getColor());
-    });
+
+    this.color = color;
     this.uiColorOverlay = new UIColorOverlay();
+
+    // Redraw with color in real-time, if modulated
+    addLoopTask(new UITimerTask(30, UITimerTask.Mode.FPS) {
+      @Override
+      protected void run() {
+        setBackgroundColor(LXColor.hsb(
+          color.hue.getValuef(),
+          color.saturation.getValuef(),
+          color.brightness.getValuef()
+        ));
+      }
+    });
   }
 
   public UIColorPicker setCorner(Corner corner) {
