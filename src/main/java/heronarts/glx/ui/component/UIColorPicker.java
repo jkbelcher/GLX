@@ -30,7 +30,7 @@ import heronarts.lx.color.ColorParameter;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.utils.LXUtils;
 
-public class UIColorPicker extends UI2dComponent implements UIFocus {
+public class UIColorPicker extends UI2dComponent {
 
   public enum Corner {
     TOP_LEFT,
