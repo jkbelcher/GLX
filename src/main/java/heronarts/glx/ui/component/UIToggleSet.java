@@ -97,10 +97,14 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
       if (this.parameter != null) {
         this.parameter.addListener(this);
         String[] options = this.parameter.getOptions();
-        if (options != null) {
-          setOptions(options);
+        if (options == null) {
+          options = new String[this.parameter.getRange()];
+          for (int i = 0; i < options.length; ++i) {
+            options[i] = Integer.toString(this.parameter.getMinValue() + i);
+          }
         }
-        setValue(this.parameter.getValuei(), false);
+        setOptions(options);
+        setValue(this.parameter.getValuei() - this.parameter.getMinValue(), false);
       }
     }
     return this;
@@ -108,7 +112,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
 
   public void onParameterChanged(LXParameter parameter) {
     if (parameter == this.parameter) {
-      setValue(this.parameter.getValuei(), false);
+      setValue(this.parameter.getValuei() - this.parameter.getMinValue(), false);
     }
   }
 
@@ -142,14 +146,30 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     return this;
   }
 
+  /**
+   * Gets the index of the currently selected value in the toggle set
+   *
+   * @return currently selected index
+   */
   public int getValueIndex() {
     return this.value;
   }
 
+  /**
+   * Get the currently selected value in the toggle set
+   *
+   * @return Currently selected value
+   */
   public String getValue() {
     return this.options[this.value];
   }
 
+  /**
+   * Sets the value of the control to the given value in the toggle set
+   *
+   * @param value String value, must be one of the options in the toggle set
+   * @return this
+   */
   public UIToggleSet setValue(String value) {
     for (int i = 0; i < this.options.length; ++i) {
       if (this.options[i].equals(value)) {
@@ -167,6 +187,12 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
         + value + " " + optStr);
   }
 
+  /**
+   * Sets the value to the given index in the toggle set
+   *
+   * @param value Index in the toggle set, from 0 to range-1
+   * @return this
+   */
   public UIToggleSet setValue(int value) {
     return setValue(value, true);
   }
@@ -179,11 +205,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
       }
       this.value = value;
       if (this.parameter != null && pushToParameter) {
-        if (this.useCommandEngine) {
-          getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value));
-        } else {
-          this.parameter.setValue(value);
-        }
+        getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, this.parameter.getMinValue() + value));
       }
       onToggle(this.value);
       redraw();
