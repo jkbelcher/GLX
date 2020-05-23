@@ -299,6 +299,10 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     return this.contentTarget.mutableChildren;
   }
 
+  public UI2dComponent getChild(int i) {
+    return (UI2dComponent) this.contentTarget.mutableChildren.get(i);
+  }
+
   private void keyFocus(KeyEvent keyEvent, int delta) {
     if (this.children.size() > 0) {
       UIObject focusedChild = getFocusedChild();

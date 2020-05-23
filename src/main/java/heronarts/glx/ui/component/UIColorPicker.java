@@ -28,6 +28,7 @@ import heronarts.glx.ui.UITimerTask;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.color.ColorParameter;
 import heronarts.lx.color.LXColor;
+import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.utils.LXUtils;
 
 public class UIColorPicker extends UI2dComponent {
@@ -41,8 +42,9 @@ public class UIColorPicker extends UI2dComponent {
 
   private Corner corner = Corner.BOTTOM_RIGHT;
 
-  private final ColorParameter color;
-  private final UIColorOverlay uiColorOverlay;
+  private ColorParameter color;
+
+  private UIColorOverlay uiColorOverlay = null;
 
   public UIColorPicker(ColorParameter color) {
     this(UIKnob.WIDTH, UIKnob.WIDTH, color);
@@ -53,24 +55,39 @@ public class UIColorPicker extends UI2dComponent {
   }
 
   public UIColorPicker(float x, float y, float w, float h, ColorParameter color) {
+    this(x, y, w, h, color, false);
+  }
+
+  public UIColorPicker(float x, float y, float w, float h, ColorParameter color, boolean isDynamic) {
     super(x, y, w, h);
     setBorderColor(UI.get().theme.getControlBorderColor());
     setBackgroundColor(color.getColor());
-
-    this.color = color;
-    this.uiColorOverlay = new UIColorOverlay();
+    setColor(color);
 
     // Redraw with color in real-time, if modulated
-    addLoopTask(new UITimerTask(30, UITimerTask.Mode.FPS) {
-      @Override
-      protected void run() {
-        setBackgroundColor(LXColor.hsb(
-          color.hue.getValuef(),
-          color.saturation.getValuef(),
-          color.brightness.getValuef()
-        ));
-      }
-    });
+    if (!isDynamic) {
+      setDescription(UIParameterControl.getDescription(color));
+      addLoopTask(new UITimerTask(30, UITimerTask.Mode.FPS) {
+        @Override
+        protected void run() {
+          setBackgroundColor(LXColor.hsb(
+            color.hue.getValuef(),
+            color.saturation.getValuef(),
+            color.brightness.getValuef()
+          ));
+        }
+      });
+    }
+  }
+
+  private final LXParameterListener redrawSwatch = (p) -> {
+    if (this.uiColorOverlay != null) {
+      this.uiColorOverlay.swatch.redraw();
+    }
+  };
+
+  protected UIColorOverlay buildColorOverlay(UI ui) {
+    return new UIColorOverlay();
   }
 
   public UIColorPicker setCorner(Corner corner) {
@@ -78,9 +95,27 @@ public class UIColorPicker extends UI2dComponent {
     return this;
   }
 
-  @Override
-  public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+  void setColor(ColorParameter color) {
+    if (this.color != null) {
+      this.color.removeListener(this.redrawSwatch);
+    }
+    this.color = color;
+    if (color != null) {
+      color.addListener(this.redrawSwatch);
+      redrawSwatch.onParameterChanged(color);
+    }
+  }
+
+  protected void hideOverlay() {
+    getUI().hideContextOverlay();
+  }
+
+  private void showOverlay() {
     final float overlap = 6;
+
+    if (this.uiColorOverlay == null) {
+      this.uiColorOverlay = buildColorOverlay(getUI());
+    }
 
     switch (this.corner) {
     case BOTTOM_LEFT:
@@ -96,17 +131,48 @@ public class UIColorPicker extends UI2dComponent {
       this.uiColorOverlay.setPosition(this, this.width - overlap, overlap - this.uiColorOverlay.getHeight());
       break;
     }
+
     getUI().showContextOverlay(this.uiColorOverlay);
   }
 
-  private class UIColorOverlay extends UI2dContainer {
+  @Override
+  public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+    mouseEvent.consume();
+    showOverlay();
+    super.onMousePressed(mouseEvent, mx, my);
+  }
+
+  @Override
+  public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
+    if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
+      keyEvent.consume();
+      showOverlay();
+    } else if (keyCode == KeyEvent.VK_ESCAPE) {
+      if ((this.uiColorOverlay != null) && (this.uiColorOverlay.isVisible())) {
+        keyEvent.consume();
+        hideOverlay();
+      }
+    }
+    super.onKeyPressed(keyEvent, keyChar, keyCode);
+  }
+
+  protected class UIColorOverlay extends UI2dContainer {
+
+    private final UISwatch swatch;
+
     UIColorOverlay() {
-      super(0, 0, 240, UISwatch.HEIGHT + 8);
+      this(8);
+    }
+
+    UIColorOverlay(float extraHeight) {
+      super(0, 0, 240, UISwatch.HEIGHT + extraHeight);
+
       setBackgroundColor(UI.get().theme.getDeviceBackgroundColor());
       setBorderColor(UI.get().theme.getControlBorderColor());
       setBorderRounding(6);
 
-      new UISwatch().addToContainer(this);
+      this.swatch = new UISwatch();
+      this.swatch.addToContainer(this);
 
       float xp = UISwatch.WIDTH;
       float yp = 16;
@@ -145,7 +211,6 @@ public class UIColorPicker extends UI2dComponent {
 
       public UISwatch() {
         super(4, 4, WIDTH, HEIGHT);
-        color.addListener((p) -> { redraw(); });
         setFocusCorners(false);
       }
 
@@ -178,7 +243,7 @@ public class UIColorPicker extends UI2dComponent {
           LXColor.hsb(hue, saturation, 0)
         );
         vg.beginPath();
-        vg.rect(BRIGHT_SLIDER_X, BRIGHT_SLIDER_Y, BRIGHT_SLIDER_WIDTH, BRIGHT_SLIDER_HEIGHT);
+        vg.rect(BRIGHT_SLIDER_X, BRIGHT_SLIDER_Y - .5f, BRIGHT_SLIDER_WIDTH, BRIGHT_SLIDER_HEIGHT + 1);
         vg.fill();
 
         // Color square
