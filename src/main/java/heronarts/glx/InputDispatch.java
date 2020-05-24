@@ -115,9 +115,17 @@ public class InputDispatch implements LXEngine.Dispatch {
   }
 
   void glfwScrollCallback(long window, double dx, double dy) {
-    if (Platform.get() == Platform.MACOSX) {
-      dx *= this.lx.systemContentScaleX;
-      dy *= this.lx.systemContentScaleY;
+    switch (Platform.get()) {
+      case MACOSX:
+        dx *= this.lx.systemContentScaleX;
+        dy *= this.lx.systemContentScaleY;
+        break;
+      case WINDOWS:
+        dx *= 20;
+        dy *= 20;
+        break;
+      default:
+        break;
     }
     this.glfwThreadEventQueue.add(new MouseEvent(MouseEvent.Action.SCROLL, (float) this.cursorX, (float) this.cursorY, (float) dx, (float) dy, this.modifiers));
   }
