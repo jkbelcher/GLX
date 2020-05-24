@@ -1034,30 +1034,12 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   /**
-   * Subclasses may override this method to perform operations before their
-   * onDraw method is called or any children are drawn.
-   *
-   * @param ui UI context
-   * @param vg Graphics context
-   */
-  protected void beginDraw(UI ui, VGraphics vg) {}
-
-  /**
    * Subclasses should override this method to perform their drawing functions.
    *
    * @param ui UI context
    * @param vg Graphics context
    */
   protected void onDraw(UI ui, VGraphics vg) {}
-
-  /**
-   * Subclasses may override this method to perform operations after their onDraw
-   * method has been called and after all children have been drawn
-   *
-   * @param ui UI context
-   * @param vg Graphics context
-   */
-  protected void endDraw(UI ui, VGraphics vg) {}
 
   /**
    * Draws this object using the given graphics context
