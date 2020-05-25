@@ -209,8 +209,7 @@ public class VGraphics {
 
     private short viewId;
     private final int imageFlags;
-    private boolean initBuffer = true;
-    private boolean isStale = false;
+    private boolean isStale = true;
 
     public Framebuffer(float w, float h, int imageFlags) {
       this.width = w;
@@ -229,12 +228,16 @@ public class VGraphics {
     }
 
     public Paint getPaint() {
-      initialize();
+      if (this.buffer == null) {
+        throw new IllegalStateException("Cannot use VGraphics.Framebuffer.getPaint() before initialize()");
+      }
       return this.paint;
     }
 
     public int getHandle() {
-      initialize();
+      if (this.buffer == null) {
+        throw new IllegalStateException("Cannot use VGraphics.Framebuffer.getHandle() before initialize()");
+      }
       return this.buffer.handle();
     }
 
@@ -244,19 +247,16 @@ public class VGraphics {
     }
 
     public Framebuffer initialize() {
-      if (this.initBuffer) {
+      if (this.isStale) {
         LX.error(new Exception(), "Framebuffer had to initialize itself before a bind() call ever occurred");
-        makeBuffer();
-        this.initBuffer = false;
+        rebuffer();
+        this.isStale = false;
       }
       return this;
     }
 
     public Framebuffer bind() {
-      if (this.initBuffer) {
-        makeBuffer();
-        this.initBuffer = false;
-      } else if (this.isStale) {
+      if (this.isStale) {
         rebuffer();
       }
       view.bind(this.viewId);
@@ -273,16 +273,11 @@ public class VGraphics {
       }
     }
 
-    public void rebuffer() {
-      if (this.buffer == null) {
-        throw new IllegalStateException("Cannot rebuffer null buffer");
+    private void rebuffer() {
+      if (this.buffer != null) {
+        nvgluDeleteFramebuffer(this.buffer);
       }
-      nvgluDeleteFramebuffer(this.buffer);
-      makeBuffer();
-      this.isStale = false;
-    }
 
-    private void makeBuffer() {
       // NOTE: the framebuffer needs to be in framebuffer pixel space!
       // So we multiply our floating-point ui pixel dimensions by the
       // scaling factor and we round up to the next integer to make sure
@@ -303,8 +298,9 @@ public class VGraphics {
       // when we're going to paint it into another UI2dContext, those pixels will be in
       // UI-space. So the paint image pattern is in UI-space width/height
       this.paint.imagePattern(0, 0, this.width, this.height, this.buffer.image());
-    }
 
+      this.isStale = false;
+    }
   }
 
   private final GLX glx;
