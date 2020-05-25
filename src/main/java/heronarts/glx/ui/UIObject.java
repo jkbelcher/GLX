@@ -57,12 +57,24 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
 
   private final List<LXLoopTask> loopTasks = new ArrayList<LXLoopTask>();
 
+  private String debugId = "";
+
   protected UIObject() {
     this.visible.addListener((p) -> {
       if (!this.visible.isOn()) {
         blur();
       }
     });
+  }
+
+  public UIObject setDebugId(String debugId) {
+    this.debugId = debugId;
+    return this;
+  }
+
+  @Override
+  public String toString() {
+    return super.toString() + " " + debugId;
   }
 
   public void dispose() {
@@ -149,7 +161,13 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    * @return True if the object contains this point
    */
   protected boolean contains(float x, float y) {
-    return true;
+    float xp = x - getX();
+    float yp = y - getY();
+    float width = getWidth();
+    float height = getHeight();
+    return
+      (xp >= 0 && xp < width) &&
+      (yp >= 0 && yp < height);
   }
 
   public float getX() {
