@@ -36,7 +36,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
 
   private int[] boundaries = null;
 
-  private int value = -1;
+  private int selectedIndex = -1;
 
   private boolean evenSpacing = false;
 
@@ -75,7 +75,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   public UIToggleSet setOptions(String[] options) {
     if (this.options != options) {
       this.options = options;
-      this.value = 0;
+      this.selectedIndex = 0;
       this.boundaries = new int[options.length];
       computeBoundaries();
       redraw();
@@ -104,7 +104,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
           }
         }
         setOptions(options);
-        setValue(this.parameter.getValuei() - this.parameter.getMinValue(), false);
+        setSelectedIndex(this.parameter.getValuei() - this.parameter.getMinValue(), false);
       }
     }
     return this;
@@ -112,7 +112,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
 
   public void onParameterChanged(LXParameter parameter) {
     if (parameter == this.parameter) {
-      setValue(this.parameter.getValuei() - this.parameter.getMinValue(), false);
+      setSelectedIndex(this.parameter.getValuei() - this.parameter.getMinValue(), false);
     }
   }
 
@@ -151,29 +151,29 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
    *
    * @return currently selected index
    */
-  public int getValueIndex() {
-    return this.value;
+  public int getSelectedIndex() {
+    return this.selectedIndex;
   }
 
   /**
-   * Get the currently selected value in the toggle set
+   * Get the currently selected option in the toggle set
    *
    * @return Currently selected value
    */
-  public String getValue() {
-    return this.options[this.value];
+  public String getSelectedOption() {
+    return this.options[this.selectedIndex];
   }
 
   /**
    * Sets the value of the control to the given value in the toggle set
    *
-   * @param value String value, must be one of the options in the toggle set
+   * @param option String value, must be one of the options in the toggle set
    * @return this
    */
-  public UIToggleSet setValue(String value) {
+  public UIToggleSet setSelectedOption(String option) {
     for (int i = 0; i < this.options.length; ++i) {
-      if (this.options[i].equals(value)) {
-        return setValue(i);
+      if (this.options[i].equals(option)) {
+        return setSelectedIndex(i);
       }
     }
 
@@ -184,30 +184,30 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     }
     optStr = optStr.substring(0, optStr.length() - 1) + "}";
     throw new IllegalArgumentException("Not a valid option in UIToggleSet: "
-        + value + " " + optStr);
+        + option + " " + optStr);
   }
 
   /**
-   * Sets the value to the given index in the toggle set
+   * Sets the selected index in the toggle set
    *
-   * @param value Index in the toggle set, from 0 to range-1
+   * @param index Index in the toggle set, from 0 to range-1
    * @return this
    */
-  public UIToggleSet setValue(int value) {
-    return setValue(value, true);
+  public UIToggleSet setSelectedIndex(int index) {
+    return setSelectedIndex(index, true);
   }
 
-  private UIToggleSet setValue(int value, boolean pushToParameter) {
-    if (this.value != value) {
-      if (value < 0 || value >= this.options.length) {
+  private UIToggleSet setSelectedIndex(int index, boolean pushToParameter) {
+    if (this.selectedIndex != index) {
+      if (index < 0 || index >= this.options.length) {
         throw new IllegalArgumentException("Invalid index to setValue(): "
-            + value);
+            + index);
       }
-      this.value = value;
+      this.selectedIndex = index;
       if (this.parameter != null && pushToParameter) {
-        getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, this.parameter.getMinValue() + value));
+        getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, this.parameter.getMinValue() + index));
       }
-      onToggle(this.value);
+      onToggle(this.selectedIndex);
       redraw();
     }
     return this;
@@ -223,9 +223,9 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     vg.stroke();
 
     // Active item
-    if (this.value >= 0) {
-      int leftBoundary = (this.value > 0) ? this.boundaries[this.value - 1] : 0;
-      int rightBoundary = this.boundaries[this.value];
+    if (this.selectedIndex >= 0) {
+      int leftBoundary = (this.selectedIndex > 0) ? this.boundaries[this.selectedIndex - 1] : 0;
+      int rightBoundary = this.boundaries[this.selectedIndex];
       vg.beginPath();
       vg.fillColor(this.hasActiveColor ? this.activeColor : ui.theme.getSelectionColor());
       vg.rect(leftBoundary + 2, 2, rightBoundary - leftBoundary - 3, this.height - 4, 2);
@@ -238,7 +238,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     vg.beginPath();
     int leftBoundary = 0;
     for (int i = 0; i < this.options.length; ++i) {
-      boolean isActive = (i == this.value);
+      boolean isActive = (i == this.selectedIndex);
       vg.fillColor(isActive ? UI.WHITE : ui.theme.getControlTextColor());
       vg.text((leftBoundary + this.boundaries[i]) / 2.f, this.height/2, this.options[i]);
       leftBoundary = this.boundaries[i];
@@ -247,7 +247,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   }
 
   protected void onToggle(int value) {
-    onToggle(getValue());
+    onToggle(getSelectedOption());
   }
 
   protected void onToggle(String option) {
@@ -257,7 +257,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     for (int i = 0; i < this.boundaries.length; ++i) {
       if (mx < this.boundaries[i]) {
-        setValue(i);
+        setSelectedIndex(i);
         break;
       }
     }
@@ -267,10 +267,10 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   protected void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if ((keyCode == KeyEvent.VK_LEFT) || (keyCode == KeyEvent.VK_DOWN)) {
       keyEvent.consume();
-      setValue(LXUtils.constrain(this.value - 1, 0, this.options.length - 1));
+      setSelectedIndex(LXUtils.constrain(this.selectedIndex - 1, 0, this.options.length - 1));
     } else if ((keyCode == KeyEvent.VK_RIGHT) || (keyCode == KeyEvent.VK_UP)) {
       keyEvent.consume();
-      setValue(LXUtils.constrain(this.value + 1, 0, this.options.length - 1));
+      setSelectedIndex(LXUtils.constrain(this.selectedIndex + 1, 0, this.options.length - 1));
     }
   }
 
