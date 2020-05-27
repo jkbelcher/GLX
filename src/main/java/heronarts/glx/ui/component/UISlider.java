@@ -303,12 +303,12 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
         break;
       }
 
-      if (baseFillSize > 0.5f) {
+      if (baseFillSize > 0f) {
         vg.fillColor(baseColor);
         vg.beginPath();
         vg.rect(this.width / 2 - GROOVE/2, baseFillY, GROOVE, baseFillSize);
         vg.fill();
-      } else if (baseFillSize < 0.5f) {
+      } else if (baseFillSize < 0f) {
         vg.fillColor(baseColor);
         vg.beginPath();
         vg.rect(this.width / 2 - GROOVE/2, baseFillY + baseFillSize, GROOVE, -baseFillSize);
@@ -329,9 +329,9 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
         }
       }
 
+      vg.beginPath();
       vg.fillColor(HANDLE_COLOR);
       vg.strokeColor(ui.theme.getControlBorderColor());
-      vg.beginPath();
       vg.rect(PADDING+.5f, baseHandleEdge + .5f, this.width - 2*PADDING, HANDLE_SIZE, HANDLE_ROUNDING);
       vg.fill();
       vg.stroke();
