@@ -308,6 +308,9 @@ public class GLX extends LX {
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
 
+      // Set UI Zoom bounds based upon content scaling
+      this.preferences.uiZoom.setRange((int) Math.ceil(100 / this.systemContentScaleX), 201);
+
       // TODO(mcslee): nanovg test
 //      this.frameBufferWidth = this.windowWidth;
 //      this.frameBufferHeight = this.windowHeight;
@@ -362,6 +365,7 @@ public class GLX extends LX {
       this.uiHeight = this.frameBufferHeight / this.systemContentScaleY / this.uiZoom;
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
+      this.preferences.uiZoom.setRange((int) Math.ceil(100 / this.systemContentScaleX), 201);
       ui.resize();
       draw();
     });
