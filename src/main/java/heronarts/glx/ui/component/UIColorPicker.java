@@ -192,7 +192,7 @@ public class UIColorPicker extends UI2dComponent {
 
     }
 
-    private class UISwatch extends UI2dComponent implements UIFocus{
+    private class UISwatch extends UI2dComponent implements UIFocus {
 
       private static final float PADDING = 8;
 

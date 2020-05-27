@@ -18,6 +18,7 @@
 
 package heronarts.glx.ui.component;
 
+import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UICopy;
 import heronarts.glx.ui.UIPaste;
 import heronarts.lx.clipboard.LXClipboardItem;
@@ -127,6 +128,18 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   @Override
   protected boolean isValidCharacter(char keyChar) {
     return isValidTextCharacter(keyChar);
+  }
+
+  @Override
+  protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+    super.onMousePressed(mouseEvent, mx, my);
+    if (this.enabled && !this.editing) {
+      if (mouseEvent.getCount() == 2) {
+        mouseEvent.consume();
+        this.edit();
+        redraw();
+      }
+    }
   }
 
   @Override
