@@ -185,21 +185,21 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   /**
    * List of movement listeners when in OBJECT mouse mode
    */
-  private final List<MovementListener> listeners = new ArrayList<MovementListener>();
+  private final List<MovementListener> movementListeners = new ArrayList<MovementListener>();
 
-  public final void addListener(MovementListener listener) {
+  public final void addMovementListener(MovementListener listener) {
     Objects.requireNonNull(listener, "Cannot add null UI3dContext.MovementListener");
-    if (this.listeners.contains(listener)) {
+    if (this.movementListeners.contains(listener)) {
       throw new IllegalStateException("Cannot add duplicate UI3dContext.MovementListener: " + listener);
     }
-    this.listeners.add(listener);
+    this.movementListeners.add(listener);
   }
 
-  public final void removeListener(MovementListener listener) {
-    if (!this.listeners.contains(listener)) {
+  public final void removeMovementListener(MovementListener listener) {
+    if (!this.movementListeners.contains(listener)) {
       throw new IllegalStateException("Cannot remove non-registered UI3dContext.MovementListener: " + listener);
     }
-    this.listeners.remove(listener);
+    this.movementListeners.remove(listener);
   }
 
   public class Camera implements LXSerializable {
@@ -820,7 +820,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
         this.camera.phi.incrementValue(rp);
         updateFocusedCamera();
       } else {
-        for (MovementListener listener : this.listeners) {
+        for (MovementListener listener : this.movementListeners) {
           listener.rotate(rt, rp);
         }
       }
@@ -866,7 +866,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
         this.camera.z.incrementValue(tz);
         updateFocusedCamera();
       } else {
-        for (MovementListener listener : this.listeners) {
+        for (MovementListener listener : this.movementListeners) {
           listener.translate(tx, ty, tz);
         }
       }
