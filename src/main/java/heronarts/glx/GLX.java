@@ -738,7 +738,7 @@ public class GLX extends LX {
     }.start();
   }
 
-  public void showInstallLibraryDialog() {
+  public void showInstallPackageDialog() {
     if (this.dialogShowing) {
       return;
     }
@@ -760,7 +760,7 @@ public class GLX extends LX {
           dialogShowing = false;
           if (path != null) {
             engine.addTask(() -> {
-              registry.installLibrary(new File(path));
+              registry.installPackage(new File(path));
             });
           }
         }
