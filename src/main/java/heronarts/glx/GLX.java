@@ -736,7 +736,36 @@ public class GLX extends LX {
         }
       }
     }.start();
+  }
 
+  public void showInstallLibraryDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    new Thread() {
+      @Override
+      public void run() {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
+          aFilterPatterns.put(stack.UTF8("*.jar"));
+          aFilterPatterns.flip();
+          dialogShowing = true;
+          String path = tinyfd_openFileDialog(
+            "Install Library",
+            new File(System.getProperty("user.home"), ".").toString(),
+            aFilterPatterns,
+            "Chromatik Library files (*.jar)",
+            false
+          );
+          dialogShowing = false;
+          if (path != null) {
+            engine.addTask(() -> {
+              registry.installLibrary(new File(path));
+            });
+          }
+        }
+      }
+    }.start();
   }
 
   @Override
@@ -747,7 +776,7 @@ public class GLX extends LX {
     );
   }
 
-  protected void showConfirmDialog(String message, Runnable confirm) {
+  public void showConfirmDialog(String message, Runnable confirm) {
     this.ui.showContextOverlay(new UIDialogBox(this.ui,
       message,
       new String[] { "No", "Yes" },
