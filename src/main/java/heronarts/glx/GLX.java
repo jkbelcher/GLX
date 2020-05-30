@@ -54,7 +54,6 @@ import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
 import heronarts.lx.command.LXCommand;
-import heronarts.lx.model.LXModel;
 
 public class GLX extends LX {
 
@@ -118,11 +117,7 @@ public class GLX extends LX {
   public final Flags flags;
 
   protected GLX(Flags flags) throws IOException {
-    this(flags, null);
-  }
-
-  protected GLX(Flags flags, LXModel model) throws IOException {
-    super(flags, model);
+    super(flags);
     this.flags = flags;
 
     // Get initial window size from preferences
