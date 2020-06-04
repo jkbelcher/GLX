@@ -119,6 +119,26 @@ public class GLXUtils {
   }
 
   /**
+   * Gets an input stream for the resource at the given path
+   *
+   * @param resourcePath
+   * @return
+   * @throws IOException
+   */
+  public static InputStream loadResourceStream(String resourcePath) throws IOException {
+    Path path = Paths.get(resourcePath);
+    if (Files.isReadable(path)) {
+      return Files.newInputStream(path);
+    }
+
+    URL url = GLXUtils.class.getResource(resourcePath);
+    if (url == null) {
+      throw new IOException("Resource not found: " + resourcePath);
+    }
+    return url.openStream();
+  }
+
+  /**
    * Loads the resource at the given path into a newly allocated buffer. The buffer is owned by
    * the caller and must be freed explicitly.
    *
