@@ -54,8 +54,12 @@ import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
 import heronarts.lx.command.LXCommand;
+import heronarts.lx.utils.LXUtils;
 
 public class GLX extends LX {
+
+  private static final int MIN_WINDOW_WIDTH = 820;
+  private static final int MIN_WINDOW_HEIGHT = 480;
 
   private long window;
 
@@ -440,6 +444,8 @@ public class GLX extends LX {
     log("Using BGFX renderer: " + rendererName);
   }
 
+  private boolean setWindowSizeLimits = true;
+
   private void setUIZoom(float uiScale) {
     this.uiZoom = uiScale;
     this.uiWidth = this.frameBufferWidth / this.systemContentScaleX / this.uiZoom;
@@ -449,6 +455,7 @@ public class GLX extends LX {
     this.vg.notifyContentScaleChanged();
     this.ui.resize();
     this.ui.redraw();
+    this.setWindowSizeLimits = true;
   }
 
   protected void setWindowSize(int windowWidth, int windowHeight) {
@@ -488,6 +495,22 @@ public class GLX extends LX {
     boolean failed = false;
 
     while (!glfwWindowShouldClose(this.window)) {
+
+      // Update window size limits
+      if (this.setWindowSizeLimits) {
+        this.setWindowSizeLimits = false;
+        int minWindowWidth = (int) (MIN_WINDOW_WIDTH / this.cursorScaleX);
+        int minWindowHeight = (int) (MIN_WINDOW_HEIGHT / this.cursorScaleY);
+        glfwSetWindowSizeLimits(this.window, minWindowWidth, minWindowHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
+        if (this.windowWidth < minWindowWidth || this.windowHeight < minWindowHeight) {
+          glfwSetWindowSize(
+            this.window,
+            LXUtils.max(this.windowWidth, minWindowWidth),
+            LXUtils.max(this.windowHeight, minWindowHeight)
+          );
+        }
+      }
+
       // Poll for input events
       this.inputDispatch.poll();
 
