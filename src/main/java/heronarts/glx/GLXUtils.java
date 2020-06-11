@@ -86,8 +86,8 @@ public class GLXUtils {
 
     public int getNormalized(float x, float y) {
       return get(
-        (int) (x * (this.width-1)),
-        (int) (y * (this.height-1))
+        (int) (x * (this.width - .5f)),
+        (int) (y * (this.height - .5f))
       );
     }
   }
