@@ -53,7 +53,6 @@ import heronarts.glx.ui.UIDialogBox;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
-import heronarts.lx.command.LXCommand;
 import heronarts.lx.utils.LXUtils;
 
 public class GLX extends LX {
@@ -596,36 +595,14 @@ public class GLX extends LX {
     this.ui.contextualHelpText.setValue("External content libraries reloaded");
   }
 
-  // Prevent stacking up multiple dialogs
-  private volatile boolean dialogShowing = false;
-
   public void showSaveProjectDialog() {
-    if (this.dialogShowing) {
-      return;
-    }
-    new Thread() {
-      @Override
-      public void run() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-          aFilterPatterns.put(stack.UTF8("*.lxp"));
-          aFilterPatterns.flip();
-          dialogShowing = true;
-          String path = tinyfd_saveFileDialog(
-            "Save Project",
-            getMediaFolder(LX.Media.PROJECTS).toString() + File.separator + "default.lxp",
-            aFilterPatterns,
-            "LX Project files (*.lxp)"
-         );
-         dialogShowing = false;
-         if (path != null) {
-           engine.addTask(() -> {
-             saveProject(new File(path));
-           });
-         }
-        }
-      }
-    }.start();
+    showSaveFileDialog(
+      "Save Project",
+      "Project File",
+      new String[] { "lxp" },
+      getMediaFolder(LX.Media.PROJECTS).toString() + File.separator + "default.lxp",
+      (path) -> { saveProject(new File(path)); }
+    );
   }
 
   public void showOpenProjectDialog() {
@@ -633,65 +610,33 @@ public class GLX extends LX {
       return;
     }
     confirmChangesSaved("open another project", () -> {
-      new Thread() {
-        @Override
-        public void run() {
-          try (MemoryStack stack = MemoryStack.stackPush()) {
-            PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-            aFilterPatterns.put(stack.UTF8("*.lxp"));
-            aFilterPatterns.flip();
-            dialogShowing = true;
-            String path = tinyfd_openFileDialog(
-              "Open Project",
-              new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
-              aFilterPatterns,
-              "LX Project files (*.lxp)",
-              false
-            );
-            dialogShowing = false;
-            if (path != null) {
-              engine.addTask(() -> {
-                openProject(new File(path));
-              });
-            }
-          }
-        }
-      }.start();
+      showOpenFileDialog(
+        "Open Project",
+        "Project File",
+        new String[] { "lxp" },
+        new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
+        (path) -> { openProject(new File(path)); }
+      );
     });
   }
 
-  public void showOpenAudioDialog() {
-    if (this.dialogShowing) {
-      return;
-    }
-    new Thread() {
-      @Override
-      public void run() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(2);
-          aFilterPatterns.put(stack.UTF8("*.wav"));
-          aFilterPatterns.put(stack.UTF8("*.aiff"));
-          aFilterPatterns.flip();
-          dialogShowing = true;
-          String path = tinyfd_openFileDialog(
-            "Open Audio File",
-            new File(getMediaPath(), ".").toString(),
-            aFilterPatterns,
-            "Audio files (*.wav/aiff)",
-            false
-          );
-          dialogShowing = false;
-          if (path != null) {
-            engine.addTask(() -> {
-              engine.audio.output.file.setValue(path);
-            });
-          }
-        }
-      }
-    }.start();
+  public interface FileDialogCallback {
+    public void fileDialogCallback(String path);
   }
 
-  public void showExportModelDialog() {
+  // Prevent stacking up multiple dialogs
+  private volatile boolean dialogShowing = false;
+
+  /**
+   * Show a save file dialog
+   *
+   * @param dialogTitle Dialog title
+   * @param fileType File type description
+   * @param extensions Valid file extensions
+   * @param defaultPath Default file path
+   * @param success Callback on successful invocation
+   */
+  public void showSaveFileDialog(String dialogTitle, String fileType, String[] extensions, String defaultPath, FileDialogCallback success) {
     if (this.dialogShowing) {
       return;
     }
@@ -699,56 +644,22 @@ public class GLX extends LX {
       @Override
       public void run() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-          aFilterPatterns.put(stack.UTF8("*.lxm"));
+          PointerBuffer aFilterPatterns = stack.mallocPointer(extensions.length);
+          for (String extension : extensions) {
+            aFilterPatterns.put(stack.UTF8("*." + extension));
+          }
           aFilterPatterns.flip();
           dialogShowing = true;
           String path = tinyfd_saveFileDialog(
-            "Export Model",
-            getMediaFolder(LX.Media.MODELS).toString() + File.separator + "Model.lxm",
+            dialogTitle,
+            defaultPath,
             aFilterPatterns,
-            "LX Model files (*.lxm)"
-         );
-         dialogShowing = false;
-         if (path != null) {
-           engine.addTask(() -> {
-             structure.exportModel(new File(path));
-           });
-         }
-        }
-      }
-    }.start();
-  }
-
-  public void showNewModelDialog() {
-    showConfirmDialog("Are you sure you wish to clear the current model?", () -> {
-      this.command.perform(new LXCommand.Structure.NewModel(this.structure));
-    });
-  }
-
-  public void showImportModelDialog() {
-    if (this.dialogShowing) {
-      return;
-    }
-    new Thread() {
-      @Override
-      public void run() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-          aFilterPatterns.put(stack.UTF8("*.lxm"));
-          aFilterPatterns.flip();
-          dialogShowing = true;
-          String path = tinyfd_openFileDialog(
-            "Import Model",
-            new File(getMediaFolder(LX.Media.MODELS), ".").toString(),
-            aFilterPatterns,
-            "LX Model files (*.lxm)",
-            false
+            fileType + " (*." + String.join("/", extensions) + ")"
           );
           dialogShowing = false;
           if (path != null) {
             engine.addTask(() -> {
-              structure.importModel(new File(path));
+              success.fileDialogCallback(path);
             });
           }
         }
@@ -756,7 +667,16 @@ public class GLX extends LX {
     }.start();
   }
 
-  public void showInstallPackageDialog() {
+  /**
+   * Show an open file dialog
+   *
+   * @param dialogTitle Dialog title
+   * @param fileType File type description
+   * @param extensions Valid file extensions
+   * @param defaultPath Default file path
+   * @param success Callback on successful invocation
+   */
+  public void showOpenFileDialog(String dialogTitle, String fileType, String[] extensions, String defaultPath, FileDialogCallback success) {
     if (this.dialogShowing) {
       return;
     }
@@ -764,21 +684,23 @@ public class GLX extends LX {
       @Override
       public void run() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-          aFilterPatterns.put(stack.UTF8("*.jar"));
+          PointerBuffer aFilterPatterns = stack.mallocPointer(extensions.length);
+          for (String extension : extensions) {
+            aFilterPatterns.put(stack.UTF8("*." + extension));
+          }
           aFilterPatterns.flip();
           dialogShowing = true;
           String path = tinyfd_openFileDialog(
-            "Install Library",
-            new File(System.getProperty("user.home"), ".").toString(),
+            dialogTitle,
+            defaultPath,
             aFilterPatterns,
-            "Chromatik Library files (*.jar)",
+            fileType + " (*." + String.join("/", extensions) + ")",
             false
           );
           dialogShowing = false;
           if (path != null) {
             engine.addTask(() -> {
-              registry.installPackage(new File(path));
+              success.fileDialogCallback(path);
             });
           }
         }
