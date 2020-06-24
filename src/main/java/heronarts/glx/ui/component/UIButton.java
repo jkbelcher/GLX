@@ -547,7 +547,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     if (isMappable()) {
       if (this.enumParameter != null) {
         if (this.enumParameter.getParent() != null) {
-          return this.enumParameter;
+          return this.enumParameter.isMappable() ? this.enumParameter : null;
         }
       } else {
         return getTriggerParameter();
