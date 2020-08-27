@@ -620,6 +620,42 @@ public class GLX extends LX {
     });
   }
 
+  public void showSaveScheduleDialog() {
+    showSaveFileDialog(
+      "Save Schedule",
+      "Schedule File",
+      new String[] { "lxs" },
+      getMediaFolder(LX.Media.PROJECTS).toString() + File.separator + "default.lxs",
+      (path) -> { this.scheduler.saveSchedule(new File(path)); }
+    );
+  }
+
+  public void showAddScheduleEntryDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    showOpenFileDialog(
+      "Add Project to Schedule",
+      "Project File",
+      new String[] { "lxp" },
+      new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
+      (path) -> { this.scheduler.addEntry(new File(path)); }
+    );
+  }
+
+  public void showOpenScheduleDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    showOpenFileDialog(
+      "Open Schedule",
+      "Schedule File",
+      new String[] { "lxs" },
+      new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
+      (path) -> { this.scheduler.openSchedule(new File(path)); }
+    );
+  }
+
   public interface FileDialogCallback {
     public void fileDialogCallback(String path);
   }
