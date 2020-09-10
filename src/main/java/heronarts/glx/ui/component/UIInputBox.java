@@ -48,6 +48,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   protected boolean returnKeyEdit = true;
 
   private boolean immediateEdit = false;
+  private boolean mousePressEdit = false;
 
   private ProgressIndicator progressMeter;
   private int progressPixels = 0;
@@ -117,6 +118,11 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
 
   public UIInputBox enableImmediateEdit(boolean immediateEdit) {
     this.immediateEdit = immediateEdit;
+    return this;
+  }
+
+  public UIInputBox enableMousePressEdit(boolean mousePressEdit) {
+    this.mousePressEdit = mousePressEdit;
     return this;
   }
 
@@ -352,6 +358,11 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       if (this.useCommandEngine) {
         this.mouseDragSetValue = new LXCommand.Parameter.SetValue(parameter, 0);
       }
+    }
+    if (this.enabled && this.editable && !this.editing && this.mousePressEdit) {
+      mouseEvent.consume();
+      edit();
+      redraw();
     }
   }
 
