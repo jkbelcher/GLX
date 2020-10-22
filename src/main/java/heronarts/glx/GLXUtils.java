@@ -86,8 +86,8 @@ public class GLXUtils {
 
     public int getNormalized(float x, float y) {
       return get(
-        (int) (x * (this.width-1)),
-        (int) (y * (this.height-1))
+        (int) (x * (this.width - .5f)),
+        (int) (y * (this.height - .5f))
       );
     }
   }
@@ -119,19 +119,39 @@ public class GLXUtils {
   }
 
   /**
+   * Gets an input stream for the resource at the given path
+   *
+   * @param resourcePath
+   * @return
+   * @throws IOException
+   */
+  public static InputStream loadResourceStream(String resourcePath) throws IOException {
+    Path path = Paths.get(resourcePath);
+    if (Files.isReadable(path)) {
+      return Files.newInputStream(path);
+    }
+
+    URL url = GLXUtils.class.getResource(resourcePath);
+    if (url == null) {
+      throw new IOException("Resource not found: " + resourcePath);
+    }
+    return url.openStream();
+  }
+
+  /**
    * Loads the resource at the given path into a newly allocated buffer. The buffer is owned by
    * the caller and must be freed explicitly.
    *
-   * @param path Path to the resource
+   * @param resourcePath Path to the resource
    * @return Buffer allocated by MemoryUtil
    * @throws IOException If there is an error loading the resource
    */
-  public static ByteBuffer loadResource(String path) throws IOException {
+  public static ByteBuffer loadResource(String resourcePath) throws IOException {
     ByteBuffer resource = null;
-    Path file = Paths.get(path);
-    if (Files.isReadable(file)) {
+    Path path = Paths.get(resourcePath);
+    if (Files.isReadable(path)) {
       try (
-        SeekableByteChannel fc = Files.newByteChannel(file);
+        SeekableByteChannel fc = Files.newByteChannel(path);
       ) {
         resource = MemoryUtil.memAlloc((int) fc.size() + 1);
         while (fc.read(resource) != -1);
@@ -143,9 +163,9 @@ public class GLXUtils {
       }
     }
 
-    URL url = GLXUtils.class.getResource(path);
+    URL url = GLXUtils.class.getResource(resourcePath);
     if (url == null) {
-      throw new IOException("Resource not found: " + path);
+      throw new IOException("Resource not found: " + resourcePath);
     }
     int resourceSize = url.openConnection().getContentLength();
     resource = MemoryUtil.memAlloc(resourceSize);

@@ -42,10 +42,19 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       this(0, 0, w, h);
     }
 
+    public Action(float w, float h, String label) {
+      this(0, 0, w, h, label);
+    }
+
     public Action(float x, float y, float w, float h) {
       super(x, y, w, h);
       setBorderRounding(8);
       setMomentary(true);
+    }
+
+    public Action(float x, float y, float w, float h, String label) {
+      this(x, y, w, h);
+      setLabel(label);
     }
 
   }
@@ -69,6 +78,8 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       }
     }
   }
+
+  private LXParameter controlTarget = null;
 
   protected boolean active = false;
   protected boolean isMomentary = false;
@@ -513,12 +524,30 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     return this;
   }
 
+  /**
+   * Sets an explicit control target for the button, which may or may not match
+   * its other parameter behavior. Useful for buttons that need to perform a
+   * custom LXCommand rather than explicitly change parameter value, but still
+   * should be mappable for modulation and MIDI.
+   *
+   * @param controlTarget Control target
+   * @return this
+   */
+  public UIButton setControlTarget(LXParameter controlTarget) {
+    this.controlTarget = controlTarget;
+    return this;
+  }
+
   @Override
   public LXParameter getControlTarget() {
+    if (this.controlTarget != null) {
+      // If one is explicitly set, doesn't have to match the rest
+      return this.controlTarget;
+    }
     if (isMappable()) {
       if (this.enumParameter != null) {
         if (this.enumParameter.getParent() != null) {
-          return this.enumParameter;
+          return this.enumParameter.isMappable() ? this.enumParameter : null;
         }
       } else {
         return getTriggerParameter();

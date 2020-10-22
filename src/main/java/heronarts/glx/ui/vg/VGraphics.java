@@ -229,7 +229,7 @@ public class VGraphics {
 
     public Paint getPaint() {
       if (this.buffer == null) {
-        throw new IllegalStateException("Cannot use VGraphics.Framebuffer.getPaint() before initialize()");
+        GLX.error("Cannot use VGraphics.Framebuffer.getPaint() before initialize()");
       }
       return this.paint;
     }

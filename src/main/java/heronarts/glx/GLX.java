@@ -53,10 +53,12 @@ import heronarts.glx.ui.UIDialogBox;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
-import heronarts.lx.command.LXCommand;
-import heronarts.lx.model.LXModel;
+import heronarts.lx.utils.LXUtils;
 
 public class GLX extends LX {
+
+  private static final int MIN_WINDOW_WIDTH = 820;
+  private static final int MIN_WINDOW_HEIGHT = 480;
 
   private long window;
 
@@ -118,11 +120,7 @@ public class GLX extends LX {
   public final Flags flags;
 
   protected GLX(Flags flags) throws IOException {
-    this(flags, null);
-  }
-
-  protected GLX(Flags flags, LXModel model) throws IOException {
-    super(flags, model);
+    super(flags);
     this.flags = flags;
 
     // Get initial window size from preferences
@@ -445,6 +443,8 @@ public class GLX extends LX {
     log("Using BGFX renderer: " + rendererName);
   }
 
+  private boolean setWindowSizeLimits = true;
+
   private void setUIZoom(float uiScale) {
     this.uiZoom = uiScale;
     this.uiWidth = this.frameBufferWidth / this.systemContentScaleX / this.uiZoom;
@@ -454,6 +454,7 @@ public class GLX extends LX {
     this.vg.notifyContentScaleChanged();
     this.ui.resize();
     this.ui.redraw();
+    this.setWindowSizeLimits = true;
   }
 
   protected void setWindowSize(int windowWidth, int windowHeight) {
@@ -493,6 +494,22 @@ public class GLX extends LX {
     boolean failed = false;
 
     while (!glfwWindowShouldClose(this.window)) {
+
+      // Update window size limits
+      if (this.setWindowSizeLimits) {
+        this.setWindowSizeLimits = false;
+        int minWindowWidth = (int) (MIN_WINDOW_WIDTH / this.cursorScaleX);
+        int minWindowHeight = (int) (MIN_WINDOW_HEIGHT / this.cursorScaleY);
+        glfwSetWindowSizeLimits(this.window, minWindowWidth, minWindowHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
+        if (this.windowWidth < minWindowWidth || this.windowHeight < minWindowHeight) {
+          glfwSetWindowSize(
+            this.window,
+            LXUtils.max(this.windowWidth, minWindowWidth),
+            LXUtils.max(this.windowHeight, minWindowHeight)
+          );
+        }
+      }
+
       // Poll for input events
       this.inputDispatch.poll();
 
@@ -578,36 +595,14 @@ public class GLX extends LX {
     this.ui.contextualHelpText.setValue("External content libraries reloaded");
   }
 
-  // Prevent stacking up multiple dialogs
-  private volatile boolean dialogShowing = false;
-
   public void showSaveProjectDialog() {
-    if (this.dialogShowing) {
-      return;
-    }
-    new Thread() {
-      @Override
-      public void run() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-          aFilterPatterns.put(stack.UTF8("*.lxp"));
-          aFilterPatterns.flip();
-          dialogShowing = true;
-          String path = tinyfd_saveFileDialog(
-            "Save Project",
-            getMediaFolder(LX.Media.PROJECTS).toString() + File.separator + "default.lxp",
-            aFilterPatterns,
-            "LX Project files (*.lxp)"
-         );
-         dialogShowing = false;
-         if (path != null) {
-           engine.addTask(() -> {
-             saveProject(new File(path));
-           });
-         }
-        }
-      }
-    }.start();
+    showSaveFileDialog(
+      "Save Project",
+      "Project File",
+      new String[] { "lxp" },
+      getMediaFolder(LX.Media.PROJECTS).toString() + File.separator + "default.lxp",
+      (path) -> { saveProject(new File(path)); }
+    );
   }
 
   public void showOpenProjectDialog() {
@@ -615,65 +610,69 @@ public class GLX extends LX {
       return;
     }
     confirmChangesSaved("open another project", () -> {
-      new Thread() {
-        @Override
-        public void run() {
-          try (MemoryStack stack = MemoryStack.stackPush()) {
-            PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-            aFilterPatterns.put(stack.UTF8("*.lxp"));
-            aFilterPatterns.flip();
-            dialogShowing = true;
-            String path = tinyfd_openFileDialog(
-              "Open Project",
-              new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
-              aFilterPatterns,
-              "LX Project files (*.lxp)",
-              false
-            );
-            dialogShowing = false;
-            if (path != null) {
-              engine.addTask(() -> {
-                openProject(new File(path));
-              });
-            }
-          }
-        }
-      }.start();
+      showOpenFileDialog(
+        "Open Project",
+        "Project File",
+        new String[] { "lxp" },
+        new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
+        (path) -> { openProject(new File(path)); }
+      );
     });
   }
 
-  public void showOpenAudioDialog() {
-    if (this.dialogShowing) {
-      return;
-    }
-    new Thread() {
-      @Override
-      public void run() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(2);
-          aFilterPatterns.put(stack.UTF8("*.wav"));
-          aFilterPatterns.put(stack.UTF8("*.aiff"));
-          aFilterPatterns.flip();
-          dialogShowing = true;
-          String path = tinyfd_openFileDialog(
-            "Open Audio File",
-            new File(getMediaPath(), ".").toString(),
-            aFilterPatterns,
-            "Audio files (*.wav/aiff)",
-            false
-          );
-          dialogShowing = false;
-          if (path != null) {
-            engine.addTask(() -> {
-              engine.audio.output.file.setValue(path);
-            });
-          }
-        }
-      }
-    }.start();
+  public void showSaveScheduleDialog() {
+    showSaveFileDialog(
+      "Save Schedule",
+      "Schedule File",
+      new String[] { "lxs" },
+      getMediaFolder(LX.Media.PROJECTS).toString() + File.separator + "default.lxs",
+      (path) -> { this.scheduler.saveSchedule(new File(path)); }
+    );
   }
 
-  public void showExportModelDialog() {
+  public void showAddScheduleEntryDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    showOpenFileDialog(
+      "Add Project to Schedule",
+      "Project File",
+      new String[] { "lxp" },
+      new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
+      (path) -> { this.scheduler.addEntry(new File(path)); }
+    );
+  }
+
+  public void showOpenScheduleDialog() {
+    if (this.dialogShowing) {
+      return;
+    }
+    showOpenFileDialog(
+      "Open Schedule",
+      "Schedule File",
+      new String[] { "lxs" },
+      new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
+      (path) -> { this.scheduler.openSchedule(new File(path)); }
+    );
+  }
+
+  public interface FileDialogCallback {
+    public void fileDialogCallback(String path);
+  }
+
+  // Prevent stacking up multiple dialogs
+  private volatile boolean dialogShowing = false;
+
+  /**
+   * Show a save file dialog
+   *
+   * @param dialogTitle Dialog title
+   * @param fileType File type description
+   * @param extensions Valid file extensions
+   * @param defaultPath Default file path
+   * @param success Callback on successful invocation
+   */
+  public void showSaveFileDialog(String dialogTitle, String fileType, String[] extensions, String defaultPath, FileDialogCallback success) {
     if (this.dialogShowing) {
       return;
     }
@@ -681,34 +680,39 @@ public class GLX extends LX {
       @Override
       public void run() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-          aFilterPatterns.put(stack.UTF8("*.lxm"));
+          PointerBuffer aFilterPatterns = stack.mallocPointer(extensions.length);
+          for (String extension : extensions) {
+            aFilterPatterns.put(stack.UTF8("*." + extension));
+          }
           aFilterPatterns.flip();
           dialogShowing = true;
           String path = tinyfd_saveFileDialog(
-            "Export Model",
-            getMediaFolder(LX.Media.MODELS).toString() + File.separator + "Model.lxm",
+            dialogTitle,
+            defaultPath,
             aFilterPatterns,
-            "LX Model files (*.lxm)"
-         );
-         dialogShowing = false;
-         if (path != null) {
-           engine.addTask(() -> {
-             structure.exportModel(new File(path));
-           });
-         }
+            fileType + " (*." + String.join("/", extensions) + ")"
+          );
+          dialogShowing = false;
+          if (path != null) {
+            engine.addTask(() -> {
+              success.fileDialogCallback(path);
+            });
+          }
         }
       }
     }.start();
   }
 
-  public void showNewModelDialog() {
-    showConfirmDialog("Are you sure you wish to clear the current model?", () -> {
-      this.command.perform(new LXCommand.Structure.NewModel(this.structure));
-    });
-  }
-
-  public void showImportModelDialog() {
+  /**
+   * Show an open file dialog
+   *
+   * @param dialogTitle Dialog title
+   * @param fileType File type description
+   * @param extensions Valid file extensions
+   * @param defaultPath Default file path
+   * @param success Callback on successful invocation
+   */
+  public void showOpenFileDialog(String dialogTitle, String fileType, String[] extensions, String defaultPath, FileDialogCallback success) {
     if (this.dialogShowing) {
       return;
     }
@@ -716,27 +720,28 @@ public class GLX extends LX {
       @Override
       public void run() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(1);
-          aFilterPatterns.put(stack.UTF8("*.lxm"));
+          PointerBuffer aFilterPatterns = stack.mallocPointer(extensions.length);
+          for (String extension : extensions) {
+            aFilterPatterns.put(stack.UTF8("*." + extension));
+          }
           aFilterPatterns.flip();
           dialogShowing = true;
           String path = tinyfd_openFileDialog(
-            "Import Model",
-            new File(getMediaFolder(LX.Media.MODELS), ".").toString(),
+            dialogTitle,
+            defaultPath,
             aFilterPatterns,
-            "LX Model files (*.lxm)",
+            fileType + " (*." + String.join("/", extensions) + ")",
             false
           );
           dialogShowing = false;
           if (path != null) {
             engine.addTask(() -> {
-              structure.importModel(new File(path));
+              success.fileDialogCallback(path);
             });
           }
         }
       }
     }.start();
-
   }
 
   @Override
@@ -747,7 +752,7 @@ public class GLX extends LX {
     );
   }
 
-  protected void showConfirmDialog(String message, Runnable confirm) {
+  public void showConfirmDialog(String message, Runnable confirm) {
     this.ui.showContextOverlay(new UIDialogBox(this.ui,
       message,
       new String[] { "No", "Yes" },

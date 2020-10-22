@@ -103,18 +103,12 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
     vg.fill();
 
     vg.fillColor(ui.theme.getControlTextColor());
-    if (this.expanded) {
-      vg.beginPath();
-      vg.moveTo(this.width-7, 8.5f);
-      vg.lineTo(this.width-13, 8.5f);
-      vg.lineTo(this.width-10, 12.5f);
-      vg.closePath();
-      vg.fill();
-    } else {
-      vg.beginPath();
-      vg.circle(this.width-10, 10, 2);
-      vg.fill();
+    vg.beginPath();
+    vg.rect(width-13, 9, 6, 2);
+    if (!this.expanded) {
+      vg.rect(width-11, 7, 2, 6);
     }
+    vg.fill();
   }
 
   /**

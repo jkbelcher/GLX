@@ -35,10 +35,8 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   private String value = NO_VALUE;
   private StringParameter parameter = null;
 
-  private final LXParameterListener parameterListener = new LXParameterListener() {
-    public void onParameterChanged(LXParameter p) {
-      setValue(parameter.getString(), false);
-    }
+  private final LXParameterListener parameterListener = (p) -> {
+    setValue(this.parameter.getString(), false);
   };
 
   public UITextBox() {
@@ -47,6 +45,11 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
 
   public UITextBox(float x, float y, float w, float h) {
     super(x, y, w, h);
+  }
+
+  @Override
+  public LXParameter getParameter() {
+    return this.parameter;
   }
 
   public UITextBox setParameter(StringParameter parameter) {
@@ -134,7 +137,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     super.onMousePressed(mouseEvent, mx, my);
     if (this.enabled && !this.editing) {
-      if (mouseEvent.getCount() == 2) {
+      if (mouseEvent.getButton() == MouseEvent.BUTTON_LEFT && mouseEvent.getCount() == 2) {
         mouseEvent.consume();
         this.edit();
         redraw();

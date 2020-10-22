@@ -47,6 +47,8 @@ public class UIColorPicker extends UI2dComponent {
 
   private UIColorOverlay uiColorOverlay = null;
 
+  private boolean enabled = true;
+
   public UIColorPicker(ColorParameter color) {
     this(UIKnob.WIDTH, UIKnob.WIDTH, color);
   }
@@ -79,6 +81,11 @@ public class UIColorPicker extends UI2dComponent {
         }
       });
     }
+  }
+
+  public UIColorPicker setEnabled(boolean enabled) {
+    this.enabled = enabled;
+    return this;
   }
 
   private final LXParameterListener redrawSwatch = (p) -> {
@@ -138,20 +145,24 @@ public class UIColorPicker extends UI2dComponent {
 
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
-    mouseEvent.consume();
-    showOverlay();
+    if (this.enabled) {
+      mouseEvent.consume();
+      showOverlay();
+    }
     super.onMousePressed(mouseEvent, mx, my);
   }
 
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
-    if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
-      keyEvent.consume();
-      showOverlay();
-    } else if (keyCode == KeyEvent.VK_ESCAPE) {
-      if ((this.uiColorOverlay != null) && (this.uiColorOverlay.isVisible())) {
+    if (this.enabled) {
+      if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
         keyEvent.consume();
-        hideOverlay();
+        showOverlay();
+      } else if (keyCode == KeyEvent.VK_ESCAPE) {
+        if ((this.uiColorOverlay != null) && (this.uiColorOverlay.isVisible())) {
+          keyEvent.consume();
+          hideOverlay();
+        }
       }
     }
     super.onKeyPressed(keyEvent, keyChar, keyCode);

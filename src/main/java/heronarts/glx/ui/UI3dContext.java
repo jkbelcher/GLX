@@ -53,6 +53,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   public static final int NUM_CAMERA_POSITIONS = 6;
 
   public static interface MovementListener {
+    public void reset();
     public void translate(float x, float y, float z);
     public void rotate(float theta, float phi);
   }
@@ -123,10 +124,9 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   /**
    * Perspective of view
    */
-  public final BoundedParameter perspective = (BoundedParameter)
-    new BoundedParameter("Perspective", 60, 15, 150)
-    .setExponent(2)
-    .setDescription("Camera perspective factor");
+  public final BoundedParameter perspective = new BoundedParameter("Perspective", 60, 15, 150)
+  .setExponent(2)
+  .setDescription("Camera perspective factor");
 
   /**
    * Depth of perspective field, exponential factor of radius by exp(10, Depth)
