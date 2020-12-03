@@ -63,8 +63,8 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (keyEvent.isDelete()) {
+      keyEvent.consume();
       if (this.dynamicColor.getIndex() > 0) {
-        keyEvent.consume();
         hideOverlay();
         getLX().command.perform(new LXCommand.Palette.RemoveColor(this.dynamicColor));
       }
