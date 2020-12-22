@@ -590,15 +590,15 @@ public class VGraphics {
   }
 
   public Image loadImage(String imagePath) throws IOException {
-    return createImageMem(GLXUtils.loadResource("resources/images/" + imagePath), imagePath.contains("@2x."));
+    return createImageMem(GLXUtils.loadResource("images/" + imagePath), imagePath.contains("@2x."));
   }
 
   public Image loadIcon(String iconPath) throws IOException {
-    return createImageMem(GLXUtils.loadResource("resources/icons/" + iconPath), iconPath.contains("@2x."));
+    return createImageMem(GLXUtils.loadResource("icons/" + iconPath), iconPath.contains("@2x."));
   }
 
   public Font loadFont(String fontName, String fontPath) throws IOException {
-    return createFontMem(fontName, GLXUtils.loadResource("resources/fonts/" + fontPath));
+    return createFontMem(fontName, GLXUtils.loadResource("fonts/" + fontPath));
   }
 
   private Font createFontMem(String name, ByteBuffer fontData) {
