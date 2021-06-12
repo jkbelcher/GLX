@@ -747,7 +747,7 @@ public interface UIItemList {
           consume = true;
           this.renaming = false;
           this.list.redraw();
-        } else if (keyCode == KeyEvent.VK_ENTER) {
+        } else if (keyEvent.isEnter()) {
           consume = true;
           String newName = this.renameBuffer.trim();
           if (newName.length() > 0) {
@@ -797,7 +797,7 @@ public interface UIItemList {
             focusNext(1);
             this.list.redraw();
           }
-        } else if (keyCode == KeyEvent.VK_ENTER) {
+        } else if (keyEvent.isEnter()) {
           consume = true;
           if (this.isMomentary) {
             this.keyActivate = this.focusIndex;
@@ -835,7 +835,7 @@ public interface UIItemList {
 
     private boolean onKeyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
       boolean consume = false;
-      if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
+      if (keyEvent.isEnter() || keyCode == KeyEvent.VK_SPACE) {
         if (this.isMomentary) {
           if (this.keyActivate >= 0 && this.keyActivate < this.items.size()) {
             consume = true;

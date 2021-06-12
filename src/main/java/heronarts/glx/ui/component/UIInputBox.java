@@ -283,7 +283,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           keyEvent.consume();
           this.editBuffer += keyChar;
           redraw();
-        } else if (keyCode == KeyEvent.VK_ENTER) {
+        } else if (keyEvent.isEnter()) {
           keyEvent.consume();
           this.editing = false;
           saveEditBuffer();
@@ -310,7 +310,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           this.editing = true;
           this.editBuffer = Character.toString(keyChar);
           redraw();
-        } else if (keyCode == KeyEvent.VK_ENTER) {
+        } else if (keyEvent.isEnter()) {
           if (this.returnKeyEdit) {
             keyEvent.consume();
             this.edit();

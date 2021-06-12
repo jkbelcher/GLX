@@ -149,7 +149,7 @@ public class UICheckbox extends UIParameterComponent implements UIControlTarget,
 
   @Override
   protected void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
-    if ((keyCode == java.awt.event.KeyEvent.VK_SPACE) || (keyCode == java.awt.event.KeyEvent.VK_ENTER)) {
+    if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
       keyEvent.consume();
       if (this.enabled) {
         setActive(this.isMomentary ? true : !this.active);
@@ -159,7 +159,7 @@ public class UICheckbox extends UIParameterComponent implements UIControlTarget,
 
   @Override
   protected void onKeyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
-    if ((keyCode == java.awt.event.KeyEvent.VK_SPACE) || (keyCode == java.awt.event.KeyEvent.VK_ENTER)) {
+    if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
       keyEvent.consume();
       if (this.enabled && this.isMomentary) {
         setActive(false);

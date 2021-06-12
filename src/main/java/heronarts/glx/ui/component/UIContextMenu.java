@@ -127,7 +127,7 @@ public class UIContextMenu extends UI2dComponent {
     } else if (keyCode == KeyEvent.VK_DOWN) {
       keyEvent.consume();
       setHighlight((this.highlight + 1) % this.actions.length);
-    } else if (keyCode == KeyEvent.VK_SPACE || keyCode == KeyEvent.VK_ENTER) {
+    } else if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
       keyEvent.consume();
       if (this.highlight >= 0) {
         this.actions[this.highlight].onContextAction(getUI());

@@ -111,9 +111,9 @@ public abstract class UIColorSlider extends UI2dComponent implements UIFocus, UI
     if (keyEvent.isShiftDown()) {
       amt = .1;
     }
-    if (keyCode == java.awt.event.KeyEvent.VK_DOWN) {
+    if (keyCode == KeyEvent.VK_DOWN) {
       this.parameter.setNormalized(getBaseNormalized() - amt);
-    } else if (keyCode == java.awt.event.KeyEvent.VK_UP) {
+    } else if (keyCode == KeyEvent.VK_UP) {
       this.parameter.setNormalized(getBaseNormalized() + amt);
     }
   }

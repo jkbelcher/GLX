@@ -124,7 +124,7 @@ public class UIDiscreteColorBox extends UI2dComponent implements UIFocus {
     } else if (keyCode == KeyEvent.VK_UP) {
       keyEvent.consume();
       this.parameter.decrement(8);
-    } else if (keyCode == KeyEvent.VK_SPACE || keyCode == KeyEvent.VK_ENTER) {
+    } else if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
       keyEvent.consume();
       toggleExpanded();
     } else if (keyCode == KeyEvent.VK_ESCAPE) {
