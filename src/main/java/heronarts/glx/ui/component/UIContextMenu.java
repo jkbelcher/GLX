@@ -21,11 +21,12 @@ package heronarts.glx.ui.component;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
-import heronarts.glx.ui.UI2dComponent;
+import heronarts.glx.ui.UI2dContainer;
+import heronarts.glx.ui.UI2dScrollContext;
 import heronarts.glx.ui.UIContextActions;
 import heronarts.glx.ui.vg.VGraphics;
 
-public class UIContextMenu extends UI2dComponent {
+public class UIContextMenu extends UI2dContainer {
 
   private static final float DEFAULT_ROW_HEIGHT = 18;
   public static final float DEFAULT_WIDTH = 120;
@@ -35,6 +36,11 @@ public class UIContextMenu extends UI2dComponent {
   private int highlight = -1;
   private float rowHeight = DEFAULT_ROW_HEIGHT;
   private float padding = 0;
+  private float maxHeight = -1;
+  private float fullHeight = 0;
+  private boolean scrollMode = false;
+
+  private UI2dScrollContext scrollPane = null;
 
   public UIContextMenu(float x, float y, float w, float h) {
     super(x, y, w, h);
@@ -43,10 +49,11 @@ public class UIContextMenu extends UI2dComponent {
     setBorderColor(UI.get().theme.getContextBorderColor());
   }
 
+  @Override
   public UIContextMenu setPadding(float padding) {
     if (this.padding != padding) {
       this.padding = padding;
-      updateHeight();
+      updateSize();
     }
     return this;
   }
@@ -54,19 +61,57 @@ public class UIContextMenu extends UI2dComponent {
   public UIContextMenu setRowHeight(float rowHeight) {
     if (this.rowHeight != rowHeight) {
       this.rowHeight = rowHeight;
-      updateHeight();
+      updateSize();
     }
     return this;
   }
 
-  public UIContextMenu setActions(UIContextActions.Action[] actions) {
-    this.actions = actions;
-    updateHeight();
+  public UIContextMenu setMaxHeight(float maxHeight) {
+    this.maxHeight = maxHeight;
+    updateSize();
     return this;
   }
 
-  private void updateHeight() {
-    setHeight(this.actions.length * this.rowHeight + 2 * this.padding + 2);
+  private void setScrollMode(boolean scrollMode) {
+    this.scrollMode = scrollMode;
+    if (this.scrollMode) {
+      if (this.scrollPane == null) {
+        this.scrollPane = new UI2dScrollContext(UI.get(), (int) this.padding, (int) this.padding, (int) (this.width - 2*this.padding), (int) (this.maxHeight - 2*this.padding)) {
+          @Override
+          protected void onDraw(UI ui, VGraphics vg) {
+            drawItems(ui, vg, this.width, 0);
+          }
+        };
+        this.scrollPane.setScrollHeight(this.fullHeight - 2*this.padding);
+        this.scrollPane.addToContainer(this);
+      } else {
+        this.scrollPane.setSize(this.width - 2*this.padding, this.maxHeight - 2*this.padding);
+        this.scrollPane.setPosition(this.padding, this.padding);
+        this.scrollPane.setScrollHeight(this.fullHeight - 2*this.padding);
+        this.scrollPane.setVisible(true);
+      }
+    } else {
+      if (this.scrollPane != null) {
+        this.scrollPane.setVisible(false);
+      }
+    }
+  }
+
+  public UIContextMenu setActions(UIContextActions.Action[] actions) {
+    this.actions = actions;
+    updateSize();
+    return this;
+  }
+
+  private void updateSize() {
+    this.fullHeight = this.actions.length * this.rowHeight + 2 * this.padding + 2;
+    if ((this.maxHeight > 0) && (this.fullHeight > this.maxHeight)) {
+      setHeight(this.maxHeight);
+      setScrollMode(true);
+    } else {
+      setHeight(this.fullHeight);
+      setScrollMode(false);
+    }
   }
 
   public UIContextMenu setHighlight(int highlight) {
@@ -88,7 +133,7 @@ public class UIContextMenu extends UI2dComponent {
    * @param vg PGraphics context
    */
   @Override
-  public void onDraw(UI ui, VGraphics vg) {
+  protected void onDraw(UI ui, VGraphics vg) {
     if (this.padding > 0) {
       vg.beginPath();
       vg.fillColor(ui.theme.getDeviceFocusedBackgroundColor());
@@ -100,9 +145,16 @@ public class UIContextMenu extends UI2dComponent {
       vg.fill();
     }
 
+    if (!this.scrollMode) {
+      drawItems(ui, vg, this.width, this.padding);
+    }
+  }
+
+  private void drawItems(UI ui, VGraphics vg, float width, float padding) {
+
     if (this.highlight >= 0) {
       vg.beginPath();
-      vg.rect(this.padding + 2, this.padding + 2 + this.highlight * this.rowHeight, this.width - 2 * this.padding - 4, this.rowHeight - 2, 2);
+      vg.rect(padding + 2, padding + 2 + this.highlight * this.rowHeight, width - 2 * padding - 4, this.rowHeight - 2, 2);
       vg.fillColor(ui.theme.getContextHighlightColor());
       vg.fill();
     }
@@ -113,10 +165,12 @@ public class UIContextMenu extends UI2dComponent {
       vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
       vg.fillColor(ui.theme.getControlTextColor());
       vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
-      vg.text(this.padding + 4, this.padding + yp + this.rowHeight / 2, clipTextToWidth(vg, action.getLabel(), this.width - 6 - 2 * this.padding));
+      vg.text(padding + 4, padding + yp + this.rowHeight / 2, clipTextToWidth(vg, action.getLabel(), width - 6 - 2 * padding));
       vg.fill();
       yp += this.rowHeight;
     }
+
+
   }
 
   @Override
@@ -146,12 +200,14 @@ public class UIContextMenu extends UI2dComponent {
 
   @Override
   public void onMouseMoved(MouseEvent mouseEvent, float x, float y) {
-    setHighlight((int) ((y - this.padding - 1) / this.rowHeight));
+    float scrollY = this.scrollMode ? this.scrollPane.getScrollY() : 0;
+    setHighlight((int) ((y - scrollY - this.padding - 1) / this.rowHeight));
   }
 
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float x, float y) {
-    int index = (int) ((y - this.padding - 1) / this.rowHeight);
+    float scrollY = this.scrollMode ? this.scrollPane.getScrollY() : 0;
+    int index = (int) ((y - scrollY - this.padding - 1) / this.rowHeight);
     if (index >= 0 && index < this.actions.length) {
       this.actions[index].onContextAction(getUI());
     }
