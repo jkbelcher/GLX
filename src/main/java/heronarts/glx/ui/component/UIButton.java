@@ -368,7 +368,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   @Override
   protected void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
-    if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
+    if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
       if (this.enabled) {
         this.momentaryPressValid = this.isMomentary;
         this.momentaryPressEngaged = this.isMomentary;
@@ -380,7 +380,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   @Override
   protected void onKeyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
-    if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
+    if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
       if (this.enabled && this.isMomentary) {
         setActive(false);
         onClick();

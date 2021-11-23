@@ -155,7 +155,7 @@ public class UIColorPicker extends UI2dComponent {
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (this.enabled) {
-      if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
+      if (keyEvent.isEnter() || (keyCode == KeyEvent.VK_SPACE)) {
         keyEvent.consume();
         showOverlay();
       } else if (keyCode == KeyEvent.VK_ESCAPE) {

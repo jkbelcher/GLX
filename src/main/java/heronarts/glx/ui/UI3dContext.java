@@ -343,13 +343,8 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     this.y = y;
     this.width = w;
     this.height = h;
-    this.view = new View(
-      ui.lx,
-      (int) (x * ui.getContentScaleX()),
-      (int) (y * ui.getContentScaleY()),
-      (int) (w * ui.getContentScaleX()),
-      (int) (h * ui.getContentScaleY())
-    );
+    this.view = new View(ui.lx);
+    setViewRect();
 
     for (int i = 0; i < this.cue.length; ++i) {
       this.cue[i] = new Camera();
@@ -457,7 +452,22 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
       this.y = y;
       this.width = width;
       this.height = height;
+      setViewRect();
+    }
+    return this;
+  }
 
+  private void setViewRect() {
+    if (this.ui.lx.isOpenGL()) {
+      // NOTE(mcslee): I really have no clue what is up with the Y-values here, this was
+      // arrived at by horrendous trial and error
+      this.view.setRect(
+        (int) (this.x * this.ui.lx.getUIZoom()),
+        (int) ((this.ui.getHeight() + this.y) * this.ui.lx.getUIZoom()),
+        (int) (this.width * this.ui.lx.getUIZoom()),
+        (int) (this.height * this.ui.lx.getUIZoom())
+      );
+    } else {
       // Note that we transform our rect by UI content scaling factor
       this.view.setRect(
         (int) (this.x * this.ui.getContentScaleX()),
@@ -466,7 +476,6 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
         (int) (this.height * this.ui.getContentScaleY())
       );
     }
-    return this;
   }
 
   /**

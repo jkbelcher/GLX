@@ -205,6 +205,10 @@ public class KeyEvent extends Event {
     return this.scanCode;
   }
 
+  public boolean isEnter() {
+    return (this.keyCode == VK_ENTER) || (this.keyCode == VK_KP_ENTER);
+  }
+
   public boolean isCommand(int keyCode) {
     return isCommand() && (this.keyCode == keyCode);
   }

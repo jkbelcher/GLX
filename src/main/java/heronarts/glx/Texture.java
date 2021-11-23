@@ -31,7 +31,7 @@ public class Texture {
 
   public Texture(String path) {
     try {
-      this.textureData = GLXUtils.loadResource("resources/textures/" + path);
+      this.textureData = GLXUtils.loadResource("textures/" + path);
     } catch (IOException x) {
       throw new RuntimeException(x);
     }

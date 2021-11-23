@@ -93,11 +93,11 @@ public class GLXUtils {
   }
 
   public static Image loadImage(String path) throws IOException {
-    return new Image(loadResource(path));
+    return new Image(loadFile(path));
   }
 
   public static ByteBuffer loadShader(GLX glx, String name) throws IOException {
-    String path = "resources/shaders/";
+    String path = "shaders/";
     switch (glx.getRenderer()) {
     case BGFX_RENDERER_TYPE_DIRECT3D11:
     case BGFX_RENDERER_TYPE_DIRECT3D12:
@@ -121,17 +121,17 @@ public class GLXUtils {
   /**
    * Gets an input stream for the resource at the given path
    *
-   * @param resourcePath
-   * @return
-   * @throws IOException
+   * @param resourcePath Path to the resource
+   * @return Resource input stream
+   * @throws IOException If loading resource stream fails
    */
   public static InputStream loadResourceStream(String resourcePath) throws IOException {
-    Path path = Paths.get(resourcePath);
+    Path path = Paths.get("src/main/resources/" + resourcePath);
     if (Files.isReadable(path)) {
       return Files.newInputStream(path);
     }
 
-    URL url = GLXUtils.class.getResource(resourcePath);
+    URL url = GLXUtils.class.getResource("/" + resourcePath);
     if (url == null) {
       throw new IOException("Resource not found: " + resourcePath);
     }
@@ -148,13 +148,19 @@ public class GLXUtils {
    */
   public static ByteBuffer loadResource(String resourcePath) throws IOException {
     ByteBuffer resource = null;
-    Path path = Paths.get(resourcePath);
+    Path path = Paths.get("src/main/resources/" + resourcePath);
     if (Files.isReadable(path)) {
       try (
         SeekableByteChannel fc = Files.newByteChannel(path);
       ) {
-        resource = MemoryUtil.memAlloc((int) fc.size() + 1);
-        while (fc.read(resource) != -1);
+        int totalBytes = (int) fc.size();
+        int readBytes = 0;
+        int read = 0;
+        resource = MemoryUtil.memAlloc(totalBytes);
+        do {
+          if ((read = fc.read(resource)) == -1) break;
+          readBytes += read;
+        } while (readBytes < totalBytes);
         resource.flip();
         return resource;
       } catch (IOException iox) {
@@ -163,7 +169,7 @@ public class GLXUtils {
       }
     }
 
-    URL url = GLXUtils.class.getResource(resourcePath);
+    URL url = GLXUtils.class.getResource("/" + resourcePath);
     if (url == null) {
       throw new IOException("Resource not found: " + resourcePath);
     }
@@ -173,12 +179,42 @@ public class GLXUtils {
       InputStream stream = url.openStream();
       ReadableByteChannel rbc = Channels.newChannel(stream);
     ) {
-      while (rbc.read(resource) != -1);
+      int read = 0;
+      int readBytes = 0;
+      do {
+        if ((read = rbc.read(resource)) == -1) break;
+        readBytes += read;
+      } while (readBytes < resourceSize);
       resource.flip();
       return resource;
     } catch(IOException iox) {
       MemoryUtil.memFree(resource);
       throw iox;
     }
+  }
+
+  public static ByteBuffer loadFile(String file) throws IOException {
+    ByteBuffer resource = null;
+    Path path = Paths.get(file);
+    if (Files.isReadable(path)) {
+      try (
+        SeekableByteChannel fc = Files.newByteChannel(path);
+      ) {
+        int totalBytes = (int) fc.size();
+        int readBytes = 0;
+        int read = 0;
+        resource = MemoryUtil.memAlloc(totalBytes);
+        do {
+          if ((read = fc.read(resource)) == -1) break;
+          readBytes += read;
+        } while (readBytes < totalBytes);
+        resource.flip();
+        return resource;
+      } catch (IOException iox) {
+        MemoryUtil.memFree(resource);
+        throw iox;
+      }
+    }
+    return null;
   }
 }

@@ -154,7 +154,7 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
     if (this.contextMenu.isVisible()) {
       keyEvent.consume();
       this.contextMenu.onKeyPressed(keyEvent, keyChar, keyCode);
-    } else if (keyCode == KeyEvent.VK_SPACE || keyCode == KeyEvent.VK_ENTER) {
+    } else if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
       keyEvent.consume();
       showMenu();
     }

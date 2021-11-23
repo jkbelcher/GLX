@@ -373,7 +373,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   @Override
   protected void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (!this.editing) {
-      if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
+      if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
         keyEvent.consume();
         setShowValue(true);
       } else if (isEnabled() && isEditable() && keyEvent.isShiftDown() && keyCode == KeyEvent.VK_BACKSPACE) {
@@ -391,7 +391,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
 
   @Override
   protected void onKeyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
-    if ((keyCode == KeyEvent.VK_SPACE) || (keyCode == KeyEvent.VK_ENTER)) {
+    if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
       keyEvent.consume();
       setShowValue(false);
     }

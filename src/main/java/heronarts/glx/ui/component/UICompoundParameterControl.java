@@ -25,7 +25,10 @@ import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
+import heronarts.lx.command.LXCommand;
 import heronarts.lx.modulation.LXCompoundModulation;
+import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UIContextActions;
 import heronarts.glx.ui.UITimerTask;
 import heronarts.lx.parameter.CompoundParameter;
 
@@ -92,5 +95,22 @@ public class UICompoundParameterControl extends UIParameterControl {
         modulation.color.addListener(this.redrawListener);
       }
     }
+  }
+
+  @Override
+  public List<UIContextActions.Action> getContextActions() {
+    List<UIContextActions.Action> actions = super.getContextActions();
+    if (this.parameter instanceof CompoundParameter) {
+      final CompoundParameter cp = (CompoundParameter) this.parameter;
+      if (!cp.modulations.isEmpty()) {
+        actions.add(new UIContextActions.Action("Remove Modulation") {
+          @Override
+          public void onContextAction(UI ui) {
+            ui.lx.command.perform(new LXCommand.Modulation.RemoveModulations(cp));
+          }
+        });
+      }
+    }
+    return actions;
   }
 }

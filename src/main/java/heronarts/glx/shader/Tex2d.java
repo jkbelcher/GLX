@@ -49,8 +49,20 @@ public class Tex2d {
   protected final Matrix4f modelMatrix = new Matrix4f();
   protected final FloatBuffer modelMatrixBuf;
 
-  private final static float[][] VERTEX_BUFFER_DATA = { { 0f, 0f, 0f, 0f, 0f },
-    { 1f, 0f, 0f, 1f, 0f }, { 0f, 1f, 0f, 0f, 1f }, { 1f, 1f, 0f, 1f, 1f } };
+  private final static float[][] VERTEX_BUFFER_DATA = {
+    { 0f, 0f, 0f, 0f, 0f },
+    { 1f, 0f, 0f, 1f, 0f },
+    { 0f, 1f, 0f, 0f, 1f },
+    { 1f, 1f, 0f, 1f, 1f }
+  };
+
+  // Texture/framebuffer coordinates are +Y up on OpenGL
+  private final static float[][] VERTEX_BUFFER_DATA_OPENGL = {
+    { 0f, 0f, 0f, 0f, 1f },
+    { 1f, 0f, 0f, 1f, 1f },
+    { 0f, 1f, 0f, 0f, 0f },
+    { 1f, 1f, 0f, 1f, 0f }
+  };
 
   public Tex2d(GLX glx) {
 
@@ -67,7 +79,7 @@ public class Tex2d {
 
     this.vertexBuffer = MemoryUtil
       .memAlloc(VERTEX_BUFFER_DATA.length * 5 * Float.BYTES);
-    for (float[] fl : VERTEX_BUFFER_DATA) {
+    for (float[] fl : glx.isOpenGL() ? VERTEX_BUFFER_DATA_OPENGL : VERTEX_BUFFER_DATA) {
       for (float f : fl) {
         this.vertexBuffer.putFloat(f);
       }

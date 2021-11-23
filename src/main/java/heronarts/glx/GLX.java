@@ -115,6 +115,7 @@ public class GLX extends LX {
 
   public static class Flags extends LX.Flags {
     public String windowTitle = "GLX";
+    public boolean useOpenGL = false;
   }
 
   public final Flags flags;
@@ -122,6 +123,10 @@ public class GLX extends LX {
   protected GLX(Flags flags) throws IOException {
     super(flags);
     this.flags = flags;
+
+    if (this.flags.useOpenGL) {
+      this.bgfxRenderer = BGFX_RENDERER_TYPE_OPENGL;
+    }
 
     // Get initial window size from preferences
     int preferenceWidth = this.preferences.getWindowWidth();
@@ -196,6 +201,10 @@ public class GLX extends LX {
     return this.bgfxRenderer;
   }
 
+  public boolean isOpenGL() {
+    return this.bgfxRenderer == BGFX_RENDERER_TYPE_OPENGL;
+  }
+
   public float getUIWidth() {
     return this.uiWidth;
   }
@@ -212,12 +221,24 @@ public class GLX extends LX {
     return this.frameBufferHeight;
   }
 
+  public float getUIZoom() {
+    return this.uiZoom;
+  }
+
   public float getUIContentScaleX() {
     return this.systemContentScaleX * this.uiZoom;
   }
 
   public float getUIContentScaleY() {
     return this.systemContentScaleY * this.uiZoom;
+  }
+
+  public float getSystemContentScaleX() {
+    return this.systemContentScaleX;
+  }
+
+  public float getSystemContentScaleY() {
+    return this.systemContentScaleY;
   }
 
   private void initializeWindow() {
@@ -432,9 +453,7 @@ public class GLX extends LX {
         throw new RuntimeException("Error initializing bgfx renderer");
       }
       this.bgfxFormat = init.resolution().format();
-      if (this.bgfxRenderer == BGFX_RENDERER_TYPE_COUNT) {
-        this.bgfxRenderer = bgfx_get_renderer_type();
-      }
+      this.bgfxRenderer = bgfx_get_renderer_type();
     }
     String rendererName = bgfx_get_renderer_name(this.bgfxRenderer);
     if ("NULL".equals(rendererName)) {

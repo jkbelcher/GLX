@@ -212,7 +212,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (this.enabled) {
-      if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
+      if (keyEvent.isEnter() || (keyCode == KeyEvent.VK_SPACE)) {
         keyEvent.consume();
         toggleExpanded();
       } else if (keyCode == KeyEvent.VK_DOWN) {
