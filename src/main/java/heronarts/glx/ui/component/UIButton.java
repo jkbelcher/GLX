@@ -566,7 +566,10 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     return this.triggerable ? getTriggerParameter() : null;
   }
 
-  private BooleanParameter getTriggerParameter() {
+  protected BooleanParameter getTriggerParameter() {
+    if (this.controlTarget instanceof BooleanParameter) {
+      return (BooleanParameter) this.controlTarget;
+    }
     if (this.booleanParameter != null && this.booleanParameter.isMappable() && this.booleanParameter.getParent() != null) {
       return this.booleanParameter;
     }
