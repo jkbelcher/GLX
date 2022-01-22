@@ -507,6 +507,12 @@ public class UI {
       }
     });
 
+    lx.statusMessage.addListener((p) -> {
+      if (!isMapping()) {
+        contextualHelpText.setValue(lx.statusMessage.getString());
+      }
+    });
+
     lx.errorChanged.addListener((p) -> { showError(); });
     showError();
 
