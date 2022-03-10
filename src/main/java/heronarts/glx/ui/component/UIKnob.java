@@ -28,7 +28,7 @@ import heronarts.lx.color.LXColor;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.CompoundParameter;
-import heronarts.lx.parameter.LXListenableNormalizedParameter;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.utils.LXUtils;
 
@@ -47,11 +47,11 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
   private final static float ARC_END = ARC_START + ARC_RANGE;
   private final static float ARC_MIN = ARC_RANGE / 255.f; // half a MIDI tick
 
-  public UIKnob(LXListenableNormalizedParameter parameter) {
+  public UIKnob(LXNormalizedParameter parameter) {
     this(0, 0, parameter);
   }
 
-  public UIKnob(float x, float y, LXListenableNormalizedParameter parameter) {
+  public UIKnob(float x, float y, LXNormalizedParameter parameter) {
     this(x, y);
     setParameter(parameter);
   }
