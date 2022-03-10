@@ -37,6 +37,19 @@ public class UISwitch extends UIParameterControl implements UIFocus, UITriggerTa
 
   protected boolean isMomentary = false;
 
+  public UISwitch(LXNormalizedParameter parameter) {
+    this(0, 0, parameter);
+  }
+
+  public UISwitch(float x, float y, LXNormalizedParameter parameter) {
+    this(x, y);
+    setParameter(parameter);
+  }
+
+  public UISwitch() {
+    this(0, 0);
+  }
+
   public UISwitch(float x, float y) {
     super(x, y, WIDTH, SWITCH_SIZE);
   }
