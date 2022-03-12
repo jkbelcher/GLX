@@ -438,6 +438,26 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     return this.height;
   }
 
+  /**
+   * Set the position of this component in its parent coordinate space
+   *
+   * @param x X-position in parents coordinate space
+   * @return this
+   */
+  public UI3dContext setX(float x) {
+    return setPosition(x, this.y);
+  }
+
+  /**
+   * Set the position of this component in its parent coordinate space
+   *
+   * @param y Y-position in parents coordinate space
+   * @return this
+   */
+  public UI3dContext setY(float y) {
+    return setPosition(this.x, y);
+  }
+
   public UI3dContext setPosition(float x, float y) {
     return setRect(x, y, this.width, this.height);
   }
@@ -721,6 +741,52 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     );
     this.eye.set(this.eyeDamped);
 
+  }
+
+
+  /**
+   * Set the visibility state of this component
+   *
+   * @param visible Whether this should be visible
+   * @return this
+   */
+  @Override
+  public UI3dContext setVisible(boolean visible) {
+    if (isVisible() != visible) {
+      super.setVisible(visible);
+      if (this.parent instanceof UI2dContainer) {
+        ((UI2dContainer) this.parent).reflow();
+      }
+      if (visible) {
+        // Redraw ourselves, in the space we take up
+        redraw();
+      } else {
+        // We're invisible now, the container needs to redraw so
+        // our background or whatever was underneath can
+        // be filled in
+        redrawContainer();
+      }
+    }
+    return this;
+  }
+
+  /**
+   * Redraws this object.
+   *
+   * @return this object
+   */
+  public final UI3dContext redraw() {
+    if (this.ui != null && this.parent != null && this.isVisible()) {
+      //this.ui.redraw(this);  // *JKB note: how should we do this one?
+      redrawContainer();
+    }
+    return this;
+  }
+
+  private void redrawContainer() {
+    if ((this.parent != null) && (this.parent instanceof UI2dComponent)) {
+      ((UI2dComponent) this.parent).redraw();
+    }
   }
 
   public final void draw(UI ui, View view) {

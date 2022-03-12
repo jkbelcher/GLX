@@ -156,8 +156,20 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   private int modelGeneration = -1;
 
+  public enum UIPointCloudSource {
+    COLORS,
+    COLORSAUX,
+    MAIN
+  };
+  private final UIPointCloudSource source;
+
   public UIPointCloud(GLX lx) {
+    this(lx, UIPointCloudSource.COLORS);
+  }
+
+  public UIPointCloud(GLX lx, UIPointCloudSource source) {
     this.lx = lx;
+    this.source = source;
     this.program = new Program(lx);
     this.texture = new Texture("led.ktx");
     this.colorBuffer = null;
@@ -219,7 +231,20 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     // Update the color data
     ByteBuffer colorData = this.colorBuffer.getVertexData();
     colorData.rewind();
-    for (int c : frame.getColors()) {
+    int[] colors;
+    switch (this.source) {
+      case COLORSAUX:
+        colors = frame.getColorsAux();
+        break;
+      case MAIN:
+        colors = frame.getMain();
+        break;
+      case COLORS:
+      default:
+        colors = frame.getColors();
+        break;
+    }
+    for (int c : colors) {
       for (int i = 0; i < ModelBuffer.VERTICES_PER_POINT; ++i) {
         colorData.putInt(c);
       }

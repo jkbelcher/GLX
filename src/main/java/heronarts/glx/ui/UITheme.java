@@ -53,6 +53,9 @@ public class UITheme {
   private int focusSelectionColor = 0xff393939;
   private int errorColor = 0xffff0000;
 
+  private int performCueColor = 0xff3a42ba;
+  private int performCueAuxColor = 0xffff3333;
+
   private int secondaryListItemColor = 0xff666666;
 
   private int darkBackgroundColor = 0xff191919;
@@ -452,6 +455,24 @@ public class UITheme {
    */
   public int getErrorColor() {
     return this.errorColor;
+  }
+
+  /**
+   * Gets performance mode cue color
+   *
+   * @return Cue color
+   */
+  public int getPerformCueColor() {
+    return this.performCueColor;
+  }
+
+  /**
+   * Gets performance mode cue aux color
+   *
+   * @return Cue Aux color
+   */
+  public int getPerformCueAuxColor() {
+    return this.performCueAuxColor;
   }
 
   /**
