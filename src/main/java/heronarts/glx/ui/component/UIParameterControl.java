@@ -231,7 +231,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
 
   protected boolean isWrappable() {
     if (this.parameter != null) {
-      return parameter.isWrappable();
+      return this.parameter.isWrappable();
     }
     return false;
   }
@@ -346,7 +346,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       } else {
         double value = getNormalized() - getIncrement(keyEvent);
         if (isWrappable() && value < 0) {
-          value += 1;
+          value = 1 + (value % 1.);
         }
         setNormalized(value);
       }
@@ -380,7 +380,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       } else {
         double value = getNormalized() + getIncrement(keyEvent);
         if (isWrappable() && value > 1) {
-          value -= 1;
+          value = value % 1.;
         }
         setNormalized(value);
       }
