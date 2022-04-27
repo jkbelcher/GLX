@@ -187,7 +187,7 @@ public class UILabel extends UI2dComponent {
       String str = clipTextToWidth(vg, this.label, this.width - this.leftPadding - this.rightPadding);
       vg.beginPath();
       vg.textAlign(this.textAlignHorizontal, this.textAlignVertical);
-      vg.text(tx + this.textOffsetX, ty + this.textOffsetY, str);
+      vg.text(tx + this.textOffsetX, ty + this.textOffsetY + 1, str);
       vg.fill();
     }
   }

@@ -171,7 +171,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     vg.fillColor(this.enabled ? ui.theme.getControlTextColor() : ui.theme.getControlDisabledTextColor());
     vg.beginPath();
     vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
-    vg.text(4 + this.textOffsetX, this.height / 2 + this.textOffsetY, clipTextToWidth(vg, text, this.width - 12));
+    vg.text(4 + this.textOffsetX, this.height / 2 + 1 + this.textOffsetY, clipTextToWidth(vg, text, this.width - 12));
 
     vg.beginPath();
     vg.moveTo(this.width-4, this.height / 2 + this.textOffsetY - 2);

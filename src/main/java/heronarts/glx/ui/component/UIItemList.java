@@ -638,12 +638,12 @@ public interface UIItemList {
 
           vg.beginPath();
           vg.fillColor(UI.WHITE);
-          vg.text(textX, yp + ROW_SPACING/2-1, UI2dComponent.clipTextToWidth(vg, this.renameBuffer, rowWidth - textX - 2));
+          vg.text(textX, yp + ROW_SPACING/2-.5f, UI2dComponent.clipTextToWidth(vg, this.renameBuffer, rowWidth - textX - 2));
           vg.fill();
         } else {
           vg.fillColor(textColor);
           vg.beginPath();
-          vg.text(textX, yp + ROW_SPACING/2-1, UI2dComponent.clipTextToWidth(vg, item.getLabel(), rowWidth - textX - 2));
+          vg.text(textX, yp + ROW_SPACING/2-.5f, UI2dComponent.clipTextToWidth(vg, item.getLabel(), rowWidth - textX - 2));
           vg.fill();
         }
         yp += ROW_SPACING;
