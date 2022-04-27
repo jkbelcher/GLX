@@ -45,6 +45,7 @@ import org.lwjgl.glfw.GLFWNativeWin32;
 import org.lwjgl.glfw.GLFWNativeX11;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
+import org.lwjgl.system.macosx.ObjCRuntime;
 
 import heronarts.glx.shader.Shape;
 import heronarts.glx.shader.Tex2d;
@@ -440,7 +441,7 @@ public class GLX extends LX {
 
     // Construct the BGFX instance
     try (MemoryStack stack = MemoryStack.stackPush()) {
-      BGFXInit init = BGFXInit.mallocStack(stack);
+      BGFXInit init = BGFXInit.malloc(stack);
       bgfx_init_ctor(init);
       init
         .type(this.bgfxRenderer)
@@ -482,15 +483,27 @@ public class GLX extends LX {
 
   private void initializePlatformData() {
     try (MemoryStack stack = MemoryStack.stackPush()) {
-      BGFXPlatformData platformData = BGFXPlatformData.callocStack(stack);
+      BGFXPlatformData platformData = BGFXPlatformData.calloc(stack);
       switch (Platform.get()) {
       case LINUX:
         platformData.ndt(GLFWNativeX11.glfwGetX11Display());
         platformData.nwh(GLFWNativeX11.glfwGetX11Window(this.window));
         break;
       case MACOSX:
-        platformData.ndt(NULL);
-        platformData.nwh(GLFWNativeCocoa.glfwGetCocoaWindow(this.window));
+//        platformData.ndt(NULL);
+//        platformData.nwh(GLFWNativeCocoa.glfwGetCocoaWindow(this.window));
+
+        // NOTE(mcslee): nasty hacks to fix bgfx/M1 bug
+        // https://github.com/LWJGL/lwjgl3/issues/619
+        long objc_msgSend = ObjCRuntime.getLibrary().getFunctionAddress("objc_msgSend");
+        long layer = org.lwjgl.system.JNI.invokePPP(ObjCRuntime.objc_getClass("CAMetalLayer"), ObjCRuntime.sel_getUid("alloc"), objc_msgSend);
+        org.lwjgl.system.JNI.invokePPP(layer, ObjCRuntime.sel_getUid("init"), objc_msgSend);
+
+        long contentView = org.lwjgl.system.JNI.invokePPP(GLFWNativeCocoa.glfwGetCocoaWindow(window), ObjCRuntime.sel_getUid("contentView"), objc_msgSend);
+        org.lwjgl.system.JNI.invokePPPV(contentView, ObjCRuntime.sel_getUid("setLayer:"), layer, objc_msgSend);
+
+        platformData.nwh(layer);
+
         break;
       case WINDOWS:
         platformData.ndt(NULL);
