@@ -297,6 +297,7 @@ public class VGraphics {
       // Note what happens here... the framebuffer is in framebuffer-pixel space. But
       // when we're going to paint it into another UI2dContext, those pixels will be in
       // UI-space. So the paint image pattern is in UI-space width/height
+
       this.paint.imagePattern(0, 0, this.width, glx.isOpenGL() ? -this.height : this.height, this.buffer.image());
 
       this.isStale = false;
@@ -438,8 +439,8 @@ public class VGraphics {
     // best if X/Y scaling are unequal on some weird system...
     nvgBeginFrame(
       this.vg,
-      width * this.glx.getUIContentScaleX(),
-      height * this.glx.getUIContentScaleY(),
+      width, // * this.glx.getUIContentScaleX(),
+      height, // * this.glx.getUIContentScaleY(),
       this.glx.getUIContentScaleX()
     );
     return this;

@@ -75,7 +75,7 @@ public class ShaderProgram {
       bgfx_set_vertex_buffer(0, vertexBuffer.getHandle(), 0, vertexBuffer.getNumVertices());
     }
     setVertexBuffers(view);
-    bgfx_submit(view.getId(), this.handle, 0, false);
+    bgfx_submit(view.getId(), this.handle, 0, BGFX_DISCARD_ALL);
   }
 
   protected void setVertexBuffers(View view) {

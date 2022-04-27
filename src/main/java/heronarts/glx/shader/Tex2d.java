@@ -110,11 +110,10 @@ public class Tex2d {
       | BGFX_STATE_WRITE_Z | BGFX_STATE_BLEND_ALPHA, 0);
     bgfx_set_vertex_buffer(0, vertexBuffer.getHandle(), 0,
       vertexBuffer.getNumVertices());
-    bgfx_submit(view.getId(), this.program, 0, false);
+    bgfx_submit(view.getId(), this.program, 0, BGFX_DISCARD_ALL);
   }
 
-  public void submit(View view, short texHandle, float x, float y, float w,
-    float h) {
+  public void submit(View view, short texHandle, float x, float y, float w, float h) {
     this.modelMatrix.identity().translate(x, y, 0).scale(w, h, 1);
     this.modelMatrix.get(this.modelMatrixBuf);
     bgfx_set_transform(this.modelMatrixBuf);
@@ -123,7 +122,7 @@ public class Tex2d {
       | BGFX_STATE_WRITE_Z | BGFX_STATE_BLEND_ALPHA | BGFX_STATE_PT_TRISTRIP,
       0);
     bgfx_set_vertex_buffer(0, this.vbh, 0, VERTEX_BUFFER_DATA.length);
-    bgfx_submit(view.getId(), this.program, 0, false);
+    bgfx_submit(view.getId(), this.program, 0, BGFX_DISCARD_ALL);
   }
 
   public void dispose() {
