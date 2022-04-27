@@ -244,12 +244,12 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       if (this.textAlignHorizontal == VGraphics.Align.LEFT) {
         vg.beginPath();
         vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
-        vg.text(2, this.height / 2, displayString);
+        vg.text(2, this.height / 2 + 1, displayString);
         vg.fill();
       } else {
         vg.beginPath();
         vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
-        vg.text(this.width / 2, this.height / 2, displayString);
+        vg.text(this.width / 2, this.height / 2 + 1, displayString);
         vg.fill();
       }
 

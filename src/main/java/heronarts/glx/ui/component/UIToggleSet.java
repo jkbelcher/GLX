@@ -240,7 +240,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     for (int i = 0; i < this.options.length; ++i) {
       boolean isActive = (i == this.selectedIndex);
       vg.fillColor(isActive ? UI.WHITE : ui.theme.getControlTextColor());
-      vg.text((leftBoundary + this.boundaries[i]) / 2.f, this.height/2, this.options[i]);
+      vg.text((leftBoundary + this.boundaries[i]) / 2.f, this.height/2 + 1, this.options[i]);
       leftBoundary = this.boundaries[i];
     }
     vg.fill();

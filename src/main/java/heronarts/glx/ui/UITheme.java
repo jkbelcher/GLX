@@ -105,11 +105,11 @@ public class UITheme {
 
   UITheme(VGraphics vg) throws IOException {
     this.controlFont = vg.loadFont("Inter-SemiBold", "Inter-SemiBold.otf");
-    this.controlFont.fontSize(12);
+    this.controlFont.fontSize(10);
     LX.initProfiler.log("GLX: UI: Theme: controlFont");
 
     this.labelFont = this.deviceFont = this.windowTitleFont = vg.loadFont("Inter-Black", "Inter-Black.otf");
-    this.labelFont.fontSize(12);
+    this.labelFont.fontSize(10);
     LX.initProfiler.log("GLX: UI: Theme: labelFont");
 
     this.iconNote = vg.loadIcon("icon-note@2x.png");
