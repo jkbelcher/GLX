@@ -90,6 +90,9 @@ public abstract class UI2dComponent extends UIObject {
 
   private boolean mappable = true;
 
+  protected boolean debug = false;
+  protected String debugName = "";
+
   boolean needsRedraw = true;
   boolean childNeedsRedraw = true;
   boolean needsBlit = false;
@@ -103,6 +106,16 @@ public abstract class UI2dComponent extends UIObject {
     this.y = y;
     this.width = width;
     this.height = height;
+  }
+
+  public UI2dComponent setDebug(boolean debug) {
+    return setDebug(debug, this.getClass().getName());
+  }
+
+  public UI2dComponent setDebug(boolean debug, String debugName) {
+    this.debug = debug;
+    this.debugName = debugName;
+    return this;
   }
 
   @Override
@@ -803,6 +816,16 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent removeFromContainer() {
+    return removeFromContainer(true);
+  }
+
+  /**
+   * Removes this components from the container is is held by
+   *
+   * @param redraw Whether to reflow and redraw the container
+   * @return this
+   */
+  public UI2dComponent removeFromContainer(boolean redraw) {
     if (this.parent == null) {
       throw new IllegalStateException("Cannot remove parentless UIObject from container");
     }
@@ -814,7 +837,10 @@ public abstract class UI2dComponent extends UIObject {
     this.parent.mutableChildren.remove(index);
     if (this.parent instanceof UI2dContainer) {
       UI2dContainer container = (UI2dContainer) this.parent;
-      container.reflow();
+
+      if (redraw) {
+        container.reflow();
+      }
 
       // If container does auto-keyfocus, focus the neighbor
       if (hadFocus && (container.arrowKeyFocus != UI2dContainer.ArrowKeyFocus.NONE)) {
@@ -833,7 +859,9 @@ public abstract class UI2dComponent extends UIObject {
     }
 
     // Blammo, we are gone. Need to redraw the container.
-    redrawContainer();
+    if (redraw) {
+      redrawContainer();
+    }
     this.parent = null;
     return this;
   }
@@ -919,6 +947,20 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent addToContainer(UIContainer container, int index) {
+    return addToContainer(container, index, true);
+  }
+
+  /**
+   * Adds this component to a container at a specified index, also removing it from any
+   * other container that is currently holding it. Reflow behavior is controlled by a
+   * flag.
+   *
+   * @param container Container to place in
+   * @param index At which index to place this object in parent container
+   * @param redraw Whether to reflow and redraw the parent container
+   * @return this
+   */
+  public UI2dComponent addToContainer(UIContainer container, int index, boolean redraw) {
     if (this.parent != null) {
       removeFromContainer();
     }
@@ -933,10 +975,12 @@ public abstract class UI2dComponent extends UIObject {
     }
     this.parent = containerObject;
     setUI(containerObject.ui);
-    if (this.parent instanceof UI2dContainer) {
-      ((UI2dContainer) this.parent).reflow();
+    if (redraw) {
+      if (this.parent instanceof UI2dContainer) {
+        ((UI2dContainer) this.parent).reflow();
+      }
+      redraw();
     }
-    redraw();
     return this;
   }
 
