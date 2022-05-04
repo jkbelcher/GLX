@@ -1136,7 +1136,7 @@ public abstract class UI2dComponent extends UIObject {
 
   private void drawMappingBorder(UI ui, VGraphics vg) {
     vg.beginPath();
-    vg.rect(0.5f, 0.5f, this.width, this.height, this.borderRounding);
+    vg.rect(0.5f, 0.5f, this.width - 1, this.height - 1, this.borderRounding);
     vg.strokeColor(0xff000000 | ui.theme.getModulationTargetMappingColor());
     vg.stroke();
   }
