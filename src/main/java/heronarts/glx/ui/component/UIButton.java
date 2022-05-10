@@ -23,6 +23,7 @@ import java.util.Objects;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.UITriggerSource;
@@ -93,6 +94,8 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   private boolean hasIconColor = false;
   private int iconColor = UI.WHITE;
 
+  private int activeFontColor = UI.WHITE;
+
   private VGraphics.Image activeIcon = null;
   private VGraphics.Image inactiveIcon = null;
 
@@ -148,6 +151,20 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     setBorderColor(UI.get().theme.getControlBorderColor());
     setFontColor(UI.get().theme.getControlTextColor());
     setBackgroundColor(this.inactiveColor);
+  }
+
+  /**
+   * Sets the active font color
+   *
+   * @param activeFontColor color
+   * @return this
+   */
+  public UI2dComponent setActiveFontColor(int activeFontColor) {
+    if (activeColor != this.activeFontColor) {
+      this.activeFontColor = activeFontColor;
+      redraw();
+    }
+    return this;
   }
 
   public UIButton setEnabled(boolean enabled) {
@@ -302,7 +319,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     } else {
       String label = this.active ? this.activeLabel : this.inactiveLabel;
       if ((label != null) && (label.length() > 0)) {
-        vg.fillColor((this.active || this.momentaryPressEngaged) ? UI.WHITE : getFontColor());
+        vg.fillColor((this.active || this.momentaryPressEngaged) ? this.activeFontColor : getFontColor());
         vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
         if (this.textAlignVertical == VGraphics.Align.MIDDLE) {
           vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
