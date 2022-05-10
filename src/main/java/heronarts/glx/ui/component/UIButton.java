@@ -23,7 +23,6 @@ import java.util.Objects;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
-import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.UITriggerSource;
@@ -159,7 +158,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
    * @param activeFontColor color
    * @return this
    */
-  public UI2dComponent setActiveFontColor(int activeFontColor) {
+  public UIButton setActiveFontColor(int activeFontColor) {
     if (activeColor != this.activeFontColor) {
       this.activeFontColor = activeFontColor;
       redraw();
