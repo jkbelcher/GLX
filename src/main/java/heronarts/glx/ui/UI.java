@@ -465,11 +465,12 @@ public class UI {
 
     lx.engine.mapping.mode.addListener((p) -> {
 
+      LXMappingEngine.Mode mappingMode = lx.engine.mapping.getMode();
       this.midiMapping = lx.engine.mapping.getMode() == LXMappingEngine.Mode.MIDI;
-      this.modulationSourceMapping = lx.engine.mapping.getMode() == LXMappingEngine.Mode.MODULATION_SOURCE;
-      this.modulationTargetMapping = lx.engine.mapping.getMode() == LXMappingEngine.Mode.MODULATION_TARGET;
-      this.triggerSourceMapping = lx.engine.mapping.getMode() == LXMappingEngine.Mode.TRIGGER_SOURCE;
-      this.triggerTargetMapping = lx.engine.mapping.getMode() == LXMappingEngine.Mode.TRIGGER_TARGET;
+      this.modulationSourceMapping = mappingMode == LXMappingEngine.Mode.MODULATION_SOURCE;
+      this.modulationTargetMapping = mappingMode == LXMappingEngine.Mode.MODULATION_TARGET;
+      this.triggerSourceMapping = mappingMode == LXMappingEngine.Mode.TRIGGER_SOURCE;
+      this.triggerTargetMapping = mappingMode == LXMappingEngine.Mode.TRIGGER_TARGET;
 
       if (this.midiMapping) {
         this.contextualHelpText.setValue("Click on a control target to MIDI map, eligible controls are highlighted");
