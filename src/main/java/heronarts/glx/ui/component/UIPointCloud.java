@@ -167,8 +167,12 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   @Override
   public void dispose() {
     this.texture.dispose();
-    this.modelBuffer.dispose();
-    this.colorBuffer.dispose();
+    if (this.modelBuffer != null) {
+      this.modelBuffer.dispose();
+    }
+    if (this.colorBuffer != null) {
+      this.colorBuffer.dispose();
+    }
     this.program.dispose();
   }
 

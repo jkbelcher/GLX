@@ -109,8 +109,7 @@ public class UIColorPicker extends UI2dComponent {
     }
     this.color = color;
     if (color != null) {
-      color.addListener(this.redrawSwatch);
-      redrawSwatch.onParameterChanged(color);
+      color.addListener(this.redrawSwatch, true);
     }
   }
 
@@ -166,6 +165,14 @@ public class UIColorPicker extends UI2dComponent {
       }
     }
     super.onKeyPressed(keyEvent, keyChar, keyCode);
+  }
+
+  @Override
+  public void dispose() {
+    if (this.color != null) {
+      this.color.removeListener(this.redrawSwatch);
+    }
+    super.dispose();
   }
 
   protected class UIColorOverlay extends UI2dContainer {

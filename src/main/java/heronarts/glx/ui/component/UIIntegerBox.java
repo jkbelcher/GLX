@@ -215,4 +215,12 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
     return null;
   }
 
+  @Override
+  public void dispose() {
+    if (this.parameter != null) {
+      this.parameter.removeListener(this.parameterListener);
+    }
+    super.dispose();
+  }
+
 }

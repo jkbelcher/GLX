@@ -935,4 +935,8 @@ public class UI {
       }
     }
   }
+
+  public void dispose() {
+    this.root.dispose();
+  }
 }

@@ -23,8 +23,6 @@ import java.util.List;
 
 import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
-import heronarts.lx.parameter.LXParameter;
-import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.glx.ui.UI;
@@ -37,13 +35,6 @@ public class UICompoundParameterControl extends UIParameterControl {
 
   private final List<LXListenableParameter> modulationParameters = new ArrayList<LXListenableParameter>();
 
-  private final LXParameterListener redrawListener = new LXParameterListener() {
-    @Override
-    public void onParameterChanged(LXParameter p) {
-      redraw();
-    }
-  };
-
   private final UITimerTask checkRedrawTask = new UITimerTask(30, UITimerTask.Mode.FPS) {
     @Override
     public void run() {
@@ -55,6 +46,29 @@ public class UICompoundParameterControl extends UIParameterControl {
     }
   };
 
+  private final CompoundParameter.ModulationListener modulationListener = new CompoundParameter.ModulationListener() {
+
+    @Override
+    public void modulationAdded(CompoundParameter parameter, LXCompoundModulation modulation) {
+
+    }
+
+    @Override
+    public void modulationRemoved(CompoundParameter parameter, LXCompoundModulation modulation) {
+      removeModulationParameter(modulation.range);
+      removeModulationParameter(modulation.polarity);
+      removeModulationParameter(modulation.enabled);
+    }
+
+    private void removeModulationParameter(LXListenableParameter parameter) {
+      if (modulationParameters.contains(parameter)) {
+        parameter.removeListener(redraw);
+        modulationParameters.remove(parameter);
+      }
+    }
+
+  };
+
   protected UICompoundParameterControl(float x, float y, float w, float h) {
     super(x, y, w, h);
     addLoopTask(this.checkRedrawTask);
@@ -63,10 +77,14 @@ public class UICompoundParameterControl extends UIParameterControl {
   @Override
   public UIParameterControl setParameter(LXNormalizedParameter parameter) {
     for (LXListenableParameter p : this.modulationParameters) {
-      p.removeListener(this.redrawListener);
+      p.removeListener(this.redraw);
     }
     this.modulationParameters.clear();
-    return super.setParameter(parameter);
+    super.setParameter(parameter);
+    if (parameter instanceof CompoundParameter) {
+      ((CompoundParameter) parameter).addModulationListener(this.modulationListener);
+    }
+    return this;
   }
 
   protected double getCompoundNormalized() {
@@ -85,14 +103,14 @@ public class UICompoundParameterControl extends UIParameterControl {
       this.modulationParameters.add(modulation.range);
       this.modulationParameters.add(modulation.polarity);
       this.modulationParameters.add(modulation.enabled);
-      modulation.range.addListener(this.redrawListener);
-      modulation.polarity.addListener(this.redrawListener);
-      modulation.enabled.addListener(this.redrawListener);
+      modulation.range.addListener(this.redraw);
+      modulation.polarity.addListener(this.redraw);
+      modulation.enabled.addListener(this.redraw);
 
       // Colors may be shared across multiple modulations from same source component
       if (!this.modulationParameters.contains(modulation.color)) {
         this.modulationParameters.add(modulation.color);
-        modulation.color.addListener(this.redrawListener);
+        modulation.color.addListener(this.redraw);
       }
     }
   }
@@ -112,5 +130,17 @@ public class UICompoundParameterControl extends UIParameterControl {
       }
     }
     return actions;
+  }
+
+  @Override
+  public void dispose() {
+    if (this.parameter instanceof CompoundParameter) {
+      ((CompoundParameter) this.parameter).removeModulationListener(this.modulationListener);
+    }
+    for (LXListenableParameter parameter : this.modulationParameters) {
+      parameter.removeListener(this.redraw);
+    }
+    this.modulationParameters.clear();
+    super.dispose();
   }
 }

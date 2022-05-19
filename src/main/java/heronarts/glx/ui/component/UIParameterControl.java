@@ -189,7 +189,8 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       this.polarity = this.parameter.getPolarity();
       if (this.parameter instanceof FunctionalParameter) {
         setEditable(false);
-      } else if (this.parameter instanceof LXListenableParameter) {
+      }
+      if (this.parameter instanceof LXListenableParameter) {
         ((LXListenableParameter) this.parameter).addListener(this);
       }
     }
@@ -487,6 +488,14 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
          setNormalized(((LXNormalizedValue) item).getValue());
        }
      }
+   }
+
+   @Override
+   public void dispose() {
+     if (this.parameter instanceof LXListenableParameter) {
+       ((LXListenableParameter) this.parameter).removeListener(this);
+     }
+     super.dispose();
    }
 
 }

@@ -298,4 +298,12 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
     }
   }
 
+  @Override
+  public void dispose() {
+    if (this.parameter != null) {
+      this.parameter.removeListener(this.parameterListener);
+    }
+    super.dispose();
+  }
+
 }

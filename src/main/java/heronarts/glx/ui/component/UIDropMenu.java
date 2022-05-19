@@ -246,4 +246,12 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     return null;
   }
 
+  @Override
+  public void dispose() {
+    if (this.parameter != null) {
+      this.parameter.removeListener(this);
+    }
+    super.dispose();
+  }
+
 }

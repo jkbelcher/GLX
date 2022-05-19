@@ -69,6 +69,7 @@ public class UIComponentLabel extends UILabel implements LXParameterListener {
       this.component = component;
       while (component != null) {
         component.label.addListener(this);
+        this.listenTargets.add(component.label);
         component = this.canonical ? component.getParent() : null;
       }
       updateLabel();
@@ -86,6 +87,15 @@ public class UIComponentLabel extends UILabel implements LXParameterListener {
     } else {
       setLabel((this.prefix != null ? this.prefix : "") + (this.canonical ? this.component.getCanonicalLabel() : this.component.getLabel()));
     }
+  }
+
+  @Override
+  public void dispose() {
+    for (StringParameter listenTarget : this.listenTargets) {
+      listenTarget.removeListener(this);
+    }
+    this.listenTargets.clear();
+    super.dispose();
   }
 }
 

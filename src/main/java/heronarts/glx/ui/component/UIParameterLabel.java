@@ -39,24 +39,28 @@ public class UIParameterLabel extends UILabel implements LXParameterListener {
     return this;
   }
 
+  private void removeListeners() {
+    if (this.parameter != null) {
+      LXComponent component =
+        (this.parameter instanceof LXComponent) ?
+        (LXComponent) this.parameter :
+        this.parameter.getParent();
+      while (component != null) {
+        component.label.removeListener(this);
+        component = component.getParent();
+      }
+    }
+  }
+
   public UIParameterLabel setParameter(LXParameter parameter) {
     if (this.parameter != parameter) {
-      if (this.parameter != null) {
-        LXComponent component = this.parameter.getParent();
-        if (this.parameter instanceof LXComponent) {
-          component = (LXComponent) this.parameter;
-        }
-        while (component != null) {
-          component.label.removeListener(this);
-          component = component.getParent();
-        }
-      }
+      removeListeners();
       this.parameter = parameter;
       if (this.parameter != null) {
-        LXComponent component = this.parameter.getParent();
-        if (this.parameter instanceof LXComponent) {
-          component = (LXComponent) this.parameter;
-        }
+        LXComponent component =
+          (this.parameter instanceof LXComponent) ?
+          (LXComponent) this.parameter :
+          this.parameter.getParent();
         while (component != null) {
           component.label.addListener(this);
           component = component.getParent();
@@ -83,7 +87,14 @@ public class UIParameterLabel extends UILabel implements LXParameterListener {
   /**
    * Subclasses may override this method to handle other updates needed when the label changes
    */
-  protected void onLabelChanged() {
+  protected void onLabelChanged() {}
+
+  @Override
+  public void dispose() {
+    if (this.parameter != null) {
+      removeListeners();
+    }
+    super.dispose();
   }
 }
 

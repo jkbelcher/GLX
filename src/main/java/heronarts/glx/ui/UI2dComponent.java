@@ -23,6 +23,7 @@ import java.util.Stack;
 import heronarts.glx.event.Event;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.modulation.LXParameterModulation;
+import heronarts.lx.parameter.LXParameterListener;
 
 public abstract class UI2dComponent extends UIObject {
 
@@ -96,6 +97,8 @@ public abstract class UI2dComponent extends UIObject {
   boolean needsRedraw = true;
   boolean childNeedsRedraw = true;
   boolean needsBlit = false;
+
+  public final LXParameterListener redraw = (p) -> { redraw(); };
 
   protected UI2dComponent() {
     this(0, 0, 0, 0);
