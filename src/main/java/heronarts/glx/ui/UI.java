@@ -466,11 +466,27 @@ public class UI {
     lx.engine.mapping.mode.addListener((p) -> {
 
       LXMappingEngine.Mode mappingMode = lx.engine.mapping.getMode();
-      this.midiMapping = lx.engine.mapping.getMode() == LXMappingEngine.Mode.MIDI;
+
+      boolean mappingOff = mappingMode == LXMappingEngine.Mode.OFF;
+      this.midiMapping = mappingMode == LXMappingEngine.Mode.MIDI;
       this.modulationSourceMapping = mappingMode == LXMappingEngine.Mode.MODULATION_SOURCE;
       this.modulationTargetMapping = mappingMode == LXMappingEngine.Mode.MODULATION_TARGET;
       this.triggerSourceMapping = mappingMode == LXMappingEngine.Mode.TRIGGER_SOURCE;
       this.triggerTargetMapping = mappingMode == LXMappingEngine.Mode.TRIGGER_TARGET;
+
+      // Clear mapping state when mapping is finished
+      if (mappingOff) {
+        this.modulationEngine = this.lx.engine.modulation;
+        this.controlTarget = null;
+        this.modulationSource = null;
+        this.triggerSource = null;
+      }
+      if (this.triggerSourceMapping) {
+        this.triggerSource = null;
+      }
+      if (this.modulationSourceMapping) {
+        this.modulationSource = null;
+      }
 
       if (this.midiMapping) {
         this.contextualHelpText.setValue("Click on a control target to MIDI map, eligible controls are highlighted");
@@ -643,15 +659,32 @@ public class UI {
     return this.controlTarget;
   }
 
+  public UI mapModulationOff() {
+    this.lx.engine.mapping.setMode(LXMappingEngine.Mode.OFF);
+    return this;
+  }
+
+  public UI mapTriggerSource() {
+    return mapTriggerSource(this.lx.engine.modulation, null);
+  }
+
   public UI mapTriggerSource(UITriggerSource triggerSource) {
-    this.modulationEngine = this.lx.engine.modulation;
+    return mapTriggerSource(this.lx.engine.modulation, triggerSource);
+  }
+
+  public UI mapTriggerSource(LXModulationEngine modulationEngine, UITriggerSource triggerSource) {
+    this.modulationEngine = modulationEngine;
     this.triggerSource = triggerSource;
-    this.lx.engine.mapping.setMode(triggerSource == null ? LXMappingEngine.Mode.OFF : LXMappingEngine.Mode.TRIGGER_TARGET);
+    this.lx.engine.mapping.setMode(triggerSource == null ? LXMappingEngine.Mode.TRIGGER_SOURCE : LXMappingEngine.Mode.TRIGGER_TARGET);
     return this;
   }
 
   UITriggerSource getTriggerSource() {
     return this.triggerSource;
+  }
+
+  public UI mapModulationSource() {
+    return mapModulationSource(this.lx.engine.modulation, null);
   }
 
   public UI mapModulationSource(UIModulationSource modulationSource) {
@@ -661,7 +694,7 @@ public class UI {
   public UI mapModulationSource(LXModulationEngine modulationEngine, UIModulationSource modulationSource) {
     this.modulationEngine = modulationEngine;
     this.modulationSource = modulationSource;
-    this.lx.engine.mapping.setMode(modulationSource == null ? LXMappingEngine.Mode.OFF : LXMappingEngine.Mode.MODULATION_TARGET);
+    this.lx.engine.mapping.setMode(modulationSource == null ? LXMappingEngine.Mode.MODULATION_SOURCE : LXMappingEngine.Mode.MODULATION_TARGET);
     return this;
   }
 
