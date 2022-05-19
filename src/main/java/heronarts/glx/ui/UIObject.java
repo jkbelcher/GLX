@@ -121,6 +121,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     for (ParameterListener parameterListener : this.parameterListeners) {
       parameterListener.parameter.removeListener(parameterListener.listener);
     }
+    this.parameterListeners.clear();
     this.visible.dispose();
     for (UIObject child : this.children) {
       child.dispose();
