@@ -282,4 +282,12 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     return null;
   }
 
+  @Override
+  public void dispose() {
+    if (this.parameter != null) {
+      this.parameter.removeListener(this);
+    }
+    super.dispose();
+  }
+
 }

@@ -28,8 +28,11 @@ import heronarts.lx.clipboard.LXClipboardItem;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.CompoundParameter;
+import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
+import heronarts.lx.parameter.LXParameterListener;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,12 +40,24 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class UIObject extends UIEventHandler implements LXLoopTask {
 
+  private static class ParameterListener {
+    private final LXListenableParameter parameter;
+    private final LXParameterListener listener;
+
+    private ParameterListener(LXListenableParameter parameter, LXParameterListener listener) {
+      this.parameter = parameter;
+      this.listener = listener;
+    }
+  }
+
   UI ui = null;
 
   public final BooleanParameter visible = new BooleanParameter("Visible", true);
 
   final List<UIObject> mutableChildren = new CopyOnWriteArrayList<UIObject>();
   protected final List<UIObject> children = Collections.unmodifiableList(this.mutableChildren);
+
+  private final List<ParameterListener> parameterListeners = new ArrayList<ParameterListener>();
 
   UIObject parent = null;
 
@@ -60,7 +75,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
   private String debugId = "";
 
   protected UIObject() {
-    this.visible.addListener((p) -> {
+    addListener(this.visible, (p) -> {
       if (!this.visible.isOn()) {
         blur();
       }
@@ -77,8 +92,40 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     return super.toString() + " " + debugId;
   }
 
+  /**
+   * Adds a parameter listener which will automatically be unregistered when this UIObject is disposed
+   *
+   * @param parameter Parameter to listen to
+   * @param listener Parameter listener
+   * @return this
+   */
+  public UIObject addListener(LXListenableParameter parameter, LXParameterListener listener) {
+    return addListener(parameter, listener, false);
+  }
+
+  /**
+   * Adds a parameter listener which will automatically be unregistered when this UIObject is disposed
+   *
+   * @param parameter Parameter to listen to
+   * @param listener Parameter listener
+   * @param fire Whether to fire listener immediately upon registration
+   * @return this
+   */
+  public UIObject addListener(LXListenableParameter parameter, LXParameterListener listener, boolean fire) {
+    parameter.addListener(listener, fire);
+    this.parameterListeners.add(new ParameterListener(parameter, listener));
+    return this;
+  }
+
   public void dispose() {
+    for (ParameterListener parameterListener : this.parameterListeners) {
+      parameterListener.parameter.removeListener(parameterListener.listener);
+    }
     this.visible.dispose();
+    for (UIObject child : this.children) {
+      child.dispose();
+    }
+    this.mutableChildren.clear();
   }
 
   protected UI getUI() {

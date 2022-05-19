@@ -28,7 +28,6 @@ import heronarts.lx.command.LXCommand;
 import heronarts.lx.osc.LXOscEngine;
 import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.LXParameter;
-import heronarts.lx.parameter.LXParameterListener;
 
 public class UIButtonGroup extends UI2dContainer implements UIControlTarget, UIContextActions {
 
@@ -84,17 +83,15 @@ public class UIButtonGroup extends UI2dContainer implements UIControlTarget, UIC
       .addToContainer(this);
     }
 
-    parameter.addListener(new LXParameterListener() {
-      public void onParameterChanged(LXParameter p) {
-        int active = parameter.getValuei();
-        inParameterUpdate = true;
-        for (int i = 0; i < buttons.length; ++i) {
-          if (!hideFirst || i > 0) {
-            buttons[i].setActive(i == active);
-          }
+    addListener(parameter, (p) -> {
+      int active = parameter.getValuei();
+      inParameterUpdate = true;
+      for (int i = 0; i < buttons.length; ++i) {
+        if (!hideFirst || i > 0) {
+          buttons[i].setActive(i == active);
         }
-        inParameterUpdate = false;
       }
+      inParameterUpdate = false;
     });
   }
 

@@ -142,6 +142,11 @@ public interface UIItemList {
     public Section getSection() {
       return null;
     }
+
+    /**
+     * Dispose of the item
+     */
+    public void dispose() {}
   }
 
   /**

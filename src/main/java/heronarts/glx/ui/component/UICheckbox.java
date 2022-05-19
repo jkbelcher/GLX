@@ -237,4 +237,12 @@ public class UICheckbox extends UIParameterComponent implements UIControlTarget,
     return null;
   }
 
+  @Override
+  public void dispose() {
+    if (this.parameter != null) {
+      this.parameter.removeListener(this.parameterListener);
+    }
+    super.dispose();
+  }
+
 }

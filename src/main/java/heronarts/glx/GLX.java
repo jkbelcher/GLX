@@ -600,6 +600,13 @@ public class GLX extends LX {
   public void dispose() {
     glfwDestroyCursor(this.handCursor);
     this.program.dispose();
+
+    // NOTE: destroy the whole UI first, rip down all the listeners
+    // before disposing of the engine itself
+    log("Disposing of the GLX UI");
+    this.ui.dispose();
+
+    log("Disposing of the LX core");
     super.dispose();
   }
 

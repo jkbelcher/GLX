@@ -110,16 +110,12 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   private float iconOffsetX = 0, iconOffsetY = 0;
 
-  private final LXParameterListener booleanParameterListener = new LXParameterListener() {
-    public void onParameterChanged(LXParameter p) {
-      setActive(booleanParameter.isOn(), false);
-    }
+  private final LXParameterListener booleanParameterListener = (p) -> {
+    setActive(booleanParameter.isOn(), false);
   };
 
-  private final LXParameterListener enumParameterListener = new LXParameterListener() {
-    public void onParameterChanged(LXParameter p) {
-      setLabel(enumParameter.getEnum().toString());
-    }
+  private final LXParameterListener enumParameterListener = (p) -> {
+    setLabel(enumParameter.getEnum().toString());
   };
 
   public UIButton() {
@@ -612,6 +608,12 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       return this.booleanParameter;
     }
     return null;
+  }
+
+  @Override
+  public void dispose() {
+    removeParameter();
+    super.dispose();
   }
 
 }

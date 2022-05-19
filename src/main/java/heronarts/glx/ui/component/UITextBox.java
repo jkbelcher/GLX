@@ -184,4 +184,12 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
       }
     }
   }
+
+  @Override
+  public void dispose() {
+    if (this.parameter != null) {
+      this.parameter.removeListener(this.parameterListener);
+    }
+    super.dispose();
+  }
 }
