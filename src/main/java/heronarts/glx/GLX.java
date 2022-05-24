@@ -184,9 +184,14 @@ public class GLX extends LX {
     glfwTerminate();
     glfwSetErrorCallback(null).free();
 
+    // We are super done
+    terminate();
+
     // The program *should* end now, if not it means we hung a thread somewhere...
     log("Done with main thread, GLX shutdown complete. Thanks for playing. <3");
   }
+
+  protected void terminate() {}
 
   /**
    * Subclasses may override to create a custom structured UI
@@ -603,10 +608,8 @@ public class GLX extends LX {
 
     // NOTE: destroy the whole UI first, rip down all the listeners
     // before disposing of the engine itself
-    log("Disposing of the GLX UI");
     this.ui.dispose();
 
-    log("Disposing of the LX core");
     super.dispose();
   }
 
