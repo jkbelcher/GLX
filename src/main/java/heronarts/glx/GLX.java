@@ -184,14 +184,9 @@ public class GLX extends LX {
     glfwTerminate();
     glfwSetErrorCallback(null).free();
 
-    // We are super done
-    terminate();
-
     // The program *should* end now, if not it means we hung a thread somewhere...
     log("Done with main thread, GLX shutdown complete. Thanks for playing. <3");
   }
-
-  protected void terminate() {}
 
   /**
    * Subclasses may override to create a custom structured UI
