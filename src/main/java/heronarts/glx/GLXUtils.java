@@ -93,7 +93,8 @@ public class GLXUtils {
   }
 
   public static Image loadImage(String path) throws IOException {
-    return new Image(loadFile(path));
+    ByteBuffer buffer = loadFile(path);
+    return (buffer != null) ? new Image(buffer) : null;
   }
 
   public static ByteBuffer loadShader(GLX glx, String name) throws IOException {
