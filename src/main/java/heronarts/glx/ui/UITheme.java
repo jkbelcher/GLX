@@ -483,13 +483,13 @@ public class UITheme {
   }
 
   /**
-   * Sets aux color
+   * Sets highlight color
    *
    * @param color Color
    * @return this
    */
-  public UITheme setAuxColor(int color) {
-    this.auxColor = color;
+  public UITheme setSurfaceColor(int color) {
+    this.surfaceColor = color;
     return this;
   }
 
@@ -503,13 +503,13 @@ public class UITheme {
   }
 
   /**
-   * Sets highlight color
+   * Sets aux color
    *
    * @param color Color
    * @return this
    */
-  public UITheme setSurfaceColor(int color) {
-    this.surfaceColor = color;
+  public UITheme setAuxColor(int color) {
+    this.auxColor = color;
     return this;
   }
 
