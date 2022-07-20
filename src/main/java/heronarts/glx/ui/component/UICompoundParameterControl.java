@@ -76,6 +76,9 @@ public class UICompoundParameterControl extends UIParameterControl {
 
   @Override
   public UIParameterControl setParameter(LXNormalizedParameter parameter) {
+    if (this.parameter instanceof CompoundParameter) {
+      ((CompoundParameter) this.parameter).removeModulationListener(this.modulationListener);
+    }
     for (LXListenableParameter p : this.modulationParameters) {
       p.removeListener(this.redraw);
     }
