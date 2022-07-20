@@ -723,16 +723,25 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
 
   }
 
+  private boolean needsClear = false;
+
   public final void draw(UI ui, View view) {
     if (view != this.view) {
       throw new IllegalArgumentException("Not currently supported to draw a 3dContext into a different view");
     }
 
+    // If the view has drawn before and is now invisible,
+    // need to touch to clear it
     if (!isVisible()) {
-      this.view.bind();
-      BGFX.bgfx_touch(this.view.getId());
+      if (this.needsClear) {
+        this.view.bind();
+        BGFX.bgfx_touch(this.view.getId());
+        this.needsClear = false;
+      }
       return;
     }
+
+    this.needsClear = true;
 
     // Set the camera view matrix
     computeCamera(false);
