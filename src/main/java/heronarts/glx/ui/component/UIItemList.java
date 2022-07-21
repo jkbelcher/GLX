@@ -240,6 +240,7 @@ public interface UIItemList {
 
     private int controlSurfaceFocusIndex = -1;
     private int controlSurfaceFocusLength = -1;
+    private int controlSurfaceFocusColor = -1;
 
     private Impl(UI ui, UI2dContainer list) {
       this.list = list;
@@ -458,9 +459,10 @@ public interface UIItemList {
       this.isReorderable = isReorderable;
     }
 
-    private void setControlSurfaceFocus(int index, int length) {
+    private void setControlSurfaceFocus(int index, int length, int color) {
       this.controlSurfaceFocusIndex = index;
       this.controlSurfaceFocusLength = length;
+      this.controlSurfaceFocusColor = color;
       this.list.redraw();
     }
 
@@ -657,7 +659,7 @@ public interface UIItemList {
       }
 
       if (this.controlSurfaceFocusIndex >= 0 && this.controlSurfaceFocusLength > 0) {
-        vg.strokeColor(ui.theme.getSurfaceColor());
+        vg.strokeColor(this.controlSurfaceFocusColor);
         vg.beginPath();
         vg.rect(
           PADDING - .5f,
@@ -967,8 +969,8 @@ public interface UIItemList {
     }
 
     @Override
-    public UIItemList setControlSurfaceFocus(int index, int length) {
-      this.impl.setControlSurfaceFocus(index, length);
+    public UIItemList setControlSurfaceFocus(int index, int length, int color) {
+      this.impl.setControlSurfaceFocus(index, length, color);
       return this;
     }
 
@@ -1141,8 +1143,8 @@ public interface UIItemList {
     }
 
     @Override
-    public UIItemList setControlSurfaceFocus(int index, int length) {
-      this.impl.setControlSurfaceFocus(index, length);
+    public UIItemList setControlSurfaceFocus(int index, int length, int color) {
+      this.impl.setControlSurfaceFocus(index, length, color);
       return this;
     }
 
@@ -1347,9 +1349,10 @@ public interface UIItemList {
    *
    * @param index Start of the surface focus
    * @param length Length of the surface focus block
+   * @param color Color to show focus with
    * @return this
    */
-  public UIItemList setControlSurfaceFocus(int index, int length);
+  public UIItemList setControlSurfaceFocus(int index, int length, int color);
 
   /**
    * Adds a listener to receive notifications about list operations
