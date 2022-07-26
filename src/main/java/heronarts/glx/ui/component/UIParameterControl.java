@@ -31,6 +31,7 @@ import heronarts.glx.event.Event;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UICopy;
 import heronarts.glx.ui.UIModulationSource;
@@ -291,6 +292,15 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
     }
   }
 
+  public static void drawParameterLabel(UI ui, VGraphics vg, UI2dComponent component, String labelText) {
+    vg.beginPath();
+    vg.fillColor(ui.theme.getControlTextColor());
+    vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
+    vg.fontFace(ui.theme.getControlFont());
+    vg.text(component.getWidth()/2, component.getHeight() - TEXT_MARGIN - LABEL_HEIGHT/2, clipTextToWidth(vg, labelText, component.getWidth() - TEXT_MARGIN));
+    vg.fill();
+  }
+
   private void drawLabel(UI ui, VGraphics vg) {
     if (this.editing) {
       vg.beginPath();
@@ -307,12 +317,8 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
 
     } else {
       String labelText = this.showValue ? getValueString() : getLabelString();
-      vg.beginPath();
-      vg.fillColor(ui.theme.getControlTextColor());
-      vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
-      vg.fontFace(ui.theme.getControlFont());
-      vg.text(this.width/2, this.height - TEXT_MARGIN - LABEL_HEIGHT/2, clipTextToWidth(vg, labelText, this.width - TEXT_MARGIN));
-      vg.fill();
+      drawParameterLabel(ui, vg, this, labelText);
+
     }
   }
 

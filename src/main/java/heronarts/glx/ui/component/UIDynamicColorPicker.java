@@ -45,7 +45,7 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
     addLoopTask(new UITimerTask(30, UITimerTask.Mode.FPS) {
       @Override
       protected void run() {
-        setBackgroundColor(dynamicColor.getColor());
+        setDrawColor(dynamicColor.getColor());
       }
     });
     setFocusCorners(false);
@@ -87,7 +87,7 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
       period;
 
     UIDynamicColorOverlay(UI ui) {
-      super(38);
+      super(ui, 38);
 
       // Horizontal break
       new UI2dComponent(12, 140, 220, 1) {}
