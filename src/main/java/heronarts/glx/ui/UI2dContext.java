@@ -142,4 +142,10 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     redraw();
   }
 
+  @Override
+  public void dispose() {
+    this.ui.disposeFramebuffer(this.framebuffer);
+    super.dispose();
+  }
+
 }

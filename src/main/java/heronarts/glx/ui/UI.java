@@ -321,6 +321,12 @@ public class UI {
   private final List<UI2dComponent> glfwThreadRedrawList =
     new ArrayList<UI2dComponent>();
 
+  private final List<VGraphics.Framebuffer> threadSafeDisposeList =
+    Collections.synchronizedList(new ArrayList<VGraphics.Framebuffer>());
+
+  private final List<VGraphics.Framebuffer> glfwThreadDisposeList =
+    new ArrayList<VGraphics.Framebuffer>();
+
   public class Profiler {
     public long drawNanos = 0;
   }
@@ -804,6 +810,10 @@ public class UI {
     }
   }
 
+  void disposeFramebuffer(VGraphics.Framebuffer buffer) {
+    this.threadSafeDisposeList.add(buffer);
+  }
+
   public float getContentScaleX() {
     return this.lx.getUIContentScaleX();
   }
@@ -844,6 +854,16 @@ public class UI {
 
     // Run loop tasks through the UI tree
     this.root.loop(deltaMs);
+
+    // Dispose of any framebuffers that are done with
+    this.glfwThreadDisposeList.clear();
+    synchronized (this.threadSafeDisposeList) {
+      this.glfwThreadDisposeList.addAll(this.threadSafeDisposeList);
+      this.threadSafeDisposeList.clear();
+    }
+    for (VGraphics.Framebuffer framebuffer : this.glfwThreadDisposeList) {
+      framebuffer.dispose();
+    }
 
     // Iterate through all objects that need redraw state marked
     this.glfwThreadRedrawList.clear();

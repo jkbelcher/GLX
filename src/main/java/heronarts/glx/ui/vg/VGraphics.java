@@ -302,6 +302,14 @@ public class VGraphics {
 
       this.isStale = false;
     }
+
+    public void dispose() {
+      if (this.buffer != null) {
+        nvgluDeleteFramebuffer(this.buffer);
+      }
+      this.buffer = null;
+    }
+
   }
 
   private final GLX glx;
