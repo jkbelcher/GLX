@@ -26,6 +26,11 @@ public class UI2dScrollContext extends UI2dContext {
   private boolean dynamicHeight = false;
   private float maxHeight = -1;
 
+  private boolean dynamicWidth = false;
+  private float maxWidth = -1;
+
+  // Dimensions of the "virtual" content that can be scrolled within
+  // the actual bounds of this context
   private float scrollWidth;
   private float scrollHeight;
 
@@ -39,6 +44,37 @@ public class UI2dScrollContext extends UI2dContext {
   }
 
   /**
+   * Sets a maximum width on the scroll container. Resize or dynamic layout operations
+   * up to this size will actually resize the container and texture itself. But past that point,
+   * scroll operation occurs.
+   *
+   * @param maxWidth Maximum width before scrolling kicks in
+   * @param reflow Reflow on this call
+   * @return this
+   */
+  public UI2dScrollContext setMaxWidth(float maxWidth) {
+    return setMaxWidth(maxWidth, false);
+  }
+
+  /**
+   * Sets a maximum width on the scroll container. Resize or dynamic layout operations
+   * up to this size will actually resize the container and texture itself. But past that point,
+   * scroll operation occurs.
+   *
+   * @param maxWidth Maximum width before scrolling kicks in
+   * @param reflow Reflow on this call
+   * @return this
+   */
+  public UI2dScrollContext setMaxWidth(float maxWidth, boolean reflow) {
+    this.dynamicWidth = true;
+    this.maxWidth = maxWidth;
+    if (reflow) {
+      reflow();
+    }
+    return this;
+  }
+
+  /**
    * Sets a maximum height on the scroll container. Resize or dynamic layout operations
    * up to this size will actually resize the container and texture itself. But past that point,
    * scroll operation occurs.
@@ -47,21 +83,47 @@ public class UI2dScrollContext extends UI2dContext {
    * @return this
    */
   public UI2dScrollContext setMaxHeight(float maxHeight) {
-    this.dynamicHeight = true;
-    this.maxHeight = maxHeight;
-    return this;
+    return setMaxHeight(maxHeight, false);
   }
 
+  /**
+   * Sets a maximum height on the scroll container. Resize or dynamic layout operations
+   * up to this size will actually resize the container and texture itself. But past that point,
+   * scroll operation occurs.
+   *
+   * @param maxHeight Maximum height before scrolling kicks in
+   * @param reflow Reflow on this call
+   * @return this
+   */
+  public UI2dScrollContext setMaxHeight(float maxHeight, boolean reflow) {
+    this.dynamicHeight = true;
+    this.maxHeight = maxHeight;
+    if (reflow) {
+      reflow();
+    }
+    return this;
+  }
 
   @Override
   public UI2dContainer setContentSize(float w, float h) {
     // Explicitly do not invoke super here!
-    if (this.dynamicHeight) {
-      setSize(this.width, Math.min(this.maxHeight, h));
+    if (this.dynamicWidth || this.dynamicHeight) {
+      setSize(
+        this.dynamicWidth ? Math.min(this.maxWidth, w) : this.width,
+        this.dynamicHeight ? Math.min(this.maxHeight, h) : this.height
+      );
     }
     return setScrollSize(w, h);
   }
 
+  /**
+   * Sets the size of the scrolled content, which could potentially be larger
+   * than the actual size of this element itself
+   *
+   * @param scrollWidth Width of scrollable virtual pane
+   * @param scrollHeight Height of scrollable virtual pane
+   * @return
+   */
   public UI2dScrollContext setScrollSize(float scrollWidth, float scrollHeight) {
     if ((this.scrollWidth != scrollWidth) || (this.scrollHeight != scrollHeight)) {
       this.scrollWidth = scrollWidth;
@@ -127,10 +189,13 @@ public class UI2dScrollContext extends UI2dContext {
     return this.scrollY;
   }
 
+  protected void onScrollChange() {}
+
   public UI2dScrollContext setScrollX(float scrollX) {
     scrollX = LXUtils.constrainf(scrollX, minScrollX(), 0);
     if (this.scrollX != scrollX) {
       this.scrollX = scrollX;
+      onScrollChange();
       redraw();
     }
     return this;
@@ -140,6 +205,7 @@ public class UI2dScrollContext extends UI2dContext {
     scrollY = LXUtils.constrainf(scrollY, minScrollY(), 0);
     if (this.scrollY != scrollY) {
       this.scrollY = scrollY;
+      onScrollChange();
       redraw();
     }
     return this;
@@ -153,6 +219,7 @@ public class UI2dScrollContext extends UI2dContext {
       this.scrollY = Math.max(this.scrollY, minScrollY);
       redraw();
     }
+    onScrollChange();
   }
 
   @Override
