@@ -362,6 +362,12 @@ public class UI {
       setBackgroundColor(0);
     }
 
+    private void clearContent(UI2dComponent overlayContent) {
+      if (this.overlayContent == overlayContent) {
+        setContent(null);
+      }
+    }
+
     private void setContent(UI2dComponent overlayContent) {
       if (this.overlayContent != null) {
         this.overlayContent.setVisible(false);
@@ -793,6 +799,11 @@ public class UI {
 
   public UI showContextDialogMessage(String message) {
     return showContextOverlay(new UIDialogBox(this, message));
+  }
+
+  public UI clearContextOverlay(UI2dComponent contextOverlay) {
+    this.contextMenuOverlay.clearContent(contextOverlay);
+    return this;
   }
 
   public UI showContextOverlay(UI2dComponent contextOverlay) {

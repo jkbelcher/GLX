@@ -173,4 +173,11 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
     this.contextMenu.setHighlight(0);
     getUI().showContextOverlay(this.contextMenu);
   }
+
+  @Override
+  public void dispose() {
+    getUI().clearContextOverlay(this.contextMenu);
+    this.contextMenu.dispose();
+    super.dispose();
+  }
 }
