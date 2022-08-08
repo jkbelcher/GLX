@@ -134,7 +134,7 @@ public class UIColorPicker extends UI2dComponent {
     if (this.deviceMode) {
       vg.rect(UIKnob.KNOB_MARGIN, 0, UIKnob.KNOB_SIZE, UIKnob.KNOB_SIZE);
     } else {
-      vg.rect(0, 0, this.width, this.height);
+      vg.rect(0, 0, this.width, this.height, getBorderRounding());
     }
     vg.stroke();
     vg.fill();
