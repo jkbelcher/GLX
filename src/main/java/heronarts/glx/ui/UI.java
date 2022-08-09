@@ -23,6 +23,7 @@ import heronarts.glx.View;
 import heronarts.glx.event.Event;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
+import heronarts.glx.ui.component.UIContextMenu;
 import heronarts.glx.ui.component.UILabel;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
@@ -349,11 +350,13 @@ public class UI {
 
   private UIEventHandler topLevelKeyEventHandler = null;
 
-  private class UIContextOverlay extends UI2dContext {
+  private class UIContextOverlay extends UI2dScrollContext {
 
     private boolean mousePressed = false;
 
     private UI2dComponent overlayContent = null;
+
+    private UIContextMenu contextMenu = null;
 
     public UIContextOverlay() {
       super(UI.this, 0, 0, 0, 0);
@@ -375,8 +378,20 @@ public class UI {
         root.mutableChildren.remove(this);
       }
       this.overlayContent = overlayContent;
+      this.contextMenu = null;
       if (overlayContent != null) {
-        setSize(overlayContent.getWidth(), overlayContent.getHeight());
+        float contentWidth = overlayContent.getWidth();
+        float contentHeight = overlayContent.getHeight();
+        if (overlayContent instanceof UIContextMenu) {
+          this.contextMenu = (UIContextMenu) overlayContent;
+          float scrollHeight = contextMenu.getScrollHeight();
+          setSize(contentWidth, scrollHeight);
+          setScrollSize(contentWidth, contentHeight);
+        } else {
+          setScrollSize(contentWidth, contentHeight);
+          setSize(contentWidth, contentHeight);
+        }
+
         float x = 0;
         float y = 0;
         UIObject component = overlayContent;
@@ -395,6 +410,51 @@ public class UI {
         overlayContent.setPosition(0, 0);
         overlayContent.addToContainer(this);
         root.mutableChildren.add(this);
+      }
+    }
+
+    @Override
+    public void drawBackground(UI ui, VGraphics vg) {
+      UIContextMenu contextMenu = this.contextMenu;
+      if (contextMenu != null) {
+        float padding = contextMenu.getPadding();
+        float rounding = contextMenu.getBorderRounding();
+        if (padding > 0) {
+          vg.beginPath();
+          vg.fillColor(ui.theme.getDeviceFocusedBackgroundColor());
+          vg.rect(0, 0, this.width, this.height, rounding);
+          vg.fill();
+          rounding = 2;
+        }
+        vg.beginPath();
+        vg.fillColor(contextMenu.getBackgroundColor());
+        vg.rect(padding, padding, this.width - 2 * padding, this.height - 2*padding, rounding);
+        vg.fill();
+      } else {
+        super.drawBackground(ui, vg);
+      }
+    }
+
+    @Override
+    public void drawBorder(UI ui, VGraphics vg) {
+      UIContextMenu contextMenu = this.contextMenu;
+      if (contextMenu != null) {
+        float padding = contextMenu.getPadding();
+        float rounding = contextMenu.getBorderRounding();
+        if (padding > 0) {
+          // Cap the top and bottom of the scroll zone
+          vg.beginPath();
+          vg.fillColor(ui.theme.getDeviceFocusedBackgroundColor());
+          vg.roundedRectVarying(0, 0, this.width, padding, rounding, rounding, 0, 0);
+          vg.roundedRectVarying(0, this.height - padding, this.width, padding, 0, 0, rounding, rounding);
+          vg.fill();
+        }
+        if (contextMenu.hasBorder()) {
+          vg.beginPath();
+          vg.strokeColor(contextMenu.getBorderColor());
+          vg.rect(0, 0, this.width, this.height, rounding);
+          vg.stroke();
+        }
       }
     }
 

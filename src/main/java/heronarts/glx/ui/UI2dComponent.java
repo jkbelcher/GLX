@@ -1178,7 +1178,7 @@ public abstract class UI2dComponent extends UIObject {
     }
   }
 
-  private void drawBackground(UI ui, VGraphics vg) {
+  protected void drawBackground(UI ui, VGraphics vg) {
     if (this.width == 0 || this.height == 0) {
       return;
     }
