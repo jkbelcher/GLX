@@ -29,7 +29,6 @@ import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UI2dContainer;
-import heronarts.glx.ui.UI2dScrollContext;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.utils.LXUtils;
@@ -283,7 +282,7 @@ public interface UIItemList {
       focusIndex = LXUtils.constrain(focusIndex, -1, this.items.size() - 1);
       if (this.focusIndex != focusIndex) {
         if (focusIndex >= 0 && scroll && this.list instanceof ScrollList) {
-          UI2dScrollContext scrollList = (UI2dScrollContext) this.list;
+          ScrollList scrollList = (ScrollList) this.list;
           float yp = ROW_SPACING * focusIndex + scrollList.getScrollY();
           if (yp < 0) {
             scrollList.setScrollY(-ROW_SPACING * focusIndex);
@@ -500,14 +499,14 @@ public interface UIItemList {
 
     private float getScrollY() {
       if (this.list instanceof ScrollList) {
-        return ((UI2dScrollContext) this.list).getScrollY();
+        return ((ScrollList) this.list).getScrollY();
       }
       return 0;
     }
 
     private float getScrollHeight() {
       if (this.list instanceof ScrollList) {
-        return ((UI2dScrollContext) this.list).getScrollHeight();
+        return ((ScrollList) this.list).getScrollHeight();
       }
       return this.list.getHeight();
     }
@@ -518,7 +517,7 @@ public interface UIItemList {
 
     private void setScrollY(float scrollY) {
       if (this.list instanceof ScrollList) {
-        ((UI2dScrollContext) this.list).setScrollY(scrollY);
+        ((ScrollList) this.list).setScrollY(scrollY);
       }
     }
 
@@ -552,28 +551,34 @@ public interface UIItemList {
     private void drawFocus(UI ui, VGraphics vg) {
       int visibleFocusIndex = getVisibleFocusIndex();
       if (visibleFocusIndex >= 0) {
+        vg.scissor(1, 1, getWidth()-2, getHeight() - 2);
         float yp = ROW_MARGIN + getScrollY() + ROW_SPACING * visibleFocusIndex;
         UI2dComponent.drawFocusCorners(ui, vg, ui.theme.getFocusColor(), PADDING, yp, getRowWidth() - 2*PADDING, ROW_HEIGHT, 2);
+        vg.resetScissor();
       }
     }
 
     private void onDraw(UI ui, VGraphics vg) {
-      float yp = ROW_MARGIN;
+      final float scrollY = getScrollY();
+      final float height = getHeight();
+      final float scrollHeight = getScrollHeight();
+
+      vg.scissor(1, 1, getWidth()-2, height-2);
       vg.fontFace(ui.theme.getControlFont());
       vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
 
-      int i = 0;
+      int index = 0;
+      float yp = ROW_MARGIN + scrollY;
 
       float rowWidth = getRowWidth();
 
-      if (getScrollHeight() > getHeight()) {
-        float percentCovered = getHeight() / getScrollHeight();
-        float barHeight = percentCovered * getHeight() - 2*PADDING;
-        float startPosition = -getScrollY() / getScrollHeight();
-        float barY = -getScrollY() + startPosition * getHeight() + PADDING;
+      if (scrollHeight > height) {
+        float eligibleHeight = height - 2*PADDING;
+        float barHeight = height / scrollHeight * eligibleHeight;
+        float barY = PADDING - (eligibleHeight - barHeight) * (getScrollY() / (scrollHeight - height));
         vg.beginPath();
         vg.fillColor(0xff333333);
-        vg.rect(getWidth() - PADDING-SCROLL_BAR_WIDTH, barY, SCROLL_BAR_WIDTH, barHeight, 4);
+        vg.rect(getWidth() - PADDING - SCROLL_BAR_WIDTH, barY, SCROLL_BAR_WIDTH, barHeight, 2);
         vg.fill();
       }
 
@@ -583,19 +588,29 @@ public interface UIItemList {
 
         // Skip rendering items that are in a collapsed section
         if (section != null && !section.expanded) {
-          ++i;
+          ++index;
           continue;
         }
 
-        boolean renameItem = this.renaming && (this.focusIndex == i);
+        if (yp <= -ROW_SPACING) {
+          // We're not visible yet...
+          ++index;
+          yp += ROW_SPACING;
+          continue;
+        } else if (yp > getHeight()) {
+          // We're offscreen at this point...
+          break;
+        }
+
+        boolean renameItem = this.renaming && (this.focusIndex == index);
 
         int backgroundColor, textColor;
         if (item.isActive()) {
           backgroundColor = item.getActiveColor(ui);
           textColor = UI.WHITE;
         } else {
-          backgroundColor = (i == this.focusIndex) ? ui.theme.getSelectionColor() : ui.theme.getControlBackgroundColor();
-          textColor = isSection ? 0xffaaaaaa : ((i == this.focusIndex) ? UI.WHITE : ui.theme.getControlTextColor());
+          backgroundColor = (index == this.focusIndex) ? ui.theme.getSelectionColor() : ui.theme.getControlBackgroundColor();
+          textColor = isSection ? 0xffaaaaaa : ((index == this.focusIndex) ? UI.WHITE : ui.theme.getControlTextColor());
         }
         vg.beginPath();
         vg.fillColor(backgroundColor);
@@ -655,21 +670,25 @@ public interface UIItemList {
         }
         yp += ROW_SPACING;
 
-        ++i;
+        ++index;
       }
+
 
       if (this.controlSurfaceFocusIndex >= 0 && this.controlSurfaceFocusLength > 0) {
         vg.strokeColor(this.controlSurfaceFocusColor);
         vg.beginPath();
         vg.rect(
           PADDING - .5f,
-          ROW_MARGIN + this.controlSurfaceFocusIndex * ROW_SPACING - .5f,
+          ROW_MARGIN + scrollY + this.controlSurfaceFocusIndex * ROW_SPACING - .5f,
           rowWidth - 2*PADDING + 1,
           Math.min(this.controlSurfaceFocusLength, this.items.size() - this.controlSurfaceFocusIndex) * ROW_SPACING - ROW_MARGIN + 1,
           4
         );
         vg.stroke();
       }
+
+      vg.resetScissor();
+
     }
 
     private int getMouseItemIndex(float my) {
@@ -700,7 +719,7 @@ public interface UIItemList {
         this.dragging = true;
       } else {
         this.dragging = false;
-        int index = getMouseItemIndex(my);
+        int index = getMouseItemIndex(my - getScrollY());
         if (index >= 0) {
           setFocusIndex(index);
           if (this.showCheckboxes && (mx < (5*PADDING + CHECKBOX_SIZE))) {
@@ -865,14 +884,55 @@ public interface UIItemList {
     }
   }
 
-  public static class ScrollList extends UI2dScrollContext implements UIItemList, UIFocus {
+  public static class ScrollList extends UI2dContainer implements UIItemList, UIFocus {
 
     private final Impl impl;
 
+    private float scrollY = 0;
+    private float scrollHeight = 0;
+
     public ScrollList(UI ui, int x, int y, int w, int h) {
-      super(ui, x, y, w, h);
+      super(x, y, w, h);
       setScrollHeight(Impl.ROW_MARGIN);
       this.impl = new Impl(ui, this);
+    }
+
+    @Override
+    public UI2dContainer setContentSize(float w, float h) {
+      setWidth(w);
+      return setScrollHeight(h);
+    }
+
+    public ScrollList setScrollHeight(float scrollHeight) {
+      this.scrollHeight = scrollHeight;
+      return this;
+    }
+
+    public float getScrollHeight() {
+      return this.scrollHeight;
+    }
+
+    @Override
+    protected void onResize() {
+      rescroll();
+    }
+
+    public float getScrollY() {
+      return this.scrollY;
+    }
+
+    public ScrollList setScrollY(float scrollY) {
+      scrollY = LXUtils.constrainf(scrollY, getHeight() - getScrollHeight(), 0);
+      if (this.scrollY != scrollY) {
+        this.scrollY = scrollY;
+        redraw();
+      }
+      return this;
+    }
+
+    private void rescroll() {
+      setScrollY(this.scrollY);
+      redraw();
     }
 
     @Override
@@ -1035,6 +1095,14 @@ public interface UIItemList {
     @Override
     public void onFocus(Event event) {
       this.impl.onFocus(event);
+    }
+
+    @Override
+    protected void onMouseScroll(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
+      if (getScrollHeight() > getHeight()) {
+        mouseEvent.consume();
+        setScrollY(this.scrollY + dy);
+      }
     }
 
   }
