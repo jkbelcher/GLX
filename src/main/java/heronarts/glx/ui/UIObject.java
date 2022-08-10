@@ -741,11 +741,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
             keyEvent.consume();
           }
         } else if (keyCode == KeyEvent.VK_D && this instanceof UIDuplicate) {
-          LXClipboardItem item = ((UICopy) this).onCopy();
-          if (item != null) {
-            ((UIPaste) this).onPaste(item);
-            keyEvent.consume();
-          }
+          ((UIDuplicate) this).onDuplicate(keyEvent);
         }
       }
     }
