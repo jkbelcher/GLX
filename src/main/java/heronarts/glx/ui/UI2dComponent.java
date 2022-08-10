@@ -121,6 +121,16 @@ public abstract class UI2dComponent extends UIObject {
     return this;
   }
 
+  public String getDebugClassHierarchy() {
+    String debug = getClass().getSimpleName().isEmpty() ? getClass().getName() : getClass().getSimpleName();
+    UIObject d = getParent();
+    while ((d != null) && (d instanceof UI2dComponent)) {
+      debug += " > " + (d.getClass().getSimpleName().isEmpty() ? d.getClass().getName() : d.getClass().getSimpleName());
+      d = ((UI2dComponent) d).getParent();
+    }
+    return debug;
+  }
+
   @Override
   public UI2dComponent setDescription(String description) {
     super.setDescription(description);
@@ -984,6 +994,7 @@ public abstract class UI2dComponent extends UIObject {
       }
       redraw();
     }
+
     return this;
   }
 

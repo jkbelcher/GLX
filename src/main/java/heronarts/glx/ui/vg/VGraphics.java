@@ -36,8 +36,7 @@ import org.lwjgl.system.MemoryUtil;
 import heronarts.glx.GLX;
 import heronarts.glx.GLXUtils;
 import heronarts.glx.View;
-import heronarts.lx.LX;
-
+import heronarts.glx.ui.UI2dContext;
 import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.nanovg.NanoVGBGFX.*;
@@ -200,6 +199,7 @@ public class VGraphics {
   }
 
   public class Framebuffer {
+    private final UI2dContext context;
     private NVGLUFramebufferBGFX buffer = null;
     private final Paint paint = new Paint();
 
@@ -211,7 +211,8 @@ public class VGraphics {
     private final int imageFlags;
     private boolean isStale = true;
 
-    public Framebuffer(float w, float h, int imageFlags) {
+    public Framebuffer(UI2dContext context, float w, float h, int imageFlags) {
+      this.context = context;
       this.width = w;
       this.height = h;
       this.imageFlags = imageFlags;
@@ -229,7 +230,10 @@ public class VGraphics {
 
     public Paint getPaint() {
       if (this.buffer == null) {
-        GLX.error("Cannot use VGraphics.Framebuffer.getPaint() before initialize()");
+        GLX.error(
+          "Cannot use VGraphics.Framebuffer.getPaint() before initialize() - " +
+          this.context.getDebugClassHierarchy()
+        );
       }
       return this.paint;
     }
@@ -248,7 +252,7 @@ public class VGraphics {
 
     public Framebuffer initialize() {
       if (this.isStale) {
-        LX.error(new Exception(), "Framebuffer had to initialize itself before a bind() call ever occurred");
+        GLX.error(new Exception(), "Framebuffer had to initialize itself before a bind() call ever occurred - " + this.context.getDebugClassHierarchy());
         rebuffer();
         this.isStale = false;
       }
@@ -333,8 +337,8 @@ public class VGraphics {
     return this.vg;
   }
 
-  public Framebuffer createFramebuffer(float w, float h, int imageFlags) {
-    Framebuffer framebuffer = new Framebuffer(w, h, imageFlags);
+  public Framebuffer createFramebuffer(UI2dContext context, float w, float h, int imageFlags) {
+    Framebuffer framebuffer = new Framebuffer(context, w, h, imageFlags);
     this.allocatedBuffers.add(framebuffer);
     return framebuffer;
   }
