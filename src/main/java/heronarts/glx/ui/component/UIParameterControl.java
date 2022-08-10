@@ -51,6 +51,10 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
 
   public final static int TEXT_MARGIN = 1;
 
+  private final static int EDIT_DISPLAY_VALUE_MS = 1000;
+
+  private double editTimeRemaining = 0;
+
   private boolean showValue = false;
 
   protected LXNormalizedParameter parameter = null;
@@ -69,6 +73,14 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
     super(x, y, w, h + LABEL_MARGIN + LABEL_HEIGHT);
     setBackground(false);
     setBorder(false);
+    addLoopTask(deltaMs -> {
+      if (this.editTimeRemaining > 0) {
+        this.editTimeRemaining -= deltaMs;
+        if (this.editTimeRemaining <= 0) {
+          redraw();
+        }
+      }
+    });
   }
 
   @Override
@@ -143,7 +155,11 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
     return super.getFocusColor(ui);
   }
 
+  @Override
   public void onParameterChanged(LXParameter parameter) {
+    if (isVisible()) {
+      this.editTimeRemaining = EDIT_DISPLAY_VALUE_MS;
+    }
     redraw();
   }
 
@@ -316,7 +332,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       vg.fill();
 
     } else {
-      String labelText = this.showValue ? getValueString() : getLabelString();
+      String labelText = (this.showValue || (this.editTimeRemaining > 0)) ? getValueString() : getLabelString();
       drawParameterLabel(ui, vg, this, labelText);
 
     }
