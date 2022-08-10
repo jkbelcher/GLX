@@ -551,10 +551,15 @@ public interface UIItemList {
     private void drawFocus(UI ui, VGraphics vg) {
       int visibleFocusIndex = getVisibleFocusIndex();
       if (visibleFocusIndex >= 0) {
-        vg.scissor(1, 1, getWidth()-2, getHeight() - 2);
+        final boolean hasScroll = getScrollHeight() > getHeight();
+        if (hasScroll) {
+          vg.scissorPush(1, 1, getWidth()-2, getHeight() - 2);
+        }
         float yp = ROW_MARGIN + getScrollY() + ROW_SPACING * visibleFocusIndex;
         UI2dComponent.drawFocusCorners(ui, vg, ui.theme.getFocusColor(), PADDING, yp, getRowWidth() - 2*PADDING, ROW_HEIGHT, 2);
-        vg.resetScissor();
+        if (hasScroll) {
+          vg.scissorPop();
+        }
       }
     }
 
@@ -562,8 +567,11 @@ public interface UIItemList {
       final float scrollY = getScrollY();
       final float height = getHeight();
       final float scrollHeight = getScrollHeight();
+      final boolean hasScroll = scrollHeight > height;
 
-      vg.scissor(1, 1, getWidth()-2, height-2);
+      if (hasScroll) {
+        vg.scissorPush(1, 1, getWidth()-2, height-2);
+      }
       vg.fontFace(ui.theme.getControlFont());
       vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
 
@@ -572,7 +580,7 @@ public interface UIItemList {
 
       float rowWidth = getRowWidth();
 
-      if (scrollHeight > height) {
+      if (hasScroll) {
         float eligibleHeight = height - 2*PADDING;
         float barHeight = height / scrollHeight * eligibleHeight;
         float barY = PADDING - (eligibleHeight - barHeight) * (getScrollY() / (scrollHeight - height));
@@ -687,7 +695,9 @@ public interface UIItemList {
         vg.stroke();
       }
 
-      vg.resetScissor();
+      if (hasScroll) {
+        vg.scissorPop();
+      }
 
     }
 
@@ -904,7 +914,10 @@ public interface UIItemList {
     }
 
     public ScrollList setScrollHeight(float scrollHeight) {
-      this.scrollHeight = scrollHeight;
+      if (this.scrollHeight != scrollHeight) {
+        this.scrollHeight = scrollHeight;
+        rescroll();
+      }
       return this;
     }
 
@@ -922,7 +935,8 @@ public interface UIItemList {
     }
 
     public ScrollList setScrollY(float scrollY) {
-      scrollY = LXUtils.constrainf(scrollY, getHeight() - getScrollHeight(), 0);
+      float minScrollY = LXUtils.minf(0, getHeight() - getScrollHeight());
+      scrollY = LXUtils.constrainf(scrollY, minScrollY, 0);
       if (this.scrollY != scrollY) {
         this.scrollY = scrollY;
         redraw();

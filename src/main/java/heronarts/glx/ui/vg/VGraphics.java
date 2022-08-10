@@ -716,4 +716,25 @@ public class VGraphics {
     return this;
   }
 
+  public VGraphics scissorPush(float x, float y, float w, float h) {
+    nvgSave(this.vg);
+    nvgIntersectScissor(this.vg, x, y, w, h);
+    return this;
+  }
+
+  public VGraphics scissorPop() {
+    nvgRestore(this.vg);
+    return this;
+  }
+
+  public VGraphics save() {
+    nvgSave(this.vg);
+    return this;
+  }
+
+  public VGraphics restore() {
+    nvgRestore(this.vg);
+    return this;
+  }
+
 }
