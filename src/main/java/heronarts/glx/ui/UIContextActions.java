@@ -37,6 +37,10 @@ public interface UIContextActions {
       return this.label;
     }
 
+    public String getDescription() {
+      return null;
+    }
+
     public Action setLabel(String label) {
       this.label = label;
       return this;

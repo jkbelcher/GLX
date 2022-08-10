@@ -97,6 +97,10 @@ public class UIContextMenu extends UI2dContainer {
     if (this.highlight != highlight) {
       if (highlight >= 0 && highlight < this.actions.length) {
         this.highlight = highlight;
+        String description = this.actions[highlight].getDescription();
+        if (description != null) {
+          getUI().contextualHelpText.setValue(description);
+        }
       } else {
         this.highlight = -1;
       }
