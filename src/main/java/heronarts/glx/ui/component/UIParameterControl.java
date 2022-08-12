@@ -76,7 +76,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
     addLoopTask(deltaMs -> {
       if (this.editTimeRemaining > 0) {
         this.editTimeRemaining -= deltaMs;
-        if (this.editTimeRemaining <= 0) {
+        if (this.showLabel && (this.editTimeRemaining <= 0)) {
           redraw();
         }
       }
@@ -157,7 +157,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
 
   @Override
   public void onParameterChanged(LXParameter parameter) {
-    if (isVisible()) {
+    if (this.showLabel && isVisible()) {
       this.editTimeRemaining = EDIT_DISPLAY_VALUE_MS;
     }
     redraw();
