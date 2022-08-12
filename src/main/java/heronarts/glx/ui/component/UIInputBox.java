@@ -39,6 +39,8 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   protected boolean enabled = true;
   protected boolean editable = true;
 
+  protected boolean mouseEditable = true;
+
   protected boolean editing = false;
   protected String editBuffer = "";
 
@@ -142,6 +144,11 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       }
       this.editable = editable;
     }
+    return this;
+  }
+
+  public UIInputBox setMouseEditable(boolean mouseEditable) {
+    this.mouseEditable = mouseEditable;
     return this;
   }
 
@@ -376,7 +383,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
 
   @Override
   protected void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-    if (this.enabled && this.editable) {
+    if (this.enabled && this.editable && this.mouseEditable) {
       mouseEvent.consume();
       this.dAccum -= dy;
       int offset = (int) (this.dAccum / 5);
