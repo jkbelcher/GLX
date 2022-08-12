@@ -51,11 +51,6 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     return (short) this.framebuffer.getHandle();
   }
 
-  public UI2dContext setView(short viewId) {
-    this.framebuffer.setView(viewId);
-    return this;
-  }
-
   public VGraphics.Paint getPaint() {
     return this.framebuffer.getPaint();
   }
@@ -68,7 +63,9 @@ public class UI2dContext extends UI2dContainer implements UILayer {
    *
    * @param vg VGraphics instance
    */
-  protected final void render(VGraphics vg) {
+  protected final void render(VGraphics vg, short viewId) {
+    this.framebuffer.setView(viewId);
+
     // Bind the framebuffer, which rebuilds if necessary
     vg.bindFramebuffer(this.framebuffer);
     vg.beginFrame(this.width, this.height);

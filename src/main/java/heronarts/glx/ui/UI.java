@@ -289,7 +289,7 @@ public class UI {
       // texture framebuffer owned by the UI2dContext
       short viewId = 1;
       while (!renderStack.isEmpty() && (viewId < MAX_NVG_VIEWS_PER_PASS)) {
-        renderStack.pop().setView(viewId++).render(vg);
+        renderStack.pop().render(vg, viewId++);
       }
 
       // Finally, draw everything in the root view. Note that we don't
