@@ -264,48 +264,53 @@ public class UI {
     private static final int MAX_NVG_VIEWS_PER_PASS = 30;
 
     private final Stack<UI2dContext> renderStack = new Stack<UI2dContext>();
-    private final List<UI2dContext> drawList = new ArrayList<UI2dContext>();
+    private final List<UIObject> drawList = new ArrayList<UIObject>();
 
     public void draw() {
       this.renderStack.clear();
+
+      // Copy from the multi-threaded list into list owned by this thread
       this.drawList.clear();
+      this.drawList.addAll(this.children);
 
       // First pass, we determine which UI2dContexts need rendering, and push
       // them all onto a stack. Each will need its own BGFX view because they have
       // unique framebuffers. Since we dodn't use locks between the engine and UI
-      // thread for UI hierarchy, we'll also add the relevant UI2dContexts to
-      // a drawList on this single pass over this consistent view of the
-      // CopyOnWriteArrayList that stores the children
-      for (UIObject child : this.mutableChildren) {
+      // thread for UI hierarchy
+      for (UIObject child : this.drawList) {
         if (child instanceof UI2dContext) {
-          ((UI2dContext) child).populateRenderStack(renderStack);
-          this.drawList.add(((UI2dContext) child));
+          ((UI2dContext) child).populateRenderStack(this.renderStack);
         }
       }
 
       // Now we have all of our UI2dContexts ready to go, render all of them
-      // as necessary.
-      short viewId = 0;
+      // as necessary. Note that this is not blitting to the main screen
+      // framebuffer, it's rendering the UI2dContexts using NanoVG onto a
+      // texture framebuffer owned by the UI2dContext
+      short viewId = 1;
       while (!renderStack.isEmpty() && (viewId < MAX_NVG_VIEWS_PER_PASS)) {
         renderStack.pop().setView(viewId++).render(vg);
       }
 
-      // Draw any 3d contexts
-      for (UIObject child : this.mutableChildren) {
-        if (child instanceof UI3dContext) {
+      // Finally, draw everything in the root view. Note that we don't
+      // iterate over mutableChildren here because it could have changed. Instead
+      // we use the drawList that we compiled above when we were preparing the
+      // UI2dContext objects for rendering. We render from back to front,
+      // re-binding views as needed
+      boolean bind2d = true;
+      for (UIObject child : this.drawList) {
+        if (child instanceof UI2dContext) {
+          if (bind2d) {
+            this.view.bind(viewId++);
+            bind2d = false;
+          }
+          ((UI2dContext) child).draw(this.ui, this.view);
+        } else if (child instanceof UI3dContext) {
           UI3dContext context3d = (UI3dContext) child;
           context3d.view.setId(viewId++);
           context3d.draw(this.ui, context3d.view);
+          bind2d = true;
         }
-      }
-
-      // Finally, draw all 2d overlays onto the root view. Note that we don't
-      // iterate over mutableChildren here because it could have changed. Instead
-      // we use the drawList that we compiled above when we were preparing the
-      // UI2dContext objects for rendering.
-      this.view.bind(viewId++);
-      for (UI2dContext child : this.drawList) {
-        child.draw(this.ui, this.view);
       }
     }
   }
@@ -398,10 +403,10 @@ public class UI {
         while (component != root && component != null) {
           x += component.getX();
           y += component.getY();
-          if (component instanceof UI2dScrollContext) {
-            UI2dScrollContext scrollContext = (UI2dScrollContext) component;
-            x += scrollContext.getScrollX();
-            y += scrollContext.getScrollY();
+          if (component instanceof UI2dScrollInterface) {
+            UI2dScrollInterface scrollInterface = (UI2dScrollInterface) component;
+            x += scrollInterface.getScrollX();
+            y += scrollInterface.getScrollY();
           }
           component = component.getParent();
         }
@@ -656,10 +661,6 @@ public class UI {
 
   public void redraw() {
     this.root.redraw();
-  }
-
-  public void reflow() {
-    // Subclasses may override this method for top-level UI changes
   }
 
   public static UI get() {

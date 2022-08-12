@@ -1,5 +1,5 @@
 /**
- * Copyright 2013- Mark C. Slee, Heron Arts LLC
+ * Copyright 2022- Mark C. Slee, Heron Arts LLC
  *
  * This file is part of the LX Studio software library. By using
  * LX, you agree to the terms of the LX Studio Software License
@@ -21,7 +21,7 @@ package heronarts.glx.ui;
 import heronarts.glx.event.MouseEvent;
 import heronarts.lx.utils.LXUtils;
 
-public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterface {
+public class UI2dScrollContainer extends UI2dContainer implements UI2dScrollInterface {
 
   private boolean dynamicHeight = false;
   private float maxHeight = -1;
@@ -37,8 +37,8 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
   private boolean horizontalScrollingEnabled = false;
   private boolean verticalScrollingEnabled = true;
 
-  public UI2dScrollContext(UI ui, float x, float y, float w, float h) {
-    super(ui, x, y, w, h);
+  public UI2dScrollContainer(UI ui, float x, float y, float w, float h) {
+    super(x, y, w, h);
     this.scrollWidth = w;
     this.scrollHeight = h;
   }
@@ -52,7 +52,7 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
    * @param reflow Reflow on this call
    * @return this
    */
-  public UI2dScrollContext setMaxWidth(float maxWidth) {
+  public UI2dScrollContainer setMaxWidth(float maxWidth) {
     return setMaxWidth(maxWidth, false);
   }
 
@@ -65,7 +65,7 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
    * @param reflow Reflow on this call
    * @return this
    */
-  public UI2dScrollContext setMaxWidth(float maxWidth, boolean reflow) {
+  public UI2dScrollContainer setMaxWidth(float maxWidth, boolean reflow) {
     this.dynamicWidth = maxWidth > 0;
     this.maxWidth = maxWidth;
     if (reflow) {
@@ -82,7 +82,7 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
    * @param maxHeight Maximum height before scrolling kicks in
    * @return this
    */
-  public UI2dScrollContext setMaxHeight(float maxHeight) {
+  public UI2dScrollContainer setMaxHeight(float maxHeight) {
     return setMaxHeight(maxHeight, false);
   }
 
@@ -95,7 +95,7 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
    * @param reflow Reflow on this call
    * @return this
    */
-  public UI2dScrollContext setMaxHeight(float maxHeight, boolean reflow) {
+  public UI2dScrollContainer setMaxHeight(float maxHeight, boolean reflow) {
     this.dynamicHeight = maxHeight > 0;
     this.maxHeight = maxHeight;
     if (reflow) {
@@ -125,7 +125,7 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
    * @return
    */
   @Override
-  public UI2dScrollContext setScrollSize(float scrollWidth, float scrollHeight) {
+  public UI2dScrollContainer setScrollSize(float scrollWidth, float scrollHeight) {
     if ((this.scrollWidth != scrollWidth) || (this.scrollHeight != scrollHeight)) {
       this.scrollWidth = scrollWidth;
       this.scrollHeight = scrollHeight;
@@ -140,7 +140,7 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
   }
 
   @Override
-  public UI2dScrollContext setScrollHeight(float scrollHeight) {
+  public UI2dScrollContainer setScrollHeight(float scrollHeight) {
     if (this.scrollHeight != scrollHeight) {
       this.scrollHeight = scrollHeight;
       rescroll();
@@ -154,7 +154,7 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
   }
 
   @Override
-  public UI2dScrollContext setScrollWidth(float scrollWidth) {
+  public UI2dScrollContainer setScrollWidth(float scrollWidth) {
     if (this.scrollWidth != scrollWidth) {
       this.scrollWidth = scrollWidth;
       rescroll();
@@ -162,12 +162,12 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
     return this;
   }
 
-  public UI2dScrollContext setHorizontalScrollingEnabled(boolean horizontalScrollingEnabled) {
+  public UI2dScrollContainer setHorizontalScrollingEnabled(boolean horizontalScrollingEnabled) {
     this.horizontalScrollingEnabled = horizontalScrollingEnabled;
     return this;
   }
 
-  public UI2dScrollContext setVerticalScrollingEnabled(boolean verticalScrollingEnabled) {
+  public UI2dScrollContainer setVerticalScrollingEnabled(boolean verticalScrollingEnabled) {
     this.verticalScrollingEnabled = verticalScrollingEnabled;
     return this;
   }
@@ -199,7 +199,7 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
   protected void onScrollChange() {}
 
   @Override
-  public UI2dScrollContext setScrollX(float scrollX) {
+  public UI2dScrollContainer setScrollX(float scrollX) {
     scrollX = LXUtils.constrainf(scrollX, minScrollX(), 0);
     if (this.scrollX != scrollX) {
       this.scrollX = scrollX;
@@ -210,7 +210,7 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
   }
 
   @Override
-  public UI2dScrollContext setScrollY(float scrollY) {
+  public UI2dScrollContainer setScrollY(float scrollY) {
     scrollY = LXUtils.constrainf(scrollY, minScrollY(), 0);
     if (this.scrollY != scrollY) {
       this.scrollY = scrollY;

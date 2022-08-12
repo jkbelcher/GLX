@@ -122,10 +122,17 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   public String getDebugClassHierarchy() {
+    return getDebugClassHierarchy(false);
+  }
+
+  public String getDebugClassHierarchy(boolean reverse) {
     String debug = getClass().getSimpleName().isEmpty() ? getClass().getName() : getClass().getSimpleName();
     UIObject d = getParent();
     while ((d != null) && (d instanceof UI2dComponent)) {
-      debug += " > " + (d.getClass().getSimpleName().isEmpty() ? d.getClass().getName() : d.getClass().getSimpleName());
+      String nextClass = d.getClass().getSimpleName().isEmpty() ? d.getClass().getName() : d.getClass().getSimpleName();
+      debug = reverse ?
+        nextClass + " > " + debug :
+        debug + " < " + nextClass;
       d = ((UI2dComponent) d).getParent();
     }
     return debug;
@@ -328,10 +335,10 @@ public abstract class UI2dComponent extends UIObject {
     while (parent != null) {
       x += parent.getX();
       y += parent.getY();
-      if (parent instanceof UI2dScrollContext) {
-        UI2dScrollContext scrollContext = (UI2dScrollContext) parent;
-        x += scrollContext.getScrollX();
-        y += scrollContext.getScrollY();
+      if (parent instanceof UI2dScrollInterface) {
+        UI2dScrollInterface scrollInterface = (UI2dScrollInterface) parent;
+        x += scrollInterface.getScrollX();
+        y += scrollInterface.getScrollY();
       }
       parent = parent.getParent();
     }
@@ -952,6 +959,18 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   /**
+   * Adds this component to a container, also removing it from any other container that
+   * is currently holding it.
+   *
+   * @param container Container to place in
+   * @param redraw Whether to redraw
+   * @return this
+   */
+  public final UI2dComponent addToContainer(UIContainer container, boolean redraw) {
+    return addToContainer(container, -1, redraw);
+  }
+
+  /**
    * Adds this component to a container at a specified index, also removing it from any
    * other container that is currently holding it.
    *
@@ -1109,17 +1128,41 @@ public abstract class UI2dComponent extends UIObject {
     if (!isVisible()) {
       return;
     }
-    boolean needsBorder = this.needsRedraw || this.childNeedsRedraw;
-    boolean needsMappingOverlay = this.needsRedraw;
-    int sx = (int) this.scrollX;
-    int sy = (int) this.scrollY;
+    final boolean needsBorder = this.needsRedraw || this.childNeedsRedraw;
+    final boolean needsMappingOverlay = this.needsRedraw;
+
+    // NOTE(mcslee): these could change if the event processing thread receives
+    // mouse scroll while UI thread is rendering! Cache values in this thread
+    // context to ensure translate / untranslate match
+    final float sx = this.scrollX;
+    final float sy = this.scrollY;
+
+    final boolean needsScissor =
+      (this.needsRedraw || this.childNeedsRedraw) &&
+      (this instanceof UI2dScrollContainer) && (
+        (((UI2dScrollContainer) this).getScrollHeight() > this.height) ||
+        (((UI2dScrollContainer) this).getScrollWidth() > this.width)
+      );
+
+    // Put down the background first, before scissoring
+    if (this.needsRedraw) {
+      drawBackground(ui, vg);
+    }
+
+    // Scissor all the content and children
+    if (needsScissor) {
+      vg.scissorPush(.5f, .5f, this.width-1, this.height-1);
+    }
+
+    // Redraw ourselves, just our immediate content
     if (this.needsRedraw) {
       this.needsRedraw = false;
-      drawBackground(ui, vg);
       vg.translate(sx, sy);
       onDraw(ui, vg);
       vg.translate(-sx, -sy);
     }
+
+    // Redraw children inside of this object
     if (this.childNeedsRedraw) {
       this.childNeedsRedraw = false;
       vg.translate(sx, sy);
@@ -1127,8 +1170,12 @@ public abstract class UI2dComponent extends UIObject {
         UI2dComponent child = (UI2dComponent) childObject;
         if (child.isVisible()) {
           if (child.needsRedraw || child.childNeedsRedraw || child.needsBlit) {
-            float cx = child.x;
-            float cy = child.y;
+            // NOTE(mcslee): loose threading here! the LX thread could
+            // reposition UI based upon listeners, make sure un-translate
+            // uses the strictly same value as translate
+            final float cx = child.x;
+            final float cy = child.y;
+
             vg.translate(cx, cy);
             child.draw(ui, vg);
             vg.translate(-cx, -cy);
@@ -1137,6 +1184,12 @@ public abstract class UI2dComponent extends UIObject {
       }
       vg.translate(-sx, -sy);
     }
+
+    // Undo scissoring
+    if (needsScissor) {
+      vg.resetScissor();
+    }
+
     if (needsBorder) {
       drawBorder(ui, vg);
       if (isModulationSource() || isTriggerSource()) {
@@ -1146,6 +1199,7 @@ public abstract class UI2dComponent extends UIObject {
     if (needsMappingOverlay) {
       drawMappingOverlay(ui, vg, 0, 0, this.width, this.height);
     }
+
   }
 
   private void drawMappingBorder(UI ui, VGraphics vg) {
