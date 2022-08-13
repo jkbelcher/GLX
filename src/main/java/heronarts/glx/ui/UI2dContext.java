@@ -66,9 +66,12 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   protected final void render(VGraphics vg, short viewId) {
     this.framebuffer.setView(viewId);
 
+    this.scissor.reset(this);
+
     // Bind the framebuffer, which rebuilds if necessary
     vg.bindFramebuffer(this.framebuffer);
     vg.beginFrame(this.width, this.height);
+    vg.scissor(0, 0, this.width, this.height);
     super.draw(this.ui, vg);
     vg.endFrame();
 
@@ -136,7 +139,10 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   @Override
   protected void onResize() {
     this.framebuffer.markForResize(this.width, this.height);
-    redraw();
+
+    // Redraw with the force flag set, to ensure that this WHOLE thing is redrawn
+    // *after* the framebuffer resize
+    redraw(true);
   }
 
   @Override

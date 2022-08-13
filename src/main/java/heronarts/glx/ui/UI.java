@@ -873,11 +873,15 @@ public class UI {
   }
 
   void redraw(UI2dComponent object) {
+    redraw(object, false);
+  }
+
+  void redraw(UI2dComponent object, boolean force) {
     // NOTE(mcslee): determined empirically that it's worth putting this check here
     // to avoid contention on this synchronized list between the UI and engine threads.
     // adding the same container to be redrawn loads of times slows down. keeping the
     // redraw list short is better.
-    if (!this.threadSafeRedrawQueue.contains(object)) {
+    if (force || !this.threadSafeRedrawQueue.contains(object)) {
       this.threadSafeRedrawQueue.add(object);
     }
   }

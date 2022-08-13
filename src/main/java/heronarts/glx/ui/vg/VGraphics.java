@@ -711,6 +711,11 @@ public class VGraphics {
     return this;
   }
 
+  public VGraphics reset() {
+    nvgReset(this.vg);
+    return this;
+  }
+
   public VGraphics resetScissor() {
     nvgResetScissor(this.vg);
     return this;

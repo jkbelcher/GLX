@@ -24,8 +24,40 @@ import heronarts.glx.event.Event;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.modulation.LXParameterModulation;
 import heronarts.lx.parameter.LXParameterListener;
+import heronarts.lx.utils.LXUtils;
 
 public abstract class UI2dComponent extends UIObject {
+
+  protected static class Scissor {
+    public float x;
+    public float y;
+    public float width;
+    public float height;
+
+    private Scissor() {
+      this.x = 0;
+      this.y = 0;
+      this.width = 0;
+      this.height = 0;
+    }
+
+    protected void reset(UI2dComponent that) {
+      this.x = that.x;
+      this.y = that.y;
+      this.width = that.width;
+      this.height = that.height;
+    }
+
+    protected boolean intersect(Scissor that, float ox, float oy, float ow, float oh) {
+      this.x = LXUtils.maxf(0, that.x - ox);
+      this.y = LXUtils.maxf(0, that.y - oy);
+      this.width = LXUtils.minf(ow, that.x + that.width - ox);
+      this.height = LXUtils.minf(oh, that.y + that.height - oy);
+      return (this.width > 0) && (this.height > 0);
+    }
+  }
+
+  protected final Scissor scissor = new Scissor();
 
   /**
    * Position of the object, relative to parent, top left corner
@@ -1048,8 +1080,12 @@ public abstract class UI2dComponent extends UIObject {
    * @return this object
    */
   public final UI2dComponent redraw() {
+    return redraw(false);
+  }
+
+  final UI2dComponent redraw(boolean force) {
     if (this.ui != null && this.parent != null && this.isVisible()) {
-      this.ui.redraw(this);
+      this.ui.redraw(this, force);
     }
     return this;
   }
@@ -1137,7 +1173,7 @@ public abstract class UI2dComponent extends UIObject {
     final float sx = this.scrollX;
     final float sy = this.scrollY;
 
-    final boolean needsScissor =
+    final boolean needsVgScissor =
       (this.needsRedraw || this.childNeedsRedraw) &&
       (this instanceof UI2dScrollContainer) && (
         (((UI2dScrollContainer) this).getScrollHeight() > this.height) ||
@@ -1150,8 +1186,8 @@ public abstract class UI2dComponent extends UIObject {
     }
 
     // Scissor all the content and children
-    if (needsScissor) {
-      vg.scissorPush(.5f, .5f, this.width-1, this.height-1);
+    if (needsVgScissor) {
+      vg.scissorPush(this.scissor.x + .5f, this.scissor.y + .5f, this.scissor.width-1, this.scissor.height-1);
     }
 
     // Redraw ourselves, just our immediate content
@@ -1165,7 +1201,6 @@ public abstract class UI2dComponent extends UIObject {
     // Redraw children inside of this object
     if (this.childNeedsRedraw) {
       this.childNeedsRedraw = false;
-      vg.translate(sx, sy);
       for (UIObject childObject : this.mutableChildren) {
         UI2dComponent child = (UI2dComponent) childObject;
         if (child.isVisible()) {
@@ -1173,21 +1208,25 @@ public abstract class UI2dComponent extends UIObject {
             // NOTE(mcslee): loose threading here! the LX thread could
             // reposition UI based upon listeners, make sure un-translate
             // uses the strictly same value as translate
-            final float cx = child.x;
-            final float cy = child.y;
+            final float ox = sx + child.x;
+            final float oy = sy + child.y;
+            final float ow = child.width;
+            final float oh = child.height;
 
-            vg.translate(cx, cy);
-            child.draw(ui, vg);
-            vg.translate(-cx, -cy);
+            // Only draw children that have at least *some* intersection!
+            if (child.scissor.intersect(this.scissor, ox, oy, ow, oh)) {
+              vg.translate(ox, oy);
+              child.draw(ui, vg);
+              vg.translate(-ox, -oy);
+            }
           }
         }
       }
-      vg.translate(-sx, -sy);
     }
 
     // Undo scissoring
-    if (needsScissor) {
-      vg.resetScissor();
+    if (needsVgScissor) {
+      vg.scissorPop();
     }
 
     if (needsBorder) {
