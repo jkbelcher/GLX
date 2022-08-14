@@ -958,7 +958,6 @@ public class UI {
 
   private void populateRedrawList(UI2dComponent component) {
     if (component.redrawFlag.compareAndSet(true, false)) {
-      System.out.println("REDRAW: " + component.getDebugClassHierarchy(true));
       this.glfwThreadRedrawList.add(component);
     }
     for (UIObject child : component.children) {
