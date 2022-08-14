@@ -19,6 +19,7 @@
 package heronarts.glx.ui;
 
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import heronarts.glx.event.Event;
 import heronarts.glx.ui.vg.VGraphics;
@@ -42,8 +43,8 @@ public abstract class UI2dComponent extends UIObject {
     }
 
     protected void reset(UI2dComponent that) {
-      this.x = that.x;
-      this.y = that.y;
+      this.x = 0;
+      this.y = 0;
       this.width = that.width;
       this.height = that.height;
     }
@@ -51,8 +52,8 @@ public abstract class UI2dComponent extends UIObject {
     protected boolean intersect(Scissor that, float ox, float oy, float ow, float oh) {
       this.x = LXUtils.maxf(0, that.x - ox);
       this.y = LXUtils.maxf(0, that.y - oy);
-      this.width = LXUtils.minf(ow, that.x + that.width - ox);
-      this.height = LXUtils.minf(oh, that.y + that.height - oy);
+      this.width = LXUtils.minf(ow - this.x, that.x + that.width - ox);
+      this.height = LXUtils.minf(oh - this.y, that.y + that.height - oy);
       return (this.width > 0) && (this.height > 0);
     }
   }
@@ -125,6 +126,8 @@ public abstract class UI2dComponent extends UIObject {
 
   protected boolean debug = false;
   protected String debugName = "";
+
+  AtomicBoolean redrawFlag = new AtomicBoolean(true);
 
   boolean needsRedraw = true;
   boolean childNeedsRedraw = true;
@@ -1080,12 +1083,8 @@ public abstract class UI2dComponent extends UIObject {
    * @return this object
    */
   public final UI2dComponent redraw() {
-    return redraw(false);
-  }
-
-  final UI2dComponent redraw(boolean force) {
-    if (this.ui != null && this.parent != null && this.isVisible()) {
-      this.ui.redraw(this, force);
+    if ((this.ui != null) && (this.parent != null) && this.isVisible()) {
+      this.ui.redraw(this);
     }
     return this;
   }
@@ -1176,8 +1175,8 @@ public abstract class UI2dComponent extends UIObject {
     final boolean needsVgScissor =
       (this.needsRedraw || this.childNeedsRedraw) &&
       (this instanceof UI2dScrollContainer) && (
-        (((UI2dScrollContainer) this).getScrollHeight() > this.height) ||
-        (((UI2dScrollContainer) this).getScrollWidth() > this.width)
+        (((UI2dScrollContainer)this).getScrollWidth() > this.getWidth()) ||
+        (((UI2dScrollContainer)this).getScrollHeight() > this.getHeight())
       );
 
     // Put down the background first, before scissoring
@@ -1187,6 +1186,7 @@ public abstract class UI2dComponent extends UIObject {
 
     // Scissor all the content and children
     if (needsVgScissor) {
+      // System.out.println("SCISSOR " + scissor.x + " " + scissor.y + " " + scissor.width + " " + scissor.height + " " + getDebugClassHierarchy(true));
       vg.scissorPush(this.scissor.x + .5f, this.scissor.y + .5f, this.scissor.width-1, this.scissor.height-1);
     }
 

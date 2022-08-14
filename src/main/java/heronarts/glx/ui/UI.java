@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.bgfx.BGFX.*;
 
@@ -318,8 +319,8 @@ public class UI {
   /**
    * Redraw may be called from any thread
    */
-  private final List<UI2dComponent> threadSafeRedrawQueue =
-    Collections.synchronizedList(new ArrayList<UI2dComponent>());
+  private final AtomicBoolean redrawFlag = new AtomicBoolean(true);
+  private final AtomicBoolean disposeFramebufferFlag = new AtomicBoolean(false);
 
   /**
    * Objects to redraw on current pass thru animation thread
@@ -329,9 +330,6 @@ public class UI {
 
   private final List<VGraphics.Framebuffer> threadSafeDisposeList =
     Collections.synchronizedList(new ArrayList<VGraphics.Framebuffer>());
-
-  private final List<VGraphics.Framebuffer> glfwThreadDisposeList =
-    new ArrayList<VGraphics.Framebuffer>();
 
   public class Profiler {
     public long drawNanos = 0;
@@ -872,22 +870,18 @@ public class UI {
     return this;
   }
 
-  void redraw(UI2dComponent object) {
-    redraw(object, false);
-  }
-
-  void redraw(UI2dComponent object, boolean force) {
+  void redraw(UI2dComponent component) {
     // NOTE(mcslee): determined empirically that it's worth putting this check here
     // to avoid contention on this synchronized list between the UI and engine threads.
     // adding the same container to be redrawn loads of times slows down. keeping the
     // redraw list short is better.
-    if (force || !this.threadSafeRedrawQueue.contains(object)) {
-      this.threadSafeRedrawQueue.add(object);
-    }
+    component.redrawFlag.set(true);
+    this.redrawFlag.set(true);
   }
 
   void disposeFramebuffer(VGraphics.Framebuffer buffer) {
     this.threadSafeDisposeList.add(buffer);
+    this.disposeFramebufferFlag.set(true);
   }
 
   public float getContentScaleX() {
@@ -931,24 +925,27 @@ public class UI {
     // Run loop tasks through the UI tree
     this.root.loop(deltaMs);
 
-    // Dispose of any framebuffers that are done with
-    this.glfwThreadDisposeList.clear();
-    synchronized (this.threadSafeDisposeList) {
-      this.glfwThreadDisposeList.addAll(this.threadSafeDisposeList);
-      this.threadSafeDisposeList.clear();
-    }
-    for (VGraphics.Framebuffer framebuffer : this.glfwThreadDisposeList) {
-      framebuffer.dispose();
+    // Dispose of any framebuffers that we are done with
+    if (this.disposeFramebufferFlag.compareAndSet(true, false)) {
+      synchronized (this.threadSafeDisposeList) {
+        for (VGraphics.Framebuffer framebuffer : this.threadSafeDisposeList) {
+          framebuffer.dispose();
+        }
+        this.threadSafeDisposeList.clear();
+      }
     }
 
     // Iterate through all objects that need redraw state marked
-    this.glfwThreadRedrawList.clear();
-    synchronized (this.threadSafeRedrawQueue) {
-      this.glfwThreadRedrawList.addAll(this.threadSafeRedrawQueue);
-      this.threadSafeRedrawQueue.clear();
-    }
-    for (UI2dComponent object : this.glfwThreadRedrawList) {
-      object._redraw();
+    if (this.redrawFlag.compareAndSet(true, false)) {
+      this.glfwThreadRedrawList.clear();
+      for (UIObject obj : this.root.children) {
+        if (obj instanceof UI2dComponent) {
+          populateRedrawList((UI2dComponent) obj);
+        }
+      }
+      for (UI2dComponent object : this.glfwThreadRedrawList) {
+        object._redraw();
+      }
     }
 
     // Draw from the root
@@ -957,6 +954,16 @@ public class UI {
     endDraw();
 
     this.profiler.drawNanos = System.nanoTime() - drawStart;
+  }
+
+  private void populateRedrawList(UI2dComponent component) {
+    if (component.redrawFlag.compareAndSet(true, false)) {
+      System.out.println("REDRAW: " + component.getDebugClassHierarchy(true));
+      this.glfwThreadRedrawList.add(component);
+    }
+    for (UIObject child : component.children) {
+      populateRedrawList((UI2dComponent) child);
+    }
   }
 
   protected void beginDraw() {

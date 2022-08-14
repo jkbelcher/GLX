@@ -142,7 +142,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
 
     // Redraw with the force flag set, to ensure that this WHOLE thing is redrawn
     // *after* the framebuffer resize
-    redraw(true);
+    redraw();
   }
 
   @Override
