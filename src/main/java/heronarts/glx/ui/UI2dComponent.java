@@ -80,7 +80,11 @@ public abstract class UI2dComponent extends UIObject {
    */
   protected float height;
 
-  protected float topMargin = 0, rightMargin = 0, bottomMargin = 0, leftMargin = 0;
+  protected float
+    marginTop = 0,
+    marginRight = 0,
+    marginBottom = 0,
+    marginLeft = 0;
 
   float scrollX = 0;
 
@@ -100,7 +104,13 @@ public abstract class UI2dComponent extends UIObject {
 
   private int borderWeight = 1;
 
-  private int borderRounding = 0;
+  private boolean hasBorderRounding = false;
+
+  int
+    borderRoundingTopLeft = 0,
+    borderRoundingTopRight = 0,
+    borderRoundingBottomRight = 0,
+    borderRoundingBottomLeft = 0;;
 
   private boolean hasFocusCorners = true;
 
@@ -453,7 +463,7 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent setTopMargin(float topMargin) {
-    return setMargin(topMargin, this.rightMargin, this.bottomMargin, this.leftMargin);
+    return setMargin(topMargin, this.marginRight, this.marginBottom, this.marginLeft);
   }
 
   /**
@@ -463,7 +473,7 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent setBottomMargin(float bottomMargin) {
-    return setMargin(this.topMargin, this.rightMargin, bottomMargin, this.leftMargin);
+    return setMargin(this.marginTop, this.marginRight, bottomMargin, this.marginLeft);
   }
 
   /**
@@ -473,7 +483,7 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent setLeftMargin(float leftMargin) {
-    return setMargin(this.topMargin, this.rightMargin, this.bottomMargin, leftMargin);
+    return setMargin(this.marginTop, this.marginRight, this.marginBottom, leftMargin);
   }
 
   /**
@@ -483,7 +493,7 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent setRightMargin(float rightMargin) {
-    return setMargin(this.topMargin, rightMargin, this.bottomMargin, this.leftMargin);
+    return setMargin(this.marginTop, rightMargin, this.marginBottom, this.marginLeft);
   }
 
   /**
@@ -497,20 +507,20 @@ public abstract class UI2dComponent extends UIObject {
    */
   public UI2dComponent setMargin(float topMargin, float rightMargin, float bottomMargin, float leftMargin) {
     boolean reflow = false;
-    if (this.topMargin != topMargin) {
-      this.topMargin = topMargin;
+    if (this.marginTop != topMargin) {
+      this.marginTop = topMargin;
       reflow = true;
     }
-    if (this.rightMargin != rightMargin) {
-      this.rightMargin = rightMargin;
+    if (this.marginRight != rightMargin) {
+      this.marginRight = rightMargin;
       reflow = true;
     }
-    if (this.bottomMargin != bottomMargin) {
-      this.bottomMargin = bottomMargin;
+    if (this.marginBottom != bottomMargin) {
+      this.marginBottom = bottomMargin;
       reflow = true;
     }
-    if (this.leftMargin != leftMargin) {
-      this.leftMargin = leftMargin;
+    if (this.marginLeft != leftMargin) {
+      this.marginLeft = leftMargin;
       reflow = true;
     }
     if (reflow && (this.parent instanceof UI2dContainer)) {
@@ -678,15 +688,35 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   public UI2dComponent setBorderRounding(int borderRounding) {
-    if (this.borderRounding != borderRounding) {
-      this.borderRounding = borderRounding;
+    return setBorderRounding(borderRounding, borderRounding, borderRounding, borderRounding);
+  }
+
+  public UI2dComponent setBorderRounding(
+    int borderRoundingTopLeft,
+    int borderRoundingTopRight,
+    int borderRoundingBottomRight,
+    int borderRoundingBottomLeft) {
+    boolean redraw =
+      (this.borderRoundingTopLeft != borderRoundingTopLeft) ||
+      (this.borderRoundingTopRight != borderRoundingTopRight) ||
+      (this.borderRoundingBottomRight != borderRoundingBottomRight) ||
+      (this.borderRoundingBottomLeft != borderRoundingBottomLeft);
+
+    this.borderRoundingTopLeft = borderRoundingTopLeft;
+    this.borderRoundingTopRight = borderRoundingTopRight;
+    this.borderRoundingBottomRight = borderRoundingBottomRight;
+    this.borderRoundingBottomLeft = borderRoundingBottomLeft;
+
+    this.hasBorderRounding =
+      (this.borderRoundingTopLeft > 0) ||
+      (this.borderRoundingTopRight > 0) ||
+      (this.borderRoundingBottomRight > 0) ||
+      (this.borderRoundingBottomLeft > 0);
+
+    if (redraw) {
       redraw();
     }
     return this;
-  }
-
-  public int getBorderRounding() {
-    return this.borderRounding;
   }
 
   public UI2dComponent setFocusCorners(boolean focusCorners) {
@@ -1186,7 +1216,6 @@ public abstract class UI2dComponent extends UIObject {
 
     // Scissor all the content and children
     if (needsVgScissor) {
-      // System.out.println("SCISSOR " + scissor.x + " " + scissor.y + " " + scissor.width + " " + scissor.height + " " + getDebugClassHierarchy(true));
       vg.scissorPush(this.scissor.x + .5f, this.scissor.y + .5f, this.scissor.width-1, this.scissor.height-1);
     }
 
@@ -1241,9 +1270,25 @@ public abstract class UI2dComponent extends UIObject {
 
   }
 
+  protected void vgRoundedRect(VGraphics vg) {
+    vgRoundedRect(vg, 0, 0, this.width, this.height);
+  }
+
+  protected void vgRoundedRect(VGraphics vg, float x, float y, float w, float h) {
+    vgRoundedRect(this, vg, x, y, w, h);
+  }
+
+  protected void vgRoundedRect(UI2dComponent that, VGraphics vg, float x, float y, float w, float h) {
+    if (that.hasBorderRounding) {
+      vg.roundedRectVarying(x, y, w, h, that.borderRoundingTopLeft, that.borderRoundingTopRight, that.borderRoundingBottomRight, that.borderRoundingBottomLeft);
+    } else {
+      vg.rect(x, y, w, h);
+    }
+  }
+
   private void drawMappingBorder(UI ui, VGraphics vg) {
     vg.beginPath();
-    vg.rect(0.5f, 0.5f, this.width - 1, this.height - 1, this.borderRounding);
+    vgRoundedRect(vg, 0.5f, 0.5f, this.width - 1, this.height - 1);
     vg.strokeColor(0xff000000 | ui.theme.getModulationTargetMappingColor());
     vg.stroke();
   }
@@ -1289,7 +1334,7 @@ public abstract class UI2dComponent extends UIObject {
 
     boolean ownBackground = this.hasBackground || (this.hasFocus && this.hasFocusBackground);
 
-    if (!ownBackground || (this.borderRounding > 0)) {
+    if (!ownBackground || this.hasBorderRounding) {
       // If we don't have our own background, or our borders are rounded,
       // then we need to walk up the UI tree to figure out how to paint
       // in the background.
@@ -1309,7 +1354,7 @@ public abstract class UI2dComponent extends UIObject {
 
     if (ownBackground) {
       vg.beginPath();
-      vg.rect(0, 0, this.width, this.height, this.borderRounding);
+      vgRoundedRect(vg);
       vg.fillColor((this.hasFocus && this.hasFocusBackground) ? this.focusBackgroundColor : this.backgroundColor);
       vg.fill();
     }
@@ -1322,10 +1367,10 @@ public abstract class UI2dComponent extends UIObject {
     }
 
     if (this.hasBorder) {
-      int border = this.borderWeight;
+      int borderWeight = this.borderWeight;
       vg.beginPath();
-      vg.rect(border * .5f, border * .5f, this.width - border, this.height - border, this.borderRounding);
-      vg.strokeWidth(border);
+      vgRoundedRect(vg, borderWeight * .5f, borderWeight * .5f, this.width - borderWeight, this.height - borderWeight);
+      vg.strokeWidth(borderWeight);
       vg.strokeColor(this.borderColor);
       vg.stroke();
 

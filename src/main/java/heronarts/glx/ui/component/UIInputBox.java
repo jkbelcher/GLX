@@ -209,7 +209,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     if (this.editing) {
       vg.beginPath();
       vg.fillColor(0, 0, 0);
-      vg.rect(0, 0, this.width, this.height, getBorderRounding());
+      vgRoundedRect(vg);
       vg.fill();
     } else {
       if (!this.enabled) {

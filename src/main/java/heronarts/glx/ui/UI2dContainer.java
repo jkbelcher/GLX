@@ -64,9 +64,7 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       .setLayout(UI2dContainer.Layout.HORIZONTAL)
       .setChildSpacing(childSpacing);
     if (children != null) {
-      for (UI2dComponent child : children) {
-        child.addToContainer(container);
-      }
+      container.addChildren(children);
     }
     return container;
   }
@@ -183,14 +181,19 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
 
   public UI2dContainer addChildren(UI2dComponent ... children) {
     for (UI2dComponent child : children) {
-      child.addToContainer(this);
+      child.addToContainer(this, false);
     }
+    UIContainer contentTarget = getContentTarget();
+    if (contentTarget instanceof UI2dContainer) {
+      ((UI2dContainer) contentTarget).reflow();
+    }
+    redraw();
     return this;
   }
 
   private boolean inReflow = false;
 
-  protected void reflow() {
+  protected final void reflow() {
     if (this.inReflow) {
       // Prevent re-entrant reflow() calls, we're going to update the positions
       // of many objects, we don't need them to re-notify us each time.
@@ -203,8 +206,8 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
-          component.setY(y + component.topMargin);
-          y += component.topMargin + component.getHeight() + component.bottomMargin + this.childSpacingY;
+          component.setY(y + component.marginTop);
+          y += component.marginTop + component.getHeight() + component.marginBottom + this.childSpacingY;
         }
       }
       y += this.bottomPadding;
@@ -214,8 +217,8 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
-          component.setX(x + component.leftMargin);
-          x += component.leftMargin + component.getWidth() + component.rightMargin + this.childSpacingX;
+          component.setX(x + component.marginLeft);
+          x += component.marginLeft + component.getWidth() + component.marginRight + this.childSpacingX;
         }
       }
       x += this.rightPadding;
@@ -227,14 +230,14 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
-          if (y + component.topMargin + component.getHeight() > getContentHeight()) {
+          if (y + component.marginTop + component.getHeight() > getContentHeight()) {
             x += w + this.childSpacingX;
             y = this.topPadding;
             w = 0;
           }
-          component.setPosition(x + component.leftMargin, y + component.topMargin);
-          w = Math.max(w, component.getWidth() + component.leftMargin + component.rightMargin);
-          y += component.topMargin + component.getHeight() + component.bottomMargin + this.childSpacingY;
+          component.setPosition(x + component.marginLeft, y + component.marginTop);
+          w = Math.max(w, component.getWidth() + component.marginLeft + component.marginRight);
+          y += component.marginTop + component.getHeight() + component.marginBottom + this.childSpacingY;
         }
       }
       setContentWidth(Math.max(this.minWidth, x + w + this.rightPadding));
@@ -245,21 +248,23 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
-          if (x + component.leftMargin + component.getWidth() > getContentWidth()) {
+          if (x + component.marginLeft + component.getWidth() > getContentWidth()) {
             y += h + this.childSpacingY;
             x = this.leftPadding;
             h = 0;
           }
-          component.setPosition(x + component.leftMargin, y + component.topMargin);
-          h = Math.max(h, component.topMargin + component.getHeight() + component.bottomMargin);
-          x += component.leftMargin + component.getWidth() + component.rightMargin + this.childSpacingX;
+          component.setPosition(x + component.marginLeft, y + component.marginTop);
+          h = Math.max(h, component.marginTop + component.getHeight() + component.marginBottom);
+          x += component.marginLeft + component.getWidth() + component.marginRight + this.childSpacingX;
         }
       }
       setContentHeight(Math.max(this.minHeight, y + h + this.bottomPadding));
     }
-
+    onReflow();
     this.inReflow = false;
   }
+
+  protected void onReflow() {}
 
   protected UI2dContainer setContentTarget(UI2dContainer contentTarget) {
     if (this.mutableChildren.contains(contentTarget)) {

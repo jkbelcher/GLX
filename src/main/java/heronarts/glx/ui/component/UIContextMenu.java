@@ -113,7 +113,11 @@ public class UIContextMenu extends UI2dContainer {
   protected void drawBackground(UI ui, VGraphics vg) {
     vg.beginPath();
     vg.fillColor(getBackgroundColor());
-    vg.rect(this.padding, this.padding, this.width - 2 * this.padding, this.height - 2*this.padding, this.padding > 0 ? 2 : getBorderRounding());
+    if (this.padding > 0) {
+      vgRoundedRect(vg, this.padding, this.padding, this.width - 2 * this.padding, this.height - 2*this.padding);
+    } else {
+      vg.rect(this.padding, this.padding, this.width - 2 * this.padding, this.height - 2*this.padding, 2);
+    }
     vg.fill();
   }
 

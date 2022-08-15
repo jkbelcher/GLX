@@ -56,7 +56,7 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
     vg.beginPath();
     vg.strokeColor(UI.WHITE);
     vg.strokeWidth(1);
-    vg.rect(.5f, .5f, this.width-1, this.height-1, getBorderRounding());
+    vgRoundedRect(vg, .5f, .5f, this.width-1, this.height-1);
     vg.stroke();
   }
 

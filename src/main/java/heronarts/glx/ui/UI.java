@@ -421,17 +421,19 @@ public class UI {
       UIContextMenu contextMenu = this.contextMenu;
       if (contextMenu != null) {
         float padding = contextMenu.getPadding();
-        float rounding = contextMenu.getBorderRounding();
         if (padding > 0) {
           vg.beginPath();
           vg.fillColor(ui.theme.getDeviceFocusedBackgroundColor());
-          vg.rect(0, 0, this.width, this.height, rounding);
+          vgRoundedRect(contextMenu, vg, 0, 0, this.width, this.height);
           vg.fill();
-          rounding = 2;
         }
         vg.beginPath();
         vg.fillColor(contextMenu.getBackgroundColor());
-        vg.rect(padding, padding, this.width - 2 * padding, this.height - 2*padding, rounding);
+        if (padding > 0) {
+          vg.roundedRect(padding, padding, this.width - 2 * padding, this.height - 2*padding, 2);
+        } else {
+          vgRoundedRect(contextMenu, vg, 0, 0, this.width, this.height);
+        }
         vg.fill();
       } else {
         super.drawBackground(ui, vg);
@@ -443,20 +445,23 @@ public class UI {
       UIContextMenu contextMenu = this.contextMenu;
       if (contextMenu != null) {
         float padding = contextMenu.getPadding();
-        float rounding = contextMenu.getBorderRounding();
+        UI2dComponent component = contextMenu;
         if (padding > 0) {
           // Cap the top and bottom of the scroll zone
           vg.beginPath();
           vg.fillColor(ui.theme.getDeviceFocusedBackgroundColor());
-          vg.roundedRectVarying(0, 0, this.width, padding, rounding, rounding, 0, 0);
-          vg.roundedRectVarying(0, this.height - padding, this.width, padding, 0, 0, rounding, rounding);
+          vg.roundedRectVarying(0, 0, this.width, padding, component.borderRoundingTopLeft, component.borderRoundingTopRight, 0, 0);
+          vg.roundedRectVarying(0, this.height - padding, this.width, padding, 0, 0, component.borderRoundingBottomRight, component.borderRoundingBottomLeft);
           vg.fill();
         }
         if (contextMenu.hasBorder()) {
+          int borderWeight = contextMenu.getBorderWeight();
           vg.beginPath();
+          vg.strokeWidth(borderWeight);
           vg.strokeColor(contextMenu.getBorderColor());
-          vg.rect(0, 0, this.width, this.height, rounding);
+          vgRoundedRect(component, vg, borderWeight*.5f, borderWeight*.5f, this.width-borderWeight, this.height-borderWeight);
           vg.stroke();
+          vg.strokeWidth(1);
         }
       }
     }
