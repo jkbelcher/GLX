@@ -38,10 +38,11 @@ import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.StringParameter;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Stack;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.bgfx.BGFX.*;
@@ -264,33 +265,41 @@ public class UI {
     // Limit the number of nanovg buffers we'll render in a single pass
     private static final int MAX_NVG_VIEWS_PER_PASS = 30;
 
-    private final Stack<UI2dContext> renderStack = new Stack<UI2dContext>();
-    private final List<UIObject> drawList = new ArrayList<UIObject>();
+    private final List<UIObject> glfwThreadChildren = new ArrayList<UIObject>();
+    private final Queue<UI2dContext> renderQueue = new ArrayDeque<UI2dContext>();
 
     public void draw() {
-      this.renderStack.clear();
+      // The children array is a CopyOnWriteArrayList. Grab a proper copy
+      // of it here and do drawing operations against that, so that we don't
+      // have modifications to it in the middle of this draw() operation.
+      this.glfwThreadChildren.clear();
+      this.glfwThreadChildren.addAll(this.children);
 
-      // Copy from the multi-threaded list into list owned by this thread
-      this.drawList.clear();
-      this.drawList.addAll(this.children);
-
-      // First pass, we determine which UI2dContexts need rendering, and push
-      // them all onto a stack. Each will need its own BGFX view because they have
-      // unique framebuffers. Since we dodn't use locks between the engine and UI
-      // thread for UI hierarchy
-      for (UIObject child : this.drawList) {
-        if (child instanceof UI2dContext) {
-          ((UI2dContext) child).populateRenderStack(this.renderStack);
-        }
-      }
-
-      // Now we have all of our UI2dContexts ready to go, render all of them
-      // as necessary. Note that this is not blitting to the main screen
-      // framebuffer, it's rendering the UI2dContexts using NanoVG onto a
-      // texture framebuffer owned by the UI2dContext
       short viewId = 1;
-      while (!renderStack.isEmpty() && (viewId < MAX_NVG_VIEWS_PER_PASS)) {
-        renderStack.pop().render(vg, viewId++);
+
+      // If the redraw flag is set, we need to walk all 2d hierarchies and
+      // see which contexts need to be redrawn with the vg layer
+      if (redrawFlag.compareAndSet(true, false)) {
+        // Pre-pass over all 2d objects, set redraw flags on the UI2dComponent
+        // objects and append to the list of 2d contexts that need rendering
+        for (UIObject child : this.glfwThreadChildren) {
+          if (child instanceof UI2dComponent) {
+            ((UI2dComponent) child).predraw(this.renderQueue, false);
+          }
+        }
+
+        // Now we have all of our UI2dContexts ready to go, render all of them
+        // as necessary. Note that this is not blitting to the main screen
+        // framebuffer, it's rendering the UI2dContexts using NanoVG onto a
+        // texture framebuffer owned by the UI2dContext
+        UI2dContext context;
+        while ((context = this.renderQueue.poll()) != null) {
+          context.render(vg, viewId++);
+          if (viewId > MAX_NVG_VIEWS_PER_PASS) {
+            // We're going to have to get to the rest on the next pass..
+            break;
+          }
+        }
       }
 
       // Finally, draw everything in the root view. Note that we don't
@@ -299,7 +308,7 @@ public class UI {
       // UI2dContext objects for rendering. We render from back to front,
       // re-binding views as needed
       boolean bind2d = true;
-      for (UIObject child : this.drawList) {
+      for (UIObject child : this.glfwThreadChildren) {
         if (child instanceof UI2dContext) {
           if (bind2d) {
             this.view.bind(viewId++);
@@ -321,12 +330,6 @@ public class UI {
    */
   private final AtomicBoolean redrawFlag = new AtomicBoolean(true);
   private final AtomicBoolean disposeFramebufferFlag = new AtomicBoolean(false);
-
-  /**
-   * Objects to redraw on current pass thru animation thread
-   */
-  private final List<UI2dComponent> glfwThreadRedrawList =
-    new ArrayList<UI2dComponent>();
 
   private final List<VGraphics.Framebuffer> threadSafeDisposeList =
     Collections.synchronizedList(new ArrayList<VGraphics.Framebuffer>());
@@ -876,10 +879,9 @@ public class UI {
   }
 
   void redraw(UI2dComponent component) {
-    // NOTE(mcslee): determined empirically that it's worth putting this check here
-    // to avoid contention on this synchronized list between the UI and engine threads.
-    // adding the same container to be redrawn loads of times slows down. keeping the
-    // redraw list short is better.
+    // Use atomic booleans here to create a memory barrier for the GLFW
+    // UI rendering thread to see that the 2d hierarchy needs to be checked
+    // for items that need redraw
     component.redrawFlag.set(true);
     this.redrawFlag.set(true);
   }
@@ -930,6 +932,13 @@ public class UI {
     // Run loop tasks through the UI tree
     this.root.loop(deltaMs);
 
+    // Draw UIRoot object
+    this.root.draw();
+
+    endDraw();
+
+    this.profiler.drawNanos = System.nanoTime() - drawStart;
+
     // Dispose of any framebuffers that we are done with
     if (this.disposeFramebufferFlag.compareAndSet(true, false)) {
       synchronized (this.threadSafeDisposeList) {
@@ -938,35 +947,6 @@ public class UI {
         }
         this.threadSafeDisposeList.clear();
       }
-    }
-
-    // Iterate through all objects that need redraw state marked
-    if (this.redrawFlag.compareAndSet(true, false)) {
-      this.glfwThreadRedrawList.clear();
-      for (UIObject obj : this.root.children) {
-        if (obj instanceof UI2dComponent) {
-          populateRedrawList((UI2dComponent) obj);
-        }
-      }
-      for (UI2dComponent object : this.glfwThreadRedrawList) {
-        object._redraw();
-      }
-    }
-
-    // Draw from the root
-    this.root.draw();
-
-    endDraw();
-
-    this.profiler.drawNanos = System.nanoTime() - drawStart;
-  }
-
-  private void populateRedrawList(UI2dComponent component) {
-    if (component.redrawFlag.compareAndSet(true, false)) {
-      this.glfwThreadRedrawList.add(component);
-    }
-    for (UIObject child : component.children) {
-      populateRedrawList((UI2dComponent) child);
     }
   }
 

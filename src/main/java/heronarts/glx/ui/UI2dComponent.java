@@ -18,7 +18,7 @@
 
 package heronarts.glx.ui;
 
-import java.util.Stack;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import heronarts.glx.event.Event;
@@ -137,7 +137,7 @@ public abstract class UI2dComponent extends UIObject {
   protected boolean debug = false;
   protected String debugName = "";
 
-  AtomicBoolean redrawFlag = new AtomicBoolean(true);
+  final AtomicBoolean redrawFlag = new AtomicBoolean(true);
 
   boolean needsRedraw = true;
   boolean childNeedsRedraw = true;
@@ -168,6 +168,10 @@ public abstract class UI2dComponent extends UIObject {
 
   public String getDebugClassHierarchy() {
     return getDebugClassHierarchy(false);
+  }
+
+  public String dbch(boolean reverse) {
+    return getDebugClassHierarchy(reverse);
   }
 
   public String getDebugClassHierarchy(boolean reverse) {
@@ -1113,7 +1117,7 @@ public abstract class UI2dComponent extends UIObject {
    * @return this object
    */
   public final UI2dComponent redraw() {
-    if ((this.ui != null) && (this.parent != null) && this.isVisible()) {
+    if ((this.ui != null) && (this.parent != null) && isVisible()) {
       this.ui.redraw(this);
     }
     return this;
@@ -1125,54 +1129,36 @@ public abstract class UI2dComponent extends UIObject {
     }
   }
 
-  final void _redraw() {
-    // Mark object and children as needing redraw
-    _redrawChildren();
-
-    // Mark parent containers as needing a child redrawn
-    UIObject p = this.parent;
-    while ((p != null) && (p instanceof UI2dComponent)) {
-      UI2dComponent p2d = (UI2dComponent) p;
-      p2d.childNeedsRedraw = true;
-      p = p2d.parent;
+  final boolean predraw(Queue<UI2dContext> renderQueue, boolean forceRedraw) {
+    if (!isVisible()) {
+      return false;
     }
-  }
-
-  /**
-   * Internal helper. Marks this object and all of its children as needing to be
-   * redrawn.
-   */
-  private final void _redrawChildren() {
-    this.needsRedraw = true;
+    if (forceRedraw) {
+      // If we are forced to redraw by our parent, just clear our flag. Everything
+      // visible from here on down will be set to need redraws.
+      this.redrawFlag.set(false);
+      this.needsRedraw = true;
+    } else {
+      // Otherwise, check if we actually need a direct redraw
+      this.needsRedraw = this.redrawFlag.compareAndSet(true, false);
+    }
     this.childNeedsRedraw = false;
-    for (UIObject child : this.mutableChildren) {
-      if ((child instanceof UI2dContext) && (((UI2dContext) child).isOffscreen)) {
-        // If this is an offscreen 2d context that didn't get a direct redraw
-        // call, don't update it.
+    for (UIObject child : this.children) {
+      if (!child.isVisible()) {
         continue;
       }
-      this.childNeedsRedraw = true;
-      ((UI2dComponent) child)._redrawChildren();
+      // Off-screen children do not automatically need to be redrawn unless they themselves have
+      // their redraw flag explicitly set. Flip the second flag back to false in this case
+      boolean offscreen = (child instanceof UI2dContext) && (((UI2dContext) child).isOffscreen);
+      boolean redrawChild = ((UI2dComponent) child).predraw(renderQueue, offscreen ? false : this.needsRedraw);
+      this.childNeedsRedraw = this.childNeedsRedraw || redrawChild;
     }
-  }
-
-  protected final void populateRenderStack(Stack<UI2dContext> renderStack) {
-    if (!isVisible()) {
-      return;
+    // Are we a 2d context, and do we need some kind of redrawing?? Queue this context up...
+    if ((this.needsRedraw || this.childNeedsRedraw) && (this instanceof UI2dContext)) {
+      renderQueue.add((UI2dContext) this);
     }
-    // Before the main drawing loop, the tree is checked for all
-    // contexts that need a redraw. If we fall into this category
-    // then we push ourselves on the render stack, which will be
-    // serviced before the draw() methods are invoked.
-    if (this instanceof UI2dContext) {
-      if (this.needsRedraw || this.childNeedsRedraw) {
-        renderStack.push((UI2dContext) this);
-      }
-    }
-    // Iterate through children
-    for (UIObject child : this.children) {
-      ((UI2dComponent)child).populateRenderStack(renderStack);
-    }
+    // Signal back to the parent caller whether *any* redrawing was needed down the chain
+    return this.needsRedraw || this.childNeedsRedraw;
   }
 
   /**
