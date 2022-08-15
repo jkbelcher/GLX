@@ -104,6 +104,7 @@ public class UITheme {
   public final VGraphics.Image iconPatternRotate;
   public final VGraphics.Image iconPlay;
   public final VGraphics.Image iconView;
+  public final VGraphics.Image iconEdit;
 
   UITheme(VGraphics vg) throws IOException {
     this.controlFont = vg.loadFont("Inter-SemiBold", "Inter-SemiBold.otf");
@@ -140,6 +141,7 @@ public class UITheme {
     this.iconPatternRotate = vg.loadIcon("icon-pattern-rotate@2x.png");
     this.iconPlay = vg.loadIcon("icon-play@2x.png");
     this.iconView = vg.loadIcon("icon-view@2x.png");
+    this.iconEdit= vg.loadIcon("icon-edit@2x.png");
     LX.initProfiler.log("GLX: UI: Theme: Icons");
   }
 
