@@ -139,12 +139,17 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
     if (this.value != value) {
       int min = getMinValue();
       int max = getMaxValue();
-      int range = (max - min + 1);
-      while (value < min) {
-        value += range;
+      boolean wrappable = (this.parameter == null) || this.parameter.isWrappable();
+      if (wrappable) {
+        int range = (max - min + 1);
+        while (value < min) {
+          value += range;
+        }
+        this.value = min + (value - min) % range;
+      } else {
+        this.value = LXUtils.constrain(value, min, max);
       }
-      this.value = min + (value - min) % range;
-      if (this.parameter != null && pushToParameter) {
+      if ((this.parameter != null) && pushToParameter) {
         if (this.useCommandEngine) {
           getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, this.value));
         } else {
