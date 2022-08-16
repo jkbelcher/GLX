@@ -420,7 +420,7 @@ public class UI {
     }
 
     @Override
-    public void drawBackground(UI ui, VGraphics vg) {
+    protected void drawBackground(UI ui, VGraphics vg) {
       UIContextMenu contextMenu = this.contextMenu;
       if (contextMenu != null) {
         float padding = contextMenu.getPadding();
@@ -453,16 +453,17 @@ public class UI {
           // Cap the top and bottom of the scroll zone
           vg.beginPath();
           vg.fillColor(ui.theme.getDeviceFocusedBackgroundColor());
-          vg.roundedRectVarying(0, 0, this.width, padding, component.borderRoundingTopLeft, component.borderRoundingTopRight, 0, 0);
-          vg.roundedRectVarying(0, this.height - padding, this.width, padding, 0, 0, component.borderRoundingBottomRight, component.borderRoundingBottomLeft);
+          vg.rect(padding, 0, this.width - 2*padding, padding);
+          vg.rect(padding, this.height-padding, this.width - 2*padding, padding);
           vg.fill();
         }
         if (contextMenu.hasBorder()) {
-          int borderWeight = contextMenu.getBorderWeight();
+          final float borderWeight = contextMenu.getBorderWeight();
+          final float halfBorderWeight = borderWeight * 0.5f;
           vg.beginPath();
           vg.strokeWidth(borderWeight);
           vg.strokeColor(contextMenu.getBorderColor());
-          vgRoundedRect(component, vg, borderWeight*.5f, borderWeight*.5f, this.width-borderWeight, this.height-borderWeight);
+          vgRoundedRect(component, vg, halfBorderWeight, halfBorderWeight, this.width-borderWeight, this.height-borderWeight);
           vg.stroke();
           vg.strokeWidth(1);
         }

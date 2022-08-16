@@ -116,7 +116,7 @@ public class UIContextMenu extends UI2dContainer {
     if (this.padding > 0) {
       vgRoundedRect(vg, this.padding, this.padding, this.width - 2 * this.padding, this.height - 2*this.padding);
     } else {
-      vg.rect(this.padding, this.padding, this.width - 2 * this.padding, this.height - 2*this.padding, 2);
+      vgRoundedRect(vg);
     }
     vg.fill();
   }
