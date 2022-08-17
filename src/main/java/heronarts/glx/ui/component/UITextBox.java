@@ -108,7 +108,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
           this.parameter.setValue(value);
         }
       }
-      this.onValueChange(this.value);
+      onValueChange(this.value);
       redraw();
     }
     return this;
@@ -120,7 +120,6 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
    * @param value New value being set
    */
   protected /* abstract */ void onValueChange(String value) {}
-
 
   @Override
   protected void saveEditBuffer() {
@@ -177,6 +176,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
       if (isEnabled() && isEditable()) {
         if (this.editing) {
           this.editBuffer = this.editBuffer + ((LXTextValue) item).getValue();
+          onEditChange(this.editBuffer);
           redraw();
         } else {
           setValue(((LXTextValue) item).getValue());

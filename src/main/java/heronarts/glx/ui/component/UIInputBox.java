@@ -132,6 +132,13 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
 
   protected abstract void saveEditBuffer();
 
+  /**
+   * Subclasses may override to handle editing changes
+   *
+   * @param value New value being actively edited
+   */
+  protected /* abstract */ void onEditChange(String editBuffer) {}
+
   public boolean isEditable() {
     return this.editable;
   }
@@ -168,12 +175,16 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   }
 
   public void edit() {
+    edit(getEditBufferValue());
+  }
+
+  public void edit(String editBufferValue) {
     if (!this.editable) {
       throw new IllegalStateException("May not edit a non-editable UIInputBox");
     }
     if (this.enabled && !this.editing) {
       this.editing = true;
-      this.editBuffer = getEditBufferValue();
+      this.editBuffer = editBufferValue;
     }
     redraw();
   }
@@ -259,7 +270,6 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
         vg.text(this.width / 2, this.height / 2 + 1, displayString);
         vg.fill();
       }
-
     }
   }
 
@@ -290,6 +300,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           if (!keyEvent.isCommand()) {
             keyEvent.consume();
             this.editBuffer += keyChar;
+            onEditChange(this.editBuffer);
             redraw();
           }
         } else if (keyEvent.isEnter()) {
@@ -302,28 +313,36 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           if (this.editBuffer.length() > 0) {
             if (keyEvent.isShiftDown() || keyEvent.isControlDown() || keyEvent.isMetaDown()) {
               this.editBuffer = "";
+              onEditChange(this.editBuffer);
             } else {
               this.editBuffer = this.editBuffer.substring(0, this.editBuffer.length() - 1);
+              onEditChange(this.editBuffer);
             }
             redraw();
           }
         } else if (keyCode == KeyEvent.VK_ESCAPE) {
           keyEvent.consume();
           this.editing = false;
+          onEditChange(getValueString());
           redraw();
         }
       } else if (this.enabled) {
         // Not editing
         if (this.immediateEdit && isValidCharacter(keyChar) && !keyEvent.isCommand()) {
           keyEvent.consume();
-          this.editing = true;
-          this.editBuffer = Character.toString(keyChar);
-          redraw();
+          edit(Character.toString(keyChar));
+          onEditChange(this.editBuffer);
+        } else if (this.immediateEdit && keyCode == KeyEvent.VK_BACKSPACE) {
+          String editBuffer = getEditBufferValue();
+          if (!editBuffer.isEmpty()) {
+            keyEvent.consume();
+            edit(editBuffer.substring(0, editBuffer.length() - 1));
+            onEditChange(this.editBuffer);
+          }
         } else if (keyEvent.isEnter()) {
           if (this.returnKeyEdit) {
             keyEvent.consume();
-            this.edit();
-            redraw();
+            edit();
           }
         } else if ((keyCode == KeyEvent.VK_LEFT) || (keyCode == KeyEvent.VK_DOWN)) {
           decrementValue(keyEvent);
