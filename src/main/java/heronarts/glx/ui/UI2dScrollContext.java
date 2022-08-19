@@ -49,7 +49,6 @@ public class UI2dScrollContext extends UI2dContext implements UI2dScrollInterfac
    * scroll operation occurs.
    *
    * @param maxWidth Maximum width before scrolling kicks in
-   * @param reflow Reflow on this call
    * @return this
    */
   public UI2dScrollContext setMaxWidth(float maxWidth) {
