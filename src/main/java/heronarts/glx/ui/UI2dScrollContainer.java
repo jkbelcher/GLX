@@ -49,7 +49,6 @@ public class UI2dScrollContainer extends UI2dContainer implements UI2dScrollInte
    * scroll operation occurs.
    *
    * @param maxWidth Maximum width before scrolling kicks in
-   * @param reflow Reflow on this call
    * @return this
    */
   public UI2dScrollContainer setMaxWidth(float maxWidth) {
