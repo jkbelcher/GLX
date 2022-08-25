@@ -42,8 +42,8 @@ public class UIContextMenu extends UI2dContainer {
   public UIContextMenu(float x, float y, float w, float h) {
     super(x, y, w, h);
     setVisible(false);
-    setBackgroundColor(UI.get().theme.getContextBackgroundColor());
-    setBorderColor(UI.get().theme.getContextBorderColor());
+    setBackgroundColor(UI.get().theme.contextBackgroundColor);
+    setBorderColor(UI.get().theme.contextBorderColor);
   }
 
   public float getPadding() {
@@ -142,7 +142,7 @@ public class UIContextMenu extends UI2dContainer {
     if (this.highlight >= 0) {
       vg.beginPath();
       vg.rect(padding + 2, padding + 2 + this.highlight * this.rowHeight, width - 2 * padding - 4, this.rowHeight - 2, 2);
-      vg.fillColor(ui.theme.getContextHighlightColor());
+      vg.fillColor(ui.theme.contextHighlightColor);
       vg.fill();
     }
 
@@ -150,7 +150,7 @@ public class UIContextMenu extends UI2dContainer {
     for (UIContextActions.Action action : this.actions) {
       vg.beginPath();
       vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
-      vg.fillColor(ui.theme.getControlTextColor());
+      vg.fillColor(ui.theme.controlTextColor);
       vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
       vg.text(padding + 4, padding + yp + this.rowHeight / 2, clipTextToWidth(vg, action.getLabel(), width - 6 - 2 * padding));
       vg.fill();

@@ -22,6 +22,7 @@ import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
+import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIContextActions;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
@@ -50,9 +51,9 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
 
   public UIContextButton(float x, float y, float w, float h) {
     super(x, y, w, h);
-    setBorderColor(UI.get().theme.getControlBorderColor());
-    setFontColor(UI.get().theme.getControlTextColor());
-    setBackgroundColor(UI.get().theme.getControlBackgroundColor());
+    setBorderColor(UI.get().theme.controlBorderColor);
+    setFontColor(UI.get().theme.controlTextColor);
+    setBackgroundColor(UI.get().theme.controlBackgroundColor);
     this.contextMenu = new UIContextMenu(0, 0, UIContextMenu.DEFAULT_WIDTH, 0);
   }
 
@@ -116,7 +117,7 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
   @Override
   public void onDraw(UI ui, VGraphics vg) {
     if ((this.label != null) && (this.label.length() > 0)) {
-      int fontColor = this.mouseDown ? UI.WHITE : getFontColor();
+      UIColor fontColor = this.mouseDown ? UIColor.WHITE : getFontColor();
       vg.fillColor(fontColor);
       vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
       if (this.textAlignVertical == VGraphics.Align.MIDDLE) {

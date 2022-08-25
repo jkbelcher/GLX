@@ -92,15 +92,15 @@ public abstract class UI2dComponent extends UIObject {
 
   private boolean hasBackground = false;
 
-  private int backgroundColor = 0xFF000000;
+  private UIColor backgroundColor = UIColor.BLACK;
 
   private boolean hasFocusBackground = false;
 
-  private int focusBackgroundColor = 0xFF000000;
+  private UIColor focusBackgroundColor = UIColor.BLACK;
 
   private boolean hasBorder = false;
 
-  private int borderColor = 0xFF000000;
+  private UIColor borderColor = UIColor.BLACK;
 
   private int borderWeight = 1;
 
@@ -116,13 +116,13 @@ public abstract class UI2dComponent extends UIObject {
 
   private boolean hasFocusColor = false;
 
-  private int focusColor = 0;
+  private UIColor focusColor = UIColor.CLEAR;
 
   private VGraphics.Font font = null;
 
   private boolean hasFontColor = false;
 
-  private int fontColor = 0xff000000;
+  private UIColor fontColor = UIColor.BLACK;
 
   protected VGraphics.Align textAlignHorizontal = VGraphics.Align.LEFT;
 
@@ -554,7 +554,7 @@ public abstract class UI2dComponent extends UIObject {
    *
    * @return color
    */
-  public int getBackgroundColor() {
+  public UIColor getBackgroundColor() {
     return this.backgroundColor;
   }
 
@@ -579,6 +579,16 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent setBackgroundColor(int backgroundColor) {
+    return setBackgroundColor(new UIColor(backgroundColor));
+  }
+
+  /**
+   * Sets a background color
+   *
+   * @param backgroundColor color
+   * @return this
+   */
+  public UI2dComponent setBackgroundColor(UIColor backgroundColor) {
     if (!this.hasBackground || (this.backgroundColor != backgroundColor)) {
       this.hasBackground = true;
       this.backgroundColor = backgroundColor;
@@ -610,6 +620,16 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent setFocusBackgroundColor(int focusBackgroundColor) {
+    return setFocusBackgroundColor(new UIColor(focusBackgroundColor));
+  }
+
+  /**
+   * Sets a background color to be used when the component is focused
+   *
+   * @param focusBackgroundColor Color
+   * @return this
+   */
+  public UI2dComponent setFocusBackgroundColor(UIColor focusBackgroundColor) {
     if (!this.hasFocusBackground || (this.focusBackgroundColor != focusBackgroundColor)) {
       this.hasFocusBackground = true;
       this.focusBackgroundColor = focusBackgroundColor;
@@ -634,7 +654,7 @@ public abstract class UI2dComponent extends UIObject {
    *
    * @return color
    */
-  public int getBorderColor() {
+  public UIColor getBorderColor() {
     return this.borderColor;
   }
 
@@ -668,6 +688,16 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent setBorderColor(int borderColor) {
+    return setBorderColor(new UIColor(borderColor));
+  }
+
+  /**
+   * Sets the color of the border
+   *
+   * @param borderColor color
+   * @return this
+   */
+  public UI2dComponent setBorderColor(UIColor borderColor) {
     if (!this.hasBorder || (this.borderColor != borderColor)) {
       this.hasBorder = true;
       this.borderColor = borderColor;
@@ -729,6 +759,10 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   public UI2dComponent setFocusColor(int focusColor) {
+    return setFocusColor(new UIColor(focusColor));
+  }
+
+  public UI2dComponent setFocusColor(UIColor focusColor) {
     this.hasFocusColor = true;
     this.focusColor = focusColor;
     return this;
@@ -781,7 +815,7 @@ public abstract class UI2dComponent extends UIObject {
    *
    * @return color
    */
-  public int getFontColor() {
+  public UIColor getFontColor() {
     return this.fontColor;
   }
 
@@ -806,6 +840,16 @@ public abstract class UI2dComponent extends UIObject {
    * @return this
    */
   public UI2dComponent setFontColor(int fontColor) {
+    return setFontColor(new UIColor(fontColor));
+  }
+
+  /**
+   * Sets a font color
+   *
+   * @param fontColor color
+   * @return this
+   */
+  public UI2dComponent setFontColor(UIColor fontColor) {
     if (!this.hasFontColor || (this.fontColor != fontColor)) {
       this.hasFontColor = true;
       this.fontColor = fontColor;
@@ -1275,7 +1319,7 @@ public abstract class UI2dComponent extends UIObject {
   private void drawMappingBorder(UI ui, VGraphics vg) {
     vg.beginPath();
     vgRoundedRect(vg, 0.5f, 0.5f, this.width - 1, this.height - 1);
-    vg.strokeColor(0xff000000 | ui.theme.getModulationTargetMappingColor());
+    vg.strokeColor(0xff000000 | ui.theme.modulationTargetMappingColor.get());
     vg.stroke();
   }
 
@@ -1285,7 +1329,7 @@ public abstract class UI2dComponent extends UIObject {
     } else if (isMidiMapping()) {
       vg.beginPath();
       vg.rect(x, y, w, h);
-      vg.fillColor(ui.theme.getMidiMappingColor());
+      vg.fillColor(ui.theme.midiMappingColor);
       vg.fill();
       if (isControlTarget()) {
         drawFocusCorners(ui, vg, 0xccff0000);
@@ -1293,12 +1337,12 @@ public abstract class UI2dComponent extends UIObject {
     } else if (isModulationSourceMapping() || isTriggerSourceMapping()) {
       vg.beginPath();
       vg.rect(x, y, w, h);
-      vg.fillColor(ui.theme.getModulationSourceMappingColor());
+      vg.fillColor(ui.theme.modulationSourceMappingColor);
       vg.fill();
     } else if (isModulationTargetMapping() || isTriggerTargetMapping()) {
       vg.beginPath();
       vg.rect(x, y, w, h);
-      vg.fillColor(ui.theme.getModulationTargetMappingColor());
+      vg.fillColor(ui.theme.modulationTargetMappingColor);
       vg.fill();
     } else if (isModulationHighlight()) {
       LXParameterModulation modulation = this.ui.highlightParameterModulation;
@@ -1368,8 +1412,8 @@ public abstract class UI2dComponent extends UIObject {
     }
   }
 
-  protected int getFocusColor(UI ui) {
-    return this.hasFocusColor ? this.focusColor : ui.theme.getFocusColor();
+  protected UIColor getFocusColor(UI ui) {
+    return this.hasFocusColor ? this.focusColor : ui.theme.focusColor;
   }
 
   /**
@@ -1390,7 +1434,7 @@ public abstract class UI2dComponent extends UIObject {
    */
   protected void drawFocus(UI ui, VGraphics vg) {
     if (this.hasFocusCorners) {
-      drawFocusCorners(ui, vg, getFocusColor(ui));
+      drawFocusCorners(ui, vg, getFocusColor(ui).get());
     }
   }
 

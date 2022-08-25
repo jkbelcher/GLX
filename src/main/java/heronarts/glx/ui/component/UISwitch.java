@@ -93,11 +93,11 @@ public class UISwitch extends UIParameterControl implements UIFocus, UITriggerTa
 
   @Override
   protected void onDraw(UI ui, VGraphics vg) {
-    vg.strokeColor(ui.theme.getControlBorderColor());
+    vg.strokeColor(ui.theme.controlBorderColor);
     if (isEnabled() && (this.parameter != null)) {
-      vg.fillColor((this.parameter.getValue() > 0) ? ui.theme.getPrimaryColor() : ui.theme.getControlBackgroundColor());
+      vg.fillColor((this.parameter.getValue() > 0) ? ui.theme.primaryColor : ui.theme.controlBackgroundColor);
     } else {
-      vg.fillColor(ui.theme.getControlDisabledColor());
+      vg.fillColor(ui.theme.controlDisabledColor);
     }
     vg.beginPath();
     vg.rect(SWITCH_MARGIN, 0, SWITCH_SIZE, SWITCH_SIZE);

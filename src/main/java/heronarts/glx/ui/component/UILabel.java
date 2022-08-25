@@ -150,7 +150,7 @@ public class UILabel extends UI2dComponent {
   @Override
   protected void onDraw(UI ui, VGraphics vg) {
     vg.fontFace(hasFont() ? getFont() : ui.theme.getLabelFont());
-    vg.fillColor(hasFontColor() ? getFontColor() : ui.theme.getLabelColor());
+    vg.fillColor(hasFontColor() ? getFontColor() : ui.theme.labelColor);
     float tx = this.leftPadding, ty = this.topPadding;
     switch (this.textAlignHorizontal) {
     case CENTER:

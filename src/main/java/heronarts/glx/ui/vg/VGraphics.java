@@ -37,6 +37,8 @@ import heronarts.glx.GLX;
 import heronarts.glx.GLXUtils;
 import heronarts.glx.View;
 import heronarts.glx.ui.UI2dContext;
+import heronarts.glx.ui.UIColor;
+
 import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.nanovg.NanoVG.*;
 import static org.lwjgl.nanovg.NanoVGBGFX.*;
@@ -125,15 +127,21 @@ public class VGraphics {
     public final int id;
     public final String name;
     public float size = 10;
+    private final ByteBuffer fontData;
 
-    private Font(int id, String name) {
+    private Font(int id, String name, ByteBuffer fontData) {
       this.id = id;
       this.name = name;
+      this.fontData = fontData;
     }
 
     public Font fontSize(float size) {
       this.size = size;
       return this;
+    }
+
+    public void dispose() {
+      MemoryUtil.memFree(this.fontData);
     }
   }
 
@@ -160,6 +168,10 @@ public class VGraphics {
 
     public void noTint() {
       setTint(1f, 1f, 1f, 1f);
+    }
+
+    public void setTint(UIColor color) {
+      setTint(color.get());
     }
 
     public void setTint(int argb) {
@@ -382,6 +394,10 @@ public class VGraphics {
     return this;
   }
 
+  public VGraphics fillColor(UIColor color) {
+    return fillColor(color.get());
+  }
+
   public VGraphics fillColor(int argb) {
     return fillColor(
       (0xff & (argb >>> 16)) / 255f,
@@ -404,6 +420,10 @@ public class VGraphics {
   public VGraphics fillPaint(Paint paint) {
     nvgFillPaint(this.vg, paint.paint);
     return this;
+  }
+
+  public VGraphics strokeColor(UIColor color) {
+    return strokeColor(color.get());
   }
 
   public VGraphics strokeColor(int argb) {
@@ -616,7 +636,7 @@ public class VGraphics {
 
   private Font createFontMem(String name, ByteBuffer fontData) {
     int font = nvgCreateFontMem(this.vg, name, fontData, 0);
-    return new Font(font, name);
+    return new Font(font, name, fontData);
   }
 
   private Image createImageMem(ByteBuffer imageData, boolean is2x) {

@@ -21,6 +21,7 @@ package heronarts.glx.ui.component;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
@@ -42,7 +43,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
 
   private DiscreteParameter parameter = null;
 
-  private int activeColor = 0;
+  private UIColor activeColor = UIColor.CLEAR;
   private boolean hasActiveColor = false;
 
   public UIToggleSet() {
@@ -54,6 +55,10 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   }
 
   public UIToggleSet setActiveColor(int activeColor) {
+    return setActiveColor(new UIColor(activeColor));
+  }
+
+  public UIToggleSet setActiveColor(UIColor activeColor) {
     if (!this.hasActiveColor || (this.activeColor != activeColor)) {
       this.hasActiveColor = true;
       this.activeColor = activeColor;
@@ -216,8 +221,8 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   @Override
   public void onDraw(UI ui, VGraphics vg) {
     vg.beginPath();
-    vg.fillColor(ui.theme.getControlBackgroundColor());
-    vg.strokeColor(ui.theme.getControlBorderColor());
+    vg.fillColor(ui.theme.controlBackgroundColor);
+    vg.strokeColor(ui.theme.controlBorderColor);
     vg.rect(.5f, .5f, this.width-1, this.height-1);
     vg.fill();
     vg.stroke();
@@ -227,7 +232,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
       int leftBoundary = (this.selectedIndex > 0) ? this.boundaries[this.selectedIndex - 1] : 0;
       int rightBoundary = this.boundaries[this.selectedIndex];
       vg.beginPath();
-      vg.fillColor(this.hasActiveColor ? this.activeColor : ui.theme.getSelectionColor());
+      vg.fillColor(this.hasActiveColor ? this.activeColor : ui.theme.selectionColor);
       vg.rect(leftBoundary + 2, 2, rightBoundary - leftBoundary - 3, this.height - 4, 2);
       vg.fill();
     }
@@ -239,7 +244,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     int leftBoundary = 0;
     for (int i = 0; i < this.options.length; ++i) {
       boolean isActive = (i == this.selectedIndex);
-      vg.fillColor(isActive ? UI.WHITE : ui.theme.getControlTextColor());
+      vg.fillColor(isActive ? UIColor.WHITE : ui.theme.controlTextColor);
       vg.text((leftBoundary + this.boundaries[i]) / 2.f, this.height/2 + 1, this.options[i]);
       leftBoundary = this.boundaries[i];
     }

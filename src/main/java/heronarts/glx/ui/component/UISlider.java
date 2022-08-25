@@ -20,6 +20,7 @@ package heronarts.glx.ui.component;
 
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.color.LXColor;
@@ -47,7 +48,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
 
   private boolean hasFillColor = false;
 
-  private int fillColor = 0;;
+  private UIColor fillColor = UIColor.CLEAR;
 
   public UISlider(float w, LXListenableNormalizedParameter parameter) {
     this(w, DEFAULT_HEIGHT, parameter);
@@ -96,10 +97,14 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
     return this;
   }
 
-  public UISlider setFillColor(int color) {
-    if (!this.hasFillColor || (this.fillColor != color)) {
+  public UISlider setFillColor(int fillColor) {
+    return setFillColor(fillColor);
+  }
+
+  public UISlider setFillColor(UIColor fillColor) {
+    if (!this.hasFillColor || (this.fillColor != fillColor)) {
       this.hasFillColor = true;
-      this.fillColor = color;
+      this.fillColor = fillColor;
       redraw();
     }
     return this;
@@ -134,7 +139,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
       CompoundParameter compound = (CompoundParameter) this.parameter;
       for (int i = 0; i < compound.modulations.size() && i < 3; ++i) {
         LXCompoundModulation modulation = compound.modulations.get(i);
-        int modColor = ui.theme.getControlDisabledColor();
+        int modColor = ui.theme.controlDisabledColor.get();
         int modColorInv = modColor;
         if (isEnabled() && modulation.enabled.isOn()) {
           modColor = modulation.color.getColor();
@@ -201,16 +206,16 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
     int baseColor;
     int valueColor;
     if (isEnabled()) {
-      baseColor = this.hasFillColor ? this.fillColor : ui.theme.getPrimaryColor();
+      baseColor = this.hasFillColor ? this.fillColor.get() : ui.theme.primaryColor.get();
       valueColor = getModulatedValueColor(baseColor);
     } else {
-      int disabled = ui.theme.getControlDisabledColor();
+      int disabled = ui.theme.controlDisabledColor.get();
       baseColor = disabled;
       valueColor = disabled;
     }
 
     vg.strokeWidth(1);
-    vg.fillColor(ui.theme.getControlBackgroundColor());
+    vg.fillColor(ui.theme.controlBackgroundColor);
 
     switch (this.direction) {
     case HORIZONTAL:
@@ -263,7 +268,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
       // If we're modulating across the center, draw a small divider
       if ((base > 0.5 && value < 0.5) || (base < 0.5 && value > 0.5)) {
         float centerX = this.width / 2;
-        vg.strokeColor(ui.theme.getControlBackgroundColor());
+        vg.strokeColor(ui.theme.controlBackgroundColor);
         vg.strokeWidth(1);
         vg.beginPath();
         vg.line(centerX, topY, centerX, topY + GROOVE);
@@ -272,7 +277,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
 
       // Handle
       vg.fillColor(HANDLE_COLOR);
-      vg.strokeColor(ui.theme.getControlBorderColor());
+      vg.strokeColor(ui.theme.controlBorderColor);
       vg.beginPath();
       vg.rect(baseHandleEdge+.5f, PADDING+.5f, HANDLE_SIZE, this.handleHeight - 2*PADDING, HANDLE_ROUNDING);
       vg.fill();
@@ -331,7 +336,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
 
       vg.beginPath();
       vg.fillColor(HANDLE_COLOR);
-      vg.strokeColor(ui.theme.getControlBorderColor());
+      vg.strokeColor(ui.theme.controlBorderColor);
       vg.rect(PADDING+.5f, baseHandleEdge + .5f, this.width - 2*PADDING, HANDLE_SIZE, HANDLE_ROUNDING);
       vg.fill();
       vg.stroke();

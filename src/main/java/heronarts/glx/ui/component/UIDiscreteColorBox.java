@@ -36,8 +36,8 @@ public class UIDiscreteColorBox extends UI2dComponent implements UIFocus {
 
     private UIDiscreteColorMenu(UI ui) {
       super(0, 0, 8 * BOX_SIZE + SPACING * 9, 3 * BOX_SIZE + SPACING * 4);
-      setBackgroundColor(ui.theme.getDarkBackgroundColor());
-      setBorderColor(ui.theme.getControlBorderColor());
+      setBackgroundColor(ui.theme.darkBackgroundColor);
+      setBorderColor(ui.theme.controlBorderColor);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class UIDiscreteColorBox extends UI2dComponent implements UIFocus {
         int y = i / 8;
         vg.beginPath();
         vg.fillColor(DiscreteColorParameter.COLORS[i]);
-        vg.strokeColor(0xffffffff);
+        vg.strokeColor(UI.WHITE);
         vg.strokeWidth(2);
         vg.rect((x+1) * SPACING + x * 10, (y+1) * SPACING + y * 10, 10, 10);
         vg.fill();
@@ -74,7 +74,7 @@ public class UIDiscreteColorBox extends UI2dComponent implements UIFocus {
 
   public UIDiscreteColorBox(UI ui, final DiscreteColorParameter parameter, float x, float y, float w, float h) {
     super(x, y, w, h);
-    setBorderColor(ui.theme.getControlBorderColor());
+    setBorderColor(ui.theme.controlBorderColor);
     setBackgroundColor(parameter.getColor());
     this.parameter = parameter;
     this.colorMenu = new UIDiscreteColorMenu(ui);

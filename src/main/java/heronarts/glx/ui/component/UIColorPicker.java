@@ -129,7 +129,7 @@ public class UIColorPicker extends UI2dComponent {
   @Override
   public void onDraw(UI ui, VGraphics vg) {
     vg.beginPath();
-    vg.strokeColor(ui.theme.getControlBorderColor());
+    vg.strokeColor(ui.theme.controlBorderColor);
     vg.fillColor(this.drawColor);
     if (this.deviceMode) {
       vg.rect(UIKnob.KNOB_MARGIN, 0, UIKnob.KNOB_SIZE, UIKnob.KNOB_SIZE);
@@ -217,8 +217,8 @@ public class UIColorPicker extends UI2dComponent {
     UIColorOverlay(UI ui, float extraHeight) {
       super(0, 0, 240, UISwatch.HEIGHT + extraHeight);
 
-      setBackgroundColor(UI.get().theme.getDeviceBackgroundColor());
-      setBorderColor(UI.get().theme.getControlBorderColor());
+      setBackgroundColor(UI.get().theme.deviceBackgroundColor);
+      setBorderColor(UI.get().theme.controlBorderColor);
       setBorderRounding(6);
 
       this.swatch = new UISwatch();
@@ -244,7 +244,7 @@ public class UIColorPicker extends UI2dComponent {
 
         // Horizontal break
         new UI2dComponent(12, 140, 220, 1) {}
-        .setBorderColor(ui.theme.getDarkBackgroundColor())
+        .setBorderColor(ui.theme.darkBackgroundColor)
         .addToContainer(this);
 
         final UIIntegerBox indexBox = new UIIntegerBox(20, 16, linkedColor.index);

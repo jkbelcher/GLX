@@ -29,6 +29,7 @@ import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UI2dContainer;
+import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.utils.LXUtils;
@@ -85,7 +86,7 @@ public interface UIItemList {
      * @return Background color
      */
     public int getActiveColor(UI ui) {
-      return ui.theme.getControlBackgroundColor();
+      return ui.theme.controlBackgroundColor.get();
     }
 
     /**
@@ -249,13 +250,13 @@ public interface UIItemList {
 
     private int controlSurfaceFocusIndex = -1;
     private int controlSurfaceFocusLength = -1;
-    private int controlSurfaceFocusColor = -1;
+    private UIColor controlSurfaceFocusColor = UIColor.CLEAR;
 
     private String filter = null;
 
     private Impl(UI ui, UI2dContainer list) {
       this.list = list;
-      list.setBackgroundColor(ui.theme.getDarkBackgroundColor());
+      list.setBackgroundColor(ui.theme.darkBackgroundColor);;
       list.setBorderRounding(4);
     }
 
@@ -508,7 +509,7 @@ public interface UIItemList {
       }
     }
 
-    private void setControlSurfaceFocus(int index, int length, int color) {
+    private void setControlSurfaceFocus(int index, int length, UIColor color) {
       this.controlSurfaceFocusIndex = index;
       this.controlSurfaceFocusLength = length;
       this.controlSurfaceFocusColor = color;
@@ -605,7 +606,7 @@ public interface UIItemList {
           vg.scissorPush(1, 1, getWidth()-2, getHeight() - 2);
         }
         float yp = ROW_MARGIN + getScrollY() + ROW_SPACING * visibleFocusIndex;
-        UI2dComponent.drawFocusCorners(ui, vg, ui.theme.getFocusColor(), PADDING, yp, getRowWidth() - 2*PADDING, ROW_HEIGHT, 2);
+        UI2dComponent.drawFocusCorners(ui, vg, ui.theme.focusColor.get(), PADDING, yp, getRowWidth() - 2*PADDING, ROW_HEIGHT, 2);
         if (hasScroll) {
           vg.scissorPop();
         }
@@ -634,7 +635,7 @@ public interface UIItemList {
         float barHeight = height / scrollHeight * eligibleHeight;
         float barY = PADDING - (eligibleHeight - barHeight) * (getScrollY() / (scrollHeight - height));
         vg.beginPath();
-        vg.fillColor(0xff333333);
+        vg.fillColor(ui.theme.scrollBarColor);
         vg.rect(getWidth() - PADDING - SCROLL_BAR_WIDTH, barY, SCROLL_BAR_WIDTH, barHeight, 2);
         vg.fill();
       }
@@ -666,8 +667,8 @@ public interface UIItemList {
           backgroundColor = item.getActiveColor(ui);
           textColor = UI.WHITE;
         } else {
-          backgroundColor = (index == this.focusIndex) ? ui.theme.getSelectionColor() : ui.theme.getControlBackgroundColor();
-          textColor = isSection ? 0xffaaaaaa : ((index == this.focusIndex) ? UI.WHITE : ui.theme.getControlTextColor());
+          backgroundColor = (index == this.focusIndex) ? ui.theme.selectionColor.get() : ui.theme.controlBackgroundColor.get();
+          textColor = isSection ? 0xffaaaaaa : ((index == this.focusIndex) ? UI.WHITE : ui.theme.controlTextColor.get());
         }
         vg.beginPath();
         vg.fillColor(backgroundColor);
@@ -1099,7 +1100,7 @@ public interface UIItemList {
     }
 
     @Override
-    public UIItemList setControlSurfaceFocus(int index, int length, int color) {
+    public UIItemList setControlSurfaceFocus(int index, int length, UIColor color) {
       this.impl.setControlSurfaceFocus(index, length, color);
       return this;
     }
@@ -1287,7 +1288,7 @@ public interface UIItemList {
     }
 
     @Override
-    public UIItemList setControlSurfaceFocus(int index, int length, int color) {
+    public UIItemList setControlSurfaceFocus(int index, int length, UIColor color) {
       this.impl.setControlSurfaceFocus(index, length, color);
       return this;
     }
@@ -1505,7 +1506,7 @@ public interface UIItemList {
    * @param color Color to show focus with
    * @return this
    */
-  public UIItemList setControlSurfaceFocus(int index, int length, int color);
+  public UIItemList setControlSurfaceFocus(int index, int length, UIColor color);
 
   /**
    * Adds a listener to receive notifications about list operations

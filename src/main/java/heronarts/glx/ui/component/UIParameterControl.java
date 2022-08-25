@@ -32,6 +32,7 @@ import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
+import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UICopy;
 import heronarts.glx.ui.UIModulationSource;
@@ -148,9 +149,9 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   }
 
   @Override
-  protected int getFocusColor(UI ui) {
+  protected UIColor getFocusColor(UI ui) {
     if (!isEnabled() || !isEditable()) {
-      return ui.theme.getControlDisabledColor();
+      return ui.theme.controlDisabledColor;
     }
     return super.getFocusColor(ui);
   }
@@ -310,7 +311,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
 
   public static void drawParameterLabel(UI ui, VGraphics vg, UI2dComponent component, String labelText) {
     vg.beginPath();
-    vg.fillColor(ui.theme.getControlTextColor());
+    vg.fillColor(ui.theme.controlTextColor);
     vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
     vg.fontFace(ui.theme.getControlFont());
     vg.text(component.getWidth()/2, component.getHeight() - TEXT_MARGIN - LABEL_HEIGHT/2, clipTextToWidth(vg, labelText, component.getWidth() - TEXT_MARGIN));
@@ -321,13 +322,13 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
     if (this.editing) {
       vg.beginPath();
       vg.rect(0, this.height - LABEL_HEIGHT, this.width, LABEL_HEIGHT);
-      vg.fillColor(ui.theme.getControlBackgroundColor());
+      vg.fillColor(ui.theme.controlBackgroundColor);
       vg.fill();
 
       vg.beginPath();
       vg.fontFace(ui.theme.getControlFont());
       vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
-      vg.fillColor(ui.theme.getPrimaryColor());
+      vg.fillColor(ui.theme.primaryColor);
       vg.text(this.width/2, this.height - LABEL_HEIGHT/2, clipTextToWidth(vg, this.editBuffer, this.width - TEXT_MARGIN));
       vg.fill();
 

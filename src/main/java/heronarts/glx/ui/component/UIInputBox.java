@@ -21,6 +21,7 @@ package heronarts.glx.ui.component;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.UITimerTask;
 import heronarts.glx.ui.vg.VGraphics;
@@ -55,7 +56,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   private ProgressIndicator progressMeter;
   private int progressPixels = 0;
   private boolean hasProgressColor = false;
-  private int progressColor = 0;
+  private UIColor progressColor = UIColor.CLEAR;
 
   protected FillStyle fillStyle = FillStyle.UNDERLINE;
 
@@ -70,8 +71,8 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
 
   protected UIInputBox(float x, float y, float w, float h) {
     super(x, y, w, h);
-    setBorderColor(UI.get().theme.getControlBorderColor());
-    setBackgroundColor(UI.get().theme.getControlBackgroundColor());
+    setBorderColor(UI.get().theme.controlBorderColor);
+    setBackgroundColor(UI.get().theme.controlBackgroundColor);
     setTextAlignment(VGraphics.Align.CENTER);
   }
 
@@ -82,9 +83,15 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   }
 
   public UIInputBox setProgressColor(int progressColor) {
-    this.hasProgressColor = true;
-    this.progressColor = progressColor;
-    redraw();
+    return setProgressColor(new UIColor(progressColor));
+  }
+
+  public UIInputBox setProgressColor(UIColor progressColor) {
+    if (!this.hasProgressColor || (this.progressColor != progressColor)) {
+      this.hasProgressColor = true;
+      this.progressColor = progressColor;
+      redraw();
+    }
     return this;
   }
 
@@ -212,7 +219,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     if (this.progressPixels > 0) {
       vg.beginPath();
       vg.line(2, this.height-2, 2 + this.progressPixels, this.height-2);
-      vg.strokeColor(this.hasProgressColor ? this.progressColor : ui.theme.getPrimaryColor());
+      vg.strokeColor(this.hasProgressColor ? this.progressColor : ui.theme.primaryColor);
       vg.stroke();
     }
 
@@ -225,7 +232,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     } else {
       if (!this.enabled) {
         vg.beginPath();
-        vg.fillColor(ui.theme.getControlDisabledColor());
+        vg.fillColor(ui.theme.controlDisabledColor);
         vg.rect(1, 1, this.width-2, this.height-2);
         vg.fill();
       }
@@ -249,11 +256,11 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     }
 
     if (this.editing) {
-      vg.fillColor(ui.theme.getPrimaryColor());
+      vg.fillColor(ui.theme.primaryColor);
     } else if (!this.enabled) {
-      vg.fillColor(ui.theme.getControlDisabledTextColor());
+      vg.fillColor(ui.theme.controlDisabledTextColor);
     } else {
-      vg.fillColor(hasFontColor() ? getFontColor() : ui.theme.getControlTextColor());
+      vg.fillColor(hasFontColor() ? getFontColor() : ui.theme.controlTextColor);
     }
 
     String displayString = this.editing ? this.editBuffer : getValueString();

@@ -64,8 +64,8 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     super(x, y, w, h);
     this.contextMenu = new UIContextMenu(x, y, w, h);
     setParameter(parameter);
-    setBackgroundColor(UI.get().theme.getControlBackgroundColor());
-    setBorderColor(UI.get().theme.getControlBorderColor());
+    setBackgroundColor(UI.get().theme.controlBackgroundColor);
+    setBorderColor(UI.get().theme.controlBorderColor);
   }
 
   @Override
@@ -154,7 +154,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   @Override
   public void onDraw(UI ui, VGraphics vg) {
     if (!this.enabled) {
-      vg.fillColor(ui.theme.getControlDisabledColor());
+      vg.fillColor(ui.theme.controlDisabledColor);
       vg.beginPath();
       vg.rect(1, 1, this.width-2, this.height-2);
       vg.fill();
@@ -168,7 +168,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     }
 
     vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
-    vg.fillColor(this.enabled ? ui.theme.getControlTextColor() : ui.theme.getControlDisabledTextColor());
+    vg.fillColor(this.enabled ? ui.theme.controlTextColor : ui.theme.controlDisabledTextColor);
     vg.beginPath();
     vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
     vg.text(4 + this.textOffsetX, this.height / 2 + 1 + this.textOffsetY, clipTextToWidth(vg, text, this.width - 12));

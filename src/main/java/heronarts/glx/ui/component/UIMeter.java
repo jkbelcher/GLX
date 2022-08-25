@@ -42,8 +42,8 @@ public class UIMeter extends UI2dComponent implements UIModulationSource {
 
   public UIMeter(UI ui, LXNormalizedParameter parameter, Axis axis, float x, float y, float w, float h) {
     super(x, y, w, h);
-    setBorderColor(ui.theme.getControlBorderColor());
-    setBackgroundColor(ui.theme.getDarkBackgroundColor());
+    setBorderColor(ui.theme.controlBorderColor);
+    setBackgroundColor(ui.theme.darkBackgroundColor);
 
     this.parameter = parameter;
     this.axis = axis;
@@ -65,7 +65,7 @@ public class UIMeter extends UI2dComponent implements UIModulationSource {
   @Override
   public void onDraw(UI ui, VGraphics vg) {
     if (this.d > 0.5f) {
-      vg.fillColor(ui.theme.getPrimaryColor());
+      vg.fillColor(ui.theme.primaryColor);
       vg.beginPath();
       if (this.axis == Axis.VERTICAL) {
         vg.rect(1, this.height-1-this.d, this.width-2, this.d);

@@ -45,7 +45,7 @@ public abstract class UIColorSlider extends UI2dComponent implements UIFocus, UI
     super(x, y, w, h);
     this.color = color;
     this.parameter = parameter;
-    setBorderColor(UI.get().theme.getControlBorderColor());
+    setBorderColor(UI.get().theme.controlBorderColor);
     if (color != null) {
       color.addListener((p) -> { redraw(); });
     }

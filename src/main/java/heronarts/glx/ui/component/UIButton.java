@@ -23,6 +23,7 @@ import java.util.Objects;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.UITriggerSource;
@@ -85,16 +86,16 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   protected boolean active = false;
   protected boolean isMomentary = false;
 
-  protected int inactiveColor = UI.get().theme.getControlBackgroundColor();
-  protected int activeColor = UI.get().theme.getPrimaryColor();
+  protected UIColor inactiveColor = UI.get().theme.controlBackgroundColor;
+  protected UIColor activeColor = UI.get().theme.primaryColor;
 
   private String activeLabel = "";
   private String inactiveLabel = "";
 
   private boolean hasIconColor = false;
-  private int iconColor = UI.WHITE;
+  private UIColor iconColor = UIColor.WHITE;
 
-  private int activeFontColor = UI.WHITE;
+  private UIColor activeFontColor = UIColor.WHITE;
 
   private VGraphics.Image activeIcon = null;
   private VGraphics.Image inactiveIcon = null;
@@ -144,8 +145,8 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   public UIButton(float x, float y, float w, float h) {
     super(x, y, w, h);
-    setBorderColor(UI.get().theme.getControlBorderColor());
-    setFontColor(UI.get().theme.getControlTextColor());
+    setBorderColor(UI.get().theme.controlBorderColor);
+    setFontColor(UI.get().theme.controlTextColor);
     setBackgroundColor(this.inactiveColor);
   }
 
@@ -156,7 +157,17 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
    * @return this
    */
   public UIButton setActiveFontColor(int activeFontColor) {
-    if (activeColor != this.activeFontColor) {
+    return setActiveFontColor(new UIColor(activeFontColor));
+  }
+
+  /**
+   * Sets the active font color
+   *
+   * @param activeFontColor color
+   * @return this
+   */
+  public UIButton setActiveFontColor(UIColor activeFontColor) {
+    if (activeFontColor != this.activeFontColor) {
       this.activeFontColor = activeFontColor;
       redraw();
     }
@@ -185,6 +196,10 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton setIconColor(int iconColor) {
+    return setIconColor(new UIColor(iconColor));
+  }
+
+  public UIButton setIconColor(UIColor iconColor) {
     if (!this.hasIconColor || (this.iconColor != iconColor)) {
       this.hasIconColor = true;
       this.iconColor = iconColor;
@@ -293,7 +308,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     // with a mouse press but the mouse has moved off the active button
     if (!this.enabled || (this.momentaryPressEngaged && !this.momentaryPressValid)) {
       vg.beginPath();
-      vg.fillColor(ui.theme.getControlDisabledColor());
+      vg.fillColor(ui.theme.controlDisabledColor);
       vg.rect(1, 1, this.width-2, this.height-2);
       vg.fill();
     } else if (this.momentaryPressEngaged) {
@@ -466,6 +481,10 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton setActiveColor(int activeColor) {
+    return setActiveColor(new UIColor(activeColor));
+  }
+
+  public UIButton setActiveColor(UIColor activeColor) {
     if (this.activeColor != activeColor) {
       this.activeColor = activeColor;
       if (this.active) {
@@ -476,6 +495,10 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton setInactiveColor(int inactiveColor) {
+    return setInactiveColor(new UIColor(inactiveColor));
+  }
+
+  public UIButton setInactiveColor(UIColor inactiveColor) {
     if (this.inactiveColor != inactiveColor) {
       this.inactiveColor = inactiveColor;
       if (!this.active) {

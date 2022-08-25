@@ -5,6 +5,7 @@ import java.util.Objects;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.UITriggerSource;
@@ -116,7 +117,7 @@ public class UICheckbox extends UIParameterComponent implements UIControlTarget,
   protected void onDraw(UI ui, VGraphics vg) {
     // A lighter gray background color when the button is disabled, or it's engaged
     // with a mouse press but the mouse has moved off the active button
-    int color = this.enabled ? ui.theme.getControlTextColor() : ui.theme.getControlDisabledColor();
+    UIColor color = this.enabled ? ui.theme.controlTextColor : ui.theme.controlDisabledColor;
 
     vg.beginPath();
     vg.strokeColor(color);

@@ -91,7 +91,7 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
 
       // Horizontal break
       new UI2dComponent(12, 140, 220, 1) {}
-      .setBorderColor(ui.theme.getDarkBackgroundColor())
+      .setBorderColor(ui.theme.darkBackgroundColor)
       .addToContainer(this);
 
       UI2dContainer controls = UI2dContainer.newHorizontalContainer(16, 4);

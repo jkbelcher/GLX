@@ -109,7 +109,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
 
         // Light ring of value
         DiscreteColorParameter modulationColor = modulation.color;
-        int modColor = ui.theme.getControlDisabledColor();
+        int modColor = ui.theme.controlDisabledColor.get();
         int modColorInv = modColor;
         if (isEnabled() && modulation.enabled.isOn()) {
           modColor = modulationColor.getColor();
@@ -135,7 +135,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
           break;
         }
         arcSize -= 3;
-        vg.fillColor(ui.theme.getDeviceBackgroundColor());
+        vg.fillColor(ui.theme.deviceBackgroundColor);
         vg.beginPath();
         vg.circle(ARC_CENTER_X, ARC_CENTER_Y, arcSize);
         vg.fill();
@@ -148,17 +148,17 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     }
 
     // Outer fill
-    vg.fillColor(ui.theme.getControlBackgroundColor());
+    vg.fillColor(ui.theme.controlBackgroundColor);
     vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, ARC_START, ARC_END);
 
     // Compute colors for base/value fills
     int baseColor;
     int valueColor;
     if (isEnabled() && isEditable()) {
-      baseColor = ui.theme.getPrimaryColor();
+      baseColor = ui.theme.primaryColor.get();
       valueColor = getModulatedValueColor(baseColor);
     } else {
-      int disabled = ui.theme.getControlDisabledColor();
+      int disabled = ui.theme.controlDisabledColor.get();
       baseColor = disabled;
       valueColor = disabled;
     }
@@ -176,14 +176,14 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
 
     // Center tick mark for bipolar knobs
     if (this.polarity == LXParameter.Polarity.BIPOLAR) {
-      vg.strokeColor(0xff333333);
+      vg.strokeColor(ui.theme.controlDetentColor);
       vg.beginPath();
       vg.line(ARC_CENTER_X, ARC_CENTER_Y, ARC_CENTER_X, ARC_CENTER_Y - arcSize);
       vg.stroke();
     }
 
     // Center dot
-    vg.fillColor(0xff333333);
+    vg.fillColor(ui.theme.controlDetentColor);
     vg.beginPath();
     vg.circle(ARC_CENTER_X, ARC_CENTER_Y, 4);
     vg.fill();

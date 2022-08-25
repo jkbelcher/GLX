@@ -426,7 +426,7 @@ public class UI {
         float padding = contextMenu.getPadding();
         if (padding > 0) {
           vg.beginPath();
-          vg.fillColor(ui.theme.getDeviceFocusedBackgroundColor());
+          vg.fillColor(ui.theme.deviceFocusedBackgroundColor);
           vgRoundedRect(contextMenu, vg, 0, 0, this.width, this.height);
           vg.fill();
         }
@@ -452,7 +452,7 @@ public class UI {
         if (padding > 0) {
           // Cap the top and bottom of the scroll zone
           vg.beginPath();
-          vg.fillColor(ui.theme.getDeviceFocusedBackgroundColor());
+          vg.fillColor(ui.theme.deviceFocusedBackgroundColor);
           vg.rect(padding, 0, this.width - 2*padding, padding);
           vg.rect(padding, this.height-padding, this.width - 2*padding, padding);
           vg.fill();
@@ -626,10 +626,10 @@ public class UI {
         .setBreakLines(true)
         .setPadding(8)
         .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
-        .setBorderColor(this.theme.getAttentionColor())
-        .setBackgroundColor(this.theme.getDarkBackgroundColor())
+        .setBorderColor(this.theme.attentionColor)
+        .setBackgroundColor(this.theme.darkBackgroundColor)
         .setBorderRounding(4)
-        .setFontColor(this.theme.getAttentionColor())
+        .setFontColor(this.theme.attentionColor)
       );
     });
   }
@@ -1026,5 +1026,6 @@ public class UI {
 
   public void dispose() {
     this.root.dispose();
+    this.theme.dispose();
   }
 }
