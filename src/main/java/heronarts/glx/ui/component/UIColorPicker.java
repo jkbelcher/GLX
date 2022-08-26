@@ -70,7 +70,6 @@ public class UIColorPicker extends UI2dComponent {
   protected UIColorPicker(float x, float y, float w, float h, ColorParameter color, boolean isDynamic) {
     super(x, y, w, h);
     setColor(color);
-    setBorderColor(UI.get().theme.controlBorderColor);
 
     // Redraw with color in real-time, if modulated
     if (!isDynamic) {
@@ -132,7 +131,7 @@ public class UIColorPicker extends UI2dComponent {
   public void drawBorder(UI ui, VGraphics vg) {
     if (this.deviceMode) {
       vg.beginPath();
-      vg.strokeColor(getBorderColor());
+      vg.strokeColor(ui.theme.controlBorderColor);
       vg.rect(UIKnob.KNOB_MARGIN + .5f, .5f, UIKnob.KNOB_SIZE - 1, UIKnob.KNOB_SIZE - 1);
       vg.stroke();
     } else {
@@ -143,12 +142,11 @@ public class UIColorPicker extends UI2dComponent {
   @Override
   public void onDraw(UI ui, VGraphics vg) {
     vg.beginPath();
-    vg.strokeColor(ui.theme.controlBorderColor);
     vg.fillColor(this.drawColor);
     if (this.deviceMode) {
       vg.rect(UIKnob.KNOB_MARGIN, 0, UIKnob.KNOB_SIZE, UIKnob.KNOB_SIZE);
     } else {
-      vgRoundedRect(vg);
+      vgRoundedRect(vg, .5f, .5f, this.width-1, this.height-1);
     }
     vg.fill();
 

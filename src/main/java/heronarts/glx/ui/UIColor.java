@@ -38,6 +38,10 @@ public class UIColor {
     return this.argb;
   }
 
+  public int maskf(float alpha) {
+    return mask((int) (0xff * alpha));
+  }
+
   public int mask(int alpha) {
     return UIColor.mask(this.argb, alpha);
   }
