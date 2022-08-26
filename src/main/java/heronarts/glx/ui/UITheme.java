@@ -116,9 +116,9 @@ public class UITheme {
       "contextBorder", "000000",
       "contextHighlight", "333333",
 
-      "midiMapping", "33ff0000",
-      "modulationSourceMapping", "3300ff00",
-      "modulationTargetMapping", "3300cccc"
+      "midiMapping", "ff0000",
+      "modulationSourceMapping", "00ff00",
+      "modulationTargetMapping", "00cccc"
     ),
 
     LIGHT("Light",
@@ -183,9 +183,9 @@ public class UITheme {
       "contextBorder", "333333",
       "contextHighlight", "c9c9c9",
 
-      "midiMapping", "33ff0000",
-      "modulationSourceMapping", "3300ff00",
-      "modulationTargetMapping", "3300cccc"
+      "midiMapping", "ff0000",
+      "modulationSourceMapping", "00ff00",
+      "modulationTargetMapping", "00cccc"
     );
 
     public final String name;
@@ -196,12 +196,10 @@ public class UITheme {
       for (int i = 0; i < colors.length; i +=2) {
         String field = colors[i];
         String hex = colors[i+1];
-        if (hex.length() == 8) {
-          this.colors.put(field, Integer.parseUnsignedInt(hex, 16));
-        } else if (hex.length() == 6) {
-          this.colors.put(field, Integer.parseUnsignedInt("ff" + hex, 16));
+        if (hex.length() == 6) {
+          this.colors.put(field, 0xff000000 | Integer.parseInt(hex, 16));
         } else {
-          throw new IllegalArgumentException("UITheme color must be 6 or 8 hex digits - " + field);
+          throw new IllegalArgumentException("UITheme color must be 6 hex digits - " + field);
         }
       }
     }

@@ -1319,7 +1319,7 @@ public abstract class UI2dComponent extends UIObject {
   private void drawMappingBorder(UI ui, VGraphics vg) {
     vg.beginPath();
     vgRoundedRect(vg, 0.5f, 0.5f, this.width - 1, this.height - 1);
-    vg.strokeColor(0xff000000 | ui.theme.modulationTargetMappingColor.get());
+    vg.strokeColor(ui.theme.modulationTargetMappingColor);
     vg.stroke();
   }
 
@@ -1329,7 +1329,7 @@ public abstract class UI2dComponent extends UIObject {
     } else if (isMidiMapping()) {
       vg.beginPath();
       vg.rect(x, y, w, h);
-      vg.fillColor(ui.theme.midiMappingColor);
+      vg.fillColor(ui.theme.midiMappingColor.mask(0x33));
       vg.fill();
       if (isControlTarget()) {
         drawFocusCorners(ui, vg, ui.theme.midiMappingColor.mask(0xcc));
@@ -1337,12 +1337,12 @@ public abstract class UI2dComponent extends UIObject {
     } else if (isModulationSourceMapping() || isTriggerSourceMapping()) {
       vg.beginPath();
       vg.rect(x, y, w, h);
-      vg.fillColor(ui.theme.modulationSourceMappingColor);
+      vg.fillColor(ui.theme.modulationSourceMappingColor.mask(0x33));
       vg.fill();
     } else if (isModulationTargetMapping() || isTriggerTargetMapping()) {
       vg.beginPath();
       vg.rect(x, y, w, h);
-      vg.fillColor(ui.theme.modulationTargetMappingColor);
+      vg.fillColor(ui.theme.modulationTargetMappingColor.mask(0x33));
       vg.fill();
     } else if (isModulationHighlight()) {
       LXParameterModulation modulation = this.ui.highlightParameterModulation;
