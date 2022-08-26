@@ -487,16 +487,6 @@ public class UI {
    */
   public final UITheme theme;
 
-  /**
-   * White color
-   */
-  public final static int WHITE = 0xffffffff;
-
-  /**
-   * Black color
-   */
-  public final static int BLACK = 0xff000000;
-
   boolean midiMapping = false;
   boolean modulationSourceMapping = false;
   boolean modulationTargetMapping = false;
