@@ -256,7 +256,8 @@ public interface UIItemList {
 
     private Impl(UI ui, UI2dContainer list) {
       this.list = list;
-      list.setBackgroundColor(ui.theme.darkBackgroundColor);;
+      list.setBackgroundColor(ui.theme.listBackgroundColor);;
+      list.setBorderColor(ui.theme.listBorderColor);;
       list.setBorderRounding(4);
     }
 
@@ -635,7 +636,7 @@ public interface UIItemList {
         float barHeight = height / scrollHeight * eligibleHeight;
         float barY = PADDING - (eligibleHeight - barHeight) * (getScrollY() / (scrollHeight - height));
         vg.beginPath();
-        vg.fillColor(ui.theme.scrollBarColor);
+        vg.fillColor(ui.theme.listScrollBarColor);
         vg.rect(getWidth() - PADDING - SCROLL_BAR_WIDTH, barY, SCROLL_BAR_WIDTH, barHeight, 2);
         vg.fill();
       }
@@ -665,10 +666,10 @@ public interface UIItemList {
         int backgroundColor, textColor;
         if (item.isActive()) {
           backgroundColor = item.getActiveColor(ui);
-          textColor = UI.WHITE;
+          textColor = ui.theme.listItemFocusedTextColor.get();
         } else {
-          backgroundColor = (index == this.focusIndex) ? ui.theme.selectionColor.get() : ui.theme.controlBackgroundColor.get();
-          textColor = isSection ? 0xffaaaaaa : ((index == this.focusIndex) ? UI.WHITE : ui.theme.controlTextColor.get());
+          backgroundColor = (index == this.focusIndex) ? ui.theme.listItemFocusedBackgroundColor.get() : ui.theme.listItemBackgroundColor.get();
+          textColor = isSection ? ui.theme.listSectionTextColor.get() : ((index == this.focusIndex) ? ui.theme.listItemFocusedTextColor.get() : ui.theme.controlTextColor.get());
         }
         vg.beginPath();
         vg.fillColor(backgroundColor);
@@ -678,7 +679,7 @@ public interface UIItemList {
         int textX = 6;
         if (isSection) {
           vg.beginPath();
-          vg.fillColor(0xff666666);
+          vg.fillColor(ui.theme.listSectionArrowColor);
           if (((Section) item).expanded) {
             vg.moveTo(textX-1, yp + 6);
             vg.lineTo(textX+5, yp + 6);

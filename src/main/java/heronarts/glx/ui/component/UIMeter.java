@@ -43,7 +43,7 @@ public class UIMeter extends UI2dComponent implements UIModulationSource {
   public UIMeter(UI ui, LXNormalizedParameter parameter, Axis axis, float x, float y, float w, float h) {
     super(x, y, w, h);
     setBorderColor(ui.theme.controlBorderColor);
-    setBackgroundColor(ui.theme.darkBackgroundColor);
+    setBackgroundColor(ui.theme.meterBackgroundColor);
 
     this.parameter = parameter;
     this.axis = axis;

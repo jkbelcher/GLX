@@ -42,8 +42,6 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
   private static final int PADDING = 2;
   private static final int GROOVE = 4;
 
-  private final static int HANDLE_COLOR = 0xff5f5f5f;
-
   private float handleHeight;
 
   private boolean hasFillColor = false;
@@ -98,7 +96,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
   }
 
   public UISlider setFillColor(int fillColor) {
-    return setFillColor(fillColor);
+    return setFillColor(new UIColor(fillColor));
   }
 
   public UISlider setFillColor(UIColor fillColor) {
@@ -215,7 +213,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
     }
 
     vg.strokeWidth(1);
-    vg.fillColor(ui.theme.controlBackgroundColor);
+    vg.fillColor(ui.theme.controlFillColor);
 
     switch (this.direction) {
     case HORIZONTAL:
@@ -268,7 +266,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
       // If we're modulating across the center, draw a small divider
       if ((base > 0.5 && value < 0.5) || (base < 0.5 && value > 0.5)) {
         float centerX = this.width / 2;
-        vg.strokeColor(ui.theme.controlBackgroundColor);
+        vg.strokeColor(ui.theme.controlFillColor);
         vg.strokeWidth(1);
         vg.beginPath();
         vg.line(centerX, topY, centerX, topY + GROOVE);
@@ -276,7 +274,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
       }
 
       // Handle
-      vg.fillColor(HANDLE_COLOR);
+      vg.fillColor(ui.theme.controlHandleColor);
       vg.strokeColor(ui.theme.controlBorderColor);
       vg.beginPath();
       vg.rect(baseHandleEdge+.5f, PADDING+.5f, HANDLE_SIZE, this.handleHeight - 2*PADDING, HANDLE_ROUNDING);
@@ -335,7 +333,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
       }
 
       vg.beginPath();
-      vg.fillColor(HANDLE_COLOR);
+      vg.fillColor(ui.theme.controlHandleColor);
       vg.strokeColor(ui.theme.controlBorderColor);
       vg.rect(PADDING+.5f, baseHandleEdge + .5f, this.width - 2*PADDING, HANDLE_SIZE, HANDLE_ROUNDING);
       vg.fill();

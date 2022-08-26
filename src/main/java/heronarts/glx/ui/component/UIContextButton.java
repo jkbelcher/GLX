@@ -117,7 +117,7 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
   @Override
   public void onDraw(UI ui, VGraphics vg) {
     if ((this.label != null) && (this.label.length() > 0)) {
-      UIColor fontColor = this.mouseDown ? UIColor.WHITE : getFontColor();
+      UIColor fontColor = this.mouseDown ? ui.theme.controlActiveTextColor : getFontColor();
       vg.fillColor(fontColor);
       vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
       if (this.textAlignVertical == VGraphics.Align.MIDDLE) {

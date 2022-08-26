@@ -54,7 +54,7 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
   @Override
   protected void drawFocus(UI ui, VGraphics vg) {
     vg.beginPath();
-    vg.strokeColor(UI.WHITE);
+    vg.strokeColor(ui.theme.controlActiveTextColor);
     vg.strokeWidth(1);
     vgRoundedRect(vg, .5f, .5f, this.width-1, this.height-1);
     vg.stroke();
@@ -91,7 +91,7 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
 
       // Horizontal break
       new UI2dComponent(12, 140, 220, 1) {}
-      .setBorderColor(ui.theme.darkBackgroundColor)
+      .setBorderColor(ui.theme.controlBorderColor)
       .addToContainer(this);
 
       UI2dContainer controls = UI2dContainer.newHorizontalContainer(16, 4);
@@ -158,11 +158,11 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
       setColor(color);
       if (color == dynamicColor.primary) {
         this.primaryColorSelector.setBorderWeight(2);
-        this.primaryColorSelector.setBorderColor(UI.WHITE);
+        this.primaryColorSelector.setBorderColor(UI.get().theme.controlActiveTextColor);
         this.secondaryColorSelector.setBorder(false);
       } else {
         this.secondaryColorSelector.setBorderWeight(2);
-        this.secondaryColorSelector.setBorderColor(UI.WHITE);
+        this.secondaryColorSelector.setBorderColor(UI.get().theme.controlActiveTextColor);
         this.primaryColorSelector.setBorder(false);
       }
     }

@@ -36,7 +36,7 @@ public class UIDiscreteColorBox extends UI2dComponent implements UIFocus {
 
     private UIDiscreteColorMenu(UI ui) {
       super(0, 0, 8 * BOX_SIZE + SPACING * 9, 3 * BOX_SIZE + SPACING * 4);
-      setBackgroundColor(ui.theme.darkBackgroundColor);
+      setBackgroundColor(ui.theme.contextBackgroundColor);
       setBorderColor(ui.theme.controlBorderColor);
     }
 

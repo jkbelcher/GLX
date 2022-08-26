@@ -1332,7 +1332,7 @@ public abstract class UI2dComponent extends UIObject {
       vg.fillColor(ui.theme.midiMappingColor);
       vg.fill();
       if (isControlTarget()) {
-        drawFocusCorners(ui, vg, 0xccff0000);
+        drawFocusCorners(ui, vg, ui.theme.midiMappingColor.mask(0xcc));
       }
     } else if (isModulationSourceMapping() || isTriggerSourceMapping()) {
       vg.beginPath();
@@ -1347,11 +1347,9 @@ public abstract class UI2dComponent extends UIObject {
     } else if (isModulationHighlight()) {
       LXParameterModulation modulation = this.ui.highlightParameterModulation;
       if (modulation != null) {
-        int color = modulation.color.getColor();
-        color = (color & 0x00ffffff) | (0x33000000);
         vg.beginPath();
         vg.rect(x, y, w, h);
-        vg.fillColor(color);
+        vg.fillColor(UIColor.mask(modulation.color.getColor(), 0x33));
         vg.fill();
       }
     }

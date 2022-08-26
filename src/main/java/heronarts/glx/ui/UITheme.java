@@ -61,19 +61,28 @@ public class UITheme {
       "deviceFocusedBackground", "4c4c4c",
       "deviceSelection", "586658",
       "deviceSelectionText", "e0e0e0",
-      "deviceBorder", "292929",
 
       "paneBackground", "040404",
       "paneInset", "242424",
+      "paneScrollBar", "4c4c4c",
+      "paneSelectorInactive", "333333",
 
-      "scrollBar", "333333",
+      "toolbarBackground", "242424",
+      "helpText", "c0c0c0",
+
+      "sectionExpanderBackground", "303030",
+      "sceneStripBackground", "393939",
+      "clipButtonBackground", "494949",
 
       "controlBackground", "222222",
+      "controlFill", "222222",
       "controlBorder", "292929",
       "controlDetent", "333333",
-      "controlText", "cccccc",
-      "controlDisabledText", "707070",
+      "controlHandle", "5f5f5f",
       "controlDisabled", "303030",
+      "controlText", "cccccc",
+      "controlActiveText", "ffffff",
+      "controlDisabledText", "707070",
 
       "primary", "669966",
       "secondary", "666699",
@@ -85,12 +94,20 @@ public class UITheme {
       "recording", "a00044",
       "cursor", "555555",
       "selection", "333333",
-      "focusSelection", "393939",
       "error", "ff0000",
-      "secondaryListItem", "666666",
 
-      "darkBackground", "191919",
-      "darkFocusBackground", "292929",
+      "listBackground", "191919",
+      "listBorder", "191919",
+      "listItemBackground", "222222",
+      "listItemSelectedBackground", "404040",
+      "listItemFocusedBackground", "333333",
+      "listItemFocusedText", "ffffff",
+      "listItemSecondary", "666666",
+      "listScrollBar", "333333",
+      "listSectionArrow", "666666",
+      "listSectionText", "aaaaaa",
+
+      "meterBackground", "191919",
 
       "iconDisabled", "505050",
       "iconInactive", "999999",
@@ -104,7 +121,72 @@ public class UITheme {
       "modulationTargetMapping", "3300cccc"
     ),
 
-    LIGHT("Light");
+    LIGHT("Light",
+      "label", "191919",
+
+      "deviceBackground", "808080",
+      "deviceFocusedBackground", "888888",
+      "deviceSelection", "80bf80",
+      "deviceSelectionText", "111111",
+
+      "paneBackground", "707070",
+      "paneInset", "555555",
+      "paneScrollBar", "494949",
+      "paneSelectorInactive", "797979",
+
+      "toolbarBackground", "808080",
+      "helpText", "111111",
+
+      "sectionExpanderBackground", "606060",
+      "sceneStripBackground", "707070",
+      "clipButtonBackground", "505050",
+
+      "controlBackground", "b7b7b7",
+      "controlFill", "393939",
+      "controlBorder", "444444",
+      "controlDetent", "555555",
+      "controlHandle", "9f9f9f",
+      "controlDisabled", "999999",
+      "controlText", "191919",
+      "controlActiveText", "000000",
+      "controlDisabledText", "303030",
+
+      "primary", "80bf80",
+      "secondary", "8080bf",
+      "focus", "c9c9c9",
+      "attention", "ff3333",
+      "cue", "8080bf",
+      "aux", "bf8080",
+      "surface", "8080bf",
+      "recording", "bf0053",
+      "cursor", "555555",
+      "selection", "cccccc",
+      "error", "ff0000",
+
+      "listBackground", "888888",
+      "listBorder", "444444",
+      "listItemBackground", "888888",
+      "listItemSelectedBackground", "a0a0a0",
+      "listItemFocusedBackground", "999999",
+      "listItemSecondary", "b7b7b7",
+      "listItemFocusedText", "000000",
+      "listScrollBar", "555555",
+      "listSectionArrow", "666666",
+      "listSectionText", "333333",
+
+      "meterBackground", "191919",
+
+      "iconDisabled", "505050",
+      "iconInactive", "404040",
+
+      "contextBackground", "b7b7b7",
+      "contextBorder", "333333",
+      "contextHighlight", "c9c9c9",
+
+      "midiMapping", "33ff0000",
+      "modulationSourceMapping", "3300ff00",
+      "modulationTargetMapping", "3300cccc"
+    );
 
     public final String name;
     public final Map<String, Integer> colors = new HashMap<String, Integer>();
@@ -140,19 +222,28 @@ public class UITheme {
   public final Color deviceFocusedBackgroundColor = new Color("deviceFocusedBackground");
   public final Color deviceSelectionColor = new Color("deviceSelection");
   public final Color deviceSelectionTextColor = new Color("deviceSelectionText");
-  public final Color deviceBorderColor = new Color("deviceBorder");
 
   public final Color paneBackgroundColor = new Color("paneBackground");
   public final Color paneInsetColor = new Color("paneInset");
+  public final Color paneScrollBarColor = new Color("paneScrollBar");
+  public final Color paneSelectorInactiveColor = new Color("paneSelectorInactive");
 
-  public final Color scrollBarColor = new Color("scrollBar");
+  public final Color toolbarBackgroundColor = new Color("toolbarBackground");
+  public final Color helpTextColor = new Color("helpText");
+
+  public final Color sectionExpanderBackgroundColor = new Color("sectionExpanderBackground");
+  public final Color sceneStripBackgroundColor = new Color("sceneStripBackground");
+  public final Color clipButtonBackgroundColor = new Color("clipButtonBackground");
 
   public final Color controlBackgroundColor = new Color("controlBackground");
+  public final Color controlFillColor = new Color("controlFill");
   public final Color controlBorderColor = new Color("controlBorder");
+  public final Color controlHandleColor = new Color("controlHandle");
   public final Color controlDetentColor = new Color("controlDetent");
-  public final Color controlTextColor = new Color("controlText");
-  public final Color controlDisabledTextColor = new Color("controlDisabledText");
   public final Color controlDisabledColor = new Color("controlDisabled");
+  public final Color controlTextColor = new Color("controlText");
+  public final Color controlActiveTextColor = new Color("controlActiveText");
+  public final Color controlDisabledTextColor = new Color("controlDisabledText");
 
   public final Color primaryColor = new Color("primary");
   public final Color secondaryColor = new Color("secondary");
@@ -164,12 +255,20 @@ public class UITheme {
   public final Color recordingColor = new Color("recording");
   public final Color cursorColor = new Color("cursor");
   public final Color selectionColor = new Color("selection");
-  public final Color focusSelectionColor = new Color("focusSelection");
   public final Color errorColor = new Color("error");
-  public final Color secondaryListItemColor = new Color("secondaryListItem");
 
-  public final Color darkBackgroundColor = new Color("darkBackground");
-  public final Color darkFocusBackgroundColor = new Color("darkFocusBackground");
+  public final Color listBackgroundColor = new Color("listBackground");
+  public final Color listBorderColor = new Color("listBorder");
+  public final Color listItemBackgroundColor = new Color("listItemBackground");
+  public final Color listItemSelectedBackgroundColor = new Color("listItemSelectedBackground");
+  public final Color listItemFocusedBackgroundColor = new Color("listItemFocusedBackground");
+  public final Color listItemFocusedTextColor = new Color("listItemFocusedText");
+  public final Color listItemSecondaryColor = new Color("listItemSecondary");
+  public final Color listScrollBarColor = new Color("listScrollBar");
+  public final Color listSectionArrowColor = new Color("listSectionArrow");
+  public final Color listSectionTextColor = new Color("listSectionText");
+
+  public final Color meterBackgroundColor = new Color("meterBackground");
 
   public final Color iconDisabledColor = new Color("iconDisabled");
   public final Color iconInactiveColor = new Color("iconInactive");

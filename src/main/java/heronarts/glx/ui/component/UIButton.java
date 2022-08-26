@@ -95,6 +95,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   private boolean hasIconColor = false;
   private UIColor iconColor = UIColor.WHITE;
 
+  private boolean hasActiveFontColor = false;
   private UIColor activeFontColor = UIColor.WHITE;
 
   private VGraphics.Image activeIcon = null;
@@ -167,7 +168,8 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
    * @return this
    */
   public UIButton setActiveFontColor(UIColor activeFontColor) {
-    if (activeFontColor != this.activeFontColor) {
+    if (!this.hasActiveFontColor || (activeFontColor != this.activeFontColor)) {
+      this.hasActiveFontColor = true;
       this.activeFontColor = activeFontColor;
       redraw();
     }
@@ -320,7 +322,9 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
     VGraphics.Image icon = this.active ? this.activeIcon : this.inactiveIcon;
     if (icon != null) {
-      if (!this.active && !this.momentaryPressEngaged) {
+      if (this.active || this.momentaryPressEngaged) {
+        icon.setTint(this.hasActiveFontColor ? this.activeFontColor : ui.theme.controlActiveTextColor);
+      } else {
         icon.setTint(this.hasIconColor ? this.iconColor : getFontColor());
       }
       vg.beginPath();
@@ -330,7 +334,10 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     } else {
       String label = this.active ? this.activeLabel : this.inactiveLabel;
       if ((label != null) && (label.length() > 0)) {
-        vg.fillColor((this.active || this.momentaryPressEngaged) ? this.activeFontColor : getFontColor());
+        vg.fillColor((this.active || this.momentaryPressEngaged) ?
+          (this.hasActiveFontColor ? this.activeFontColor : ui.theme.controlActiveTextColor) :
+          getFontColor()
+        );
         vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
         if (this.textAlignVertical == VGraphics.Align.MIDDLE) {
           vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);

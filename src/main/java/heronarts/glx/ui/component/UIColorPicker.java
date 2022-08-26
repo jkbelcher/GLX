@@ -23,6 +23,7 @@ import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UI2dContainer;
+import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.UITimerTask;
 import heronarts.glx.ui.vg.VGraphics;
@@ -69,6 +70,7 @@ public class UIColorPicker extends UI2dComponent {
   protected UIColorPicker(float x, float y, float w, float h, ColorParameter color, boolean isDynamic) {
     super(x, y, w, h);
     setColor(color);
+    setBorderColor(UI.get().theme.controlBorderColor);
 
     // Redraw with color in real-time, if modulated
     if (!isDynamic) {
@@ -127,6 +129,18 @@ public class UIColorPicker extends UI2dComponent {
   }
 
   @Override
+  public void drawBorder(UI ui, VGraphics vg) {
+    if (this.deviceMode) {
+      vg.beginPath();
+      vg.strokeColor(getBorderColor());
+      vg.rect(UIKnob.KNOB_MARGIN + .5f, .5f, UIKnob.KNOB_SIZE - 1, UIKnob.KNOB_SIZE - 1);
+      vg.stroke();
+    } else {
+      super.drawBorder(ui, vg);
+    }
+  }
+
+  @Override
   public void onDraw(UI ui, VGraphics vg) {
     vg.beginPath();
     vg.strokeColor(ui.theme.controlBorderColor);
@@ -136,7 +150,6 @@ public class UIColorPicker extends UI2dComponent {
     } else {
       vgRoundedRect(vg);
     }
-    vg.stroke();
     vg.fill();
 
     if (this.deviceMode) {
@@ -244,7 +257,7 @@ public class UIColorPicker extends UI2dComponent {
 
         // Horizontal break
         new UI2dComponent(12, 140, 220, 1) {}
-        .setBorderColor(ui.theme.darkBackgroundColor)
+        .setBorderColor(ui.theme.controlBorderColor)
         .addToContainer(this);
 
         final UIIntegerBox indexBox = new UIIntegerBox(20, 16, linkedColor.index);
@@ -331,7 +344,7 @@ public class UIColorPicker extends UI2dComponent {
 
         // Color square
         vg.beginPath();
-        vg.strokeColor(brightness < 50 ? 0xffffffff : 0xff000000);
+        vg.strokeColor(brightness < 50 ? UIColor.WHITE : UIColor.BLACK);
         vg.ellipse(
           GRID_X + hue / 360 * GRID_WIDTH,
           GRID_Y + (1 - saturation / 100) * GRID_HEIGHT,
@@ -342,7 +355,7 @@ public class UIColorPicker extends UI2dComponent {
 
         // Brightness triangle
         vg.beginPath();
-        vg.fillColor(0xffcccccc);
+        vg.fillColor(ui.theme.controlTextColor);
         float xp = BRIGHT_SLIDER_X;
         float yp = BRIGHT_SLIDER_Y + (1 - brightness / 100) * BRIGHT_SLIDER_HEIGHT;
         vg.moveTo(xp, yp);

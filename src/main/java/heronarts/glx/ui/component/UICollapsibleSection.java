@@ -96,7 +96,7 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
   }
 
   public static void drawExpander(UI ui, VGraphics vg, boolean expanded, float x, float y) {
-    vg.fillColor(0xff333333);
+    vg.fillColor(ui.theme.sectionExpanderBackgroundColor);
     vg.beginPath();
     vg.rect(x, y, 12, 12, 4);
     vg.fill();

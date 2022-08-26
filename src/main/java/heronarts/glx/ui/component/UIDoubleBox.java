@@ -102,6 +102,8 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
       this.maxValue = parameter.range.max;
       this.parameter.addListener(this.parameterListener);
       setValue(parameter);
+    } else {
+      this.value = 0;
     }
     return this;
   }

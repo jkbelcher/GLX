@@ -148,7 +148,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     }
 
     // Outer fill
-    vg.fillColor(ui.theme.controlBackgroundColor);
+    vg.fillColor(ui.theme.controlFillColor);
     vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, ARC_START, ARC_END);
 
     // Compute colors for base/value fills

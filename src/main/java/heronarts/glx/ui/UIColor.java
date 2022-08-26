@@ -38,4 +38,12 @@ public class UIColor {
     return this.argb;
   }
 
+  public int mask(int alpha) {
+    return UIColor.mask(this.argb, alpha);
+  }
+
+  public static int mask(int argb, int alpha) {
+    return (alpha << 24) | (0xffffff & argb);
+  }
+
 }
