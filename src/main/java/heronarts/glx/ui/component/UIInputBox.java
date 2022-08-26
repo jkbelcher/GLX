@@ -56,7 +56,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   private ProgressIndicator progressMeter;
   private int progressPixels = 0;
   private boolean hasProgressColor = false;
-  private UIColor progressColor = UIColor.CLEAR;
+  private UIColor progressColor = UIColor.NONE;
 
   protected FillStyle fillStyle = FillStyle.UNDERLINE;
 
@@ -226,7 +226,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
     if (this.editing) {
       vg.beginPath();
-      vg.fillColor(0, 0, 0);
+      vg.fillColor(ui.theme.editTextBackgroundColor);
       vgRoundedRect(vg);
       vg.fill();
     } else {
@@ -256,7 +256,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     }
 
     if (this.editing) {
-      vg.fillColor(ui.theme.primaryColor);
+      vg.fillColor(ui.theme.editTextColor);
     } else if (!this.enabled) {
       vg.fillColor(ui.theme.controlDisabledTextColor);
     } else {

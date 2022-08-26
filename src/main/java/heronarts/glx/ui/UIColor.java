@@ -22,7 +22,7 @@ public class UIColor {
 
   public static final UIColor BLACK = new UIColor(0xff000000);
   public static final UIColor WHITE = new UIColor(0xffffffff);
-  public static final UIColor CLEAR = new UIColor(0x00000000);
+  public static final UIColor NONE = new UIColor(0x00000000);
 
   protected int argb;
 

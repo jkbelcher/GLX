@@ -92,15 +92,15 @@ public abstract class UI2dComponent extends UIObject {
 
   private boolean hasBackground = false;
 
-  private UIColor backgroundColor = UIColor.BLACK;
+  private UIColor backgroundColor = UIColor.NONE;
 
   private boolean hasFocusBackground = false;
 
-  private UIColor focusBackgroundColor = UIColor.BLACK;
+  private UIColor focusBackgroundColor = UIColor.NONE;
 
   private boolean hasBorder = false;
 
-  private UIColor borderColor = UIColor.BLACK;
+  private UIColor borderColor = UIColor.NONE;
 
   private int borderWeight = 1;
 
@@ -116,13 +116,13 @@ public abstract class UI2dComponent extends UIObject {
 
   private boolean hasFocusColor = false;
 
-  private UIColor focusColor = UIColor.CLEAR;
+  private UIColor focusColor = UIColor.NONE;
 
   private VGraphics.Font font = null;
 
   private boolean hasFontColor = false;
 
-  private UIColor fontColor = UIColor.BLACK;
+  private UIColor fontColor = UIColor.NONE;
 
   protected VGraphics.Align textAlignHorizontal = VGraphics.Align.LEFT;
 

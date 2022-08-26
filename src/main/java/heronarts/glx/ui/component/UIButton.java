@@ -93,10 +93,10 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   private String inactiveLabel = "";
 
   private boolean hasIconColor = false;
-  private UIColor iconColor = UIColor.WHITE;
+  private UIColor iconColor = UIColor.NONE;
 
   private boolean hasActiveFontColor = false;
-  private UIColor activeFontColor = UIColor.WHITE;
+  private UIColor activeFontColor = UIColor.NONE;
 
   private VGraphics.Image activeIcon = null;
   private VGraphics.Image inactiveIcon = null;

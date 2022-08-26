@@ -46,7 +46,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
 
   private boolean hasFillColor = false;
 
-  private UIColor fillColor = UIColor.CLEAR;
+  private UIColor fillColor = UIColor.NONE;
 
   public UISlider(float w, LXListenableNormalizedParameter parameter) {
     this(w, DEFAULT_HEIGHT, parameter);

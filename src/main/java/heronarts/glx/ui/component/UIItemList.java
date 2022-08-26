@@ -250,7 +250,7 @@ public interface UIItemList {
 
     private int controlSurfaceFocusIndex = -1;
     private int controlSurfaceFocusLength = -1;
-    private UIColor controlSurfaceFocusColor = UIColor.CLEAR;
+    private UIColor controlSurfaceFocusColor = UIColor.NONE;
 
     private String filter = null;
 
@@ -713,12 +713,12 @@ public interface UIItemList {
         }
         if (renameItem) {
           vg.beginPath();
-          vg.fillColor(UI.BLACK);
+          vg.fillColor(ui.theme.editTextBackgroundColor);
           vg.rect(textX-2, yp+1, rowWidth - 2*PADDING - textX + 2, ROW_HEIGHT-2, 4);
           vg.fill();
 
           vg.beginPath();
-          vg.fillColor(UI.WHITE);
+          vg.fillColor(ui.theme.editTextColor);
           vg.text(textX, yp + ROW_SPACING/2-.5f, UI2dComponent.clipTextToWidth(vg, this.renameBuffer, rowWidth - textX - 2));
           vg.fill();
         } else {

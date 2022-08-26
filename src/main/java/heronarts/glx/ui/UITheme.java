@@ -84,6 +84,9 @@ public class UITheme {
       "controlActiveText", "ffffff",
       "controlDisabledText", "707070",
 
+      "editTextBackground", "000000",
+      "editText", "ffffff",
+
       "primary", "669966",
       "secondary", "666699",
       "focus", "669966",
@@ -150,6 +153,9 @@ public class UITheme {
       "controlText", "191919",
       "controlActiveText", "000000",
       "controlDisabledText", "303030",
+
+      "editTextBackground", "d9d9d9",
+      "editText", "000000",
 
       "primary", "80bf80",
       "secondary", "8080bf",
@@ -242,6 +248,9 @@ public class UITheme {
   public final Color controlTextColor = new Color("controlText");
   public final Color controlActiveTextColor = new Color("controlActiveText");
   public final Color controlDisabledTextColor = new Color("controlDisabledText");
+
+  public final Color editTextBackgroundColor = new Color("editTextBackground");
+  public final Color editTextColor = new Color("editText");
 
   public final Color primaryColor = new Color("primary");
   public final Color secondaryColor = new Color("secondary");

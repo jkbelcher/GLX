@@ -43,7 +43,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
 
   private DiscreteParameter parameter = null;
 
-  private UIColor activeColor = UIColor.CLEAR;
+  private UIColor activeColor = UIColor.NONE;
   private boolean hasActiveColor = false;
 
   public UIToggleSet() {

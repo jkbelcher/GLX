@@ -56,7 +56,7 @@ public class UIDiscreteColorBox extends UI2dComponent implements UIFocus {
         int y = i / 8;
         vg.beginPath();
         vg.fillColor(DiscreteColorParameter.COLORS[i]);
-        vg.strokeColor(UI.WHITE);
+        vg.strokeColor(ui.theme.controlActiveTextColor);
         vg.strokeWidth(2);
         vg.rect((x+1) * SPACING + x * 10, (y+1) * SPACING + y * 10, 10, 10);
         vg.fill();

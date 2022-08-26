@@ -51,7 +51,7 @@ public class UIColorPicker extends UI2dComponent {
 
   private boolean enabled = true;
 
-  private int drawColor = 0xff000000;
+  private int drawColor = LXColor.BLACK;
 
   private boolean deviceMode = false;
 
