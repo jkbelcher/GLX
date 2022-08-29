@@ -214,6 +214,10 @@ public class UIColorPicker extends UI2dComponent {
     if (this.color != null) {
       this.color.removeListener(this.redrawSwatch);
     }
+    if (this.uiColorOverlay != null) {
+      getUI().clearContextOverlay(this.uiColorOverlay);
+      this.uiColorOverlay.dispose();
+    }
     super.dispose();
   }
 
