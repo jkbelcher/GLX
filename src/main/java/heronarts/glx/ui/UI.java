@@ -511,11 +511,11 @@ public class UI {
     this.vg = lx.vg;
 
     this.theme = new UITheme(this.vg);
-    LX.initProfiler.log("P3LX: UI: Theme");
+    LX.initProfiler.log("GLX: UI: Theme");
 
     this.root = new UIRoot();
     this.contextMenuOverlay = new UIContextOverlay();
-    LX.initProfiler.log("P3LX: UI: Root");
+    LX.initProfiler.log("GLX: UI: Root");
 
     lx.addProjectListener(new LX.ProjectListener() {
       @Override
@@ -622,6 +622,17 @@ public class UI {
         .setFontColor(this.theme.attentionColor)
       );
     });
+
+    lx.preferences.uiTheme.addListener(p -> {
+      UITheme.Theme theme = null;
+      try {
+        theme = UITheme.Theme.valueOf(this.lx.preferences.uiTheme.getString());
+      } catch (Exception ignored) {}
+      if (theme != null) {
+        this.theme.setTheme(theme);
+        redraw();
+      }
+    }, true);
   }
 
   public void showError() {
