@@ -55,7 +55,7 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
 
   public UIDialogBox(UI ui, String message, String[] options, int[] optionWidth, Runnable[] callbacks) {
     super((ui.getWidth() - WIDTH) / 2, (ui.getHeight() - 2*HEIGHT) / 2, WIDTH, HEIGHT);
-    setBackgroundColor(ui.theme.deviceBackgroundColor);
+    setBackgroundColor(ui.theme.dialogBackgroundColor);
     setBorderColor(ui.theme.contextBorderColor);
     setBorderRounding(4);
 
@@ -64,7 +64,7 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
     .setBreakLines(true)
     .setPadding(4)
     .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
-    .setBackgroundColor(ui.theme.listBackgroundColor)
+    .setBackgroundColor(ui.theme.dialogInsetColor)
     .setBorderRounding(4)
     .addToContainer(this);
 

@@ -65,9 +65,11 @@ public class UITheme {
       "paneBackground", "040404",
       "paneInset", "242424",
       "paneScrollBar", "4c4c4c",
+      "paneSelectorActive", "404040",
       "paneSelectorInactive", "333333",
 
       "toolbarBackground", "242424",
+      "helpBackground", "242424",
       "helpText", "c0c0c0",
 
       "sectionExpanderBackground", "303030",
@@ -119,6 +121,9 @@ public class UITheme {
       "contextBorder", "000000",
       "contextHighlight", "333333",
 
+      "dialogBackground", "404040",
+      "dialogInset", "191919",
+
       "midiMapping", "ff0000",
       "modulationSourceMapping", "00ff00",
       "modulationTargetMapping", "00cccc"
@@ -135,9 +140,11 @@ public class UITheme {
       "paneBackground", "707070",
       "paneInset", "555555",
       "paneScrollBar", "494949",
+      "paneSelectorActive", "888888",
       "paneSelectorInactive", "797979",
 
       "toolbarBackground", "808080",
+      "helpBackground", "808080",
       "helpText", "111111",
 
       "sectionExpanderBackground", "606060",
@@ -189,6 +196,9 @@ public class UITheme {
       "contextBorder", "333333",
       "contextHighlight", "c9c9c9",
 
+      "dialogBackground", "707070",
+      "dialogInset", "888888",
+
       "midiMapping", "ff0000",
       "modulationSourceMapping", "00ff00",
       "modulationTargetMapping", "00cccc"
@@ -230,9 +240,11 @@ public class UITheme {
   public final Color paneBackgroundColor = new Color("paneBackground");
   public final Color paneInsetColor = new Color("paneInset");
   public final Color paneScrollBarColor = new Color("paneScrollBar");
+  public final Color paneSelectorActiveColor = new Color("paneSelectorActive");
   public final Color paneSelectorInactiveColor = new Color("paneSelectorInactive");
 
   public final Color toolbarBackgroundColor = new Color("toolbarBackground");
+  public final Color helpBackgroundColor = new Color("helpBackground");
   public final Color helpTextColor = new Color("helpText");
 
   public final Color sectionExpanderBackgroundColor = new Color("sectionExpanderBackground");
@@ -283,6 +295,9 @@ public class UITheme {
   public final Color contextBackgroundColor = new Color("contextBackground");
   public final Color contextBorderColor = new Color("contextBorder");
   public final Color contextHighlightColor = new Color("contextHighlight");
+
+  public final Color dialogBackgroundColor = new Color("dialogBackground");
+  public final Color dialogInsetColor = new Color("dialogInset");
 
   public final Color midiMappingColor = new Color("midiMapping");
   public final Color modulationSourceMappingColor = new Color("modulationSourceMapping");
