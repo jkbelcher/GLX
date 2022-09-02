@@ -46,10 +46,10 @@ public class Shape extends ShaderProgram {
   }
 
   public Shape setFillColor(int fillColor) {
-    this.fillColorBuffer.put(3, ((fillColor >>> 24) & 0xff) / 255f);
     this.fillColorBuffer.put(0, ((fillColor >>> 16) & 0xff) / 255f);
     this.fillColorBuffer.put(1, ((fillColor >>> 8) & 0xff) / 255f);
     this.fillColorBuffer.put(2, (fillColor & 0xff) / 255f);
+    this.fillColorBuffer.put(3, ((fillColor >>> 24) & 0xff) / 255f);
     return this;
   }
 
