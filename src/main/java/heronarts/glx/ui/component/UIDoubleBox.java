@@ -156,13 +156,29 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
   }
 
   protected UIDoubleBox setValue(double value, boolean pushToParameter) {
-    value = LXUtils.constrain(value, this.minValue, this.maxValue);
+    if (this.value == value) {
+      return this;
+    }
+
+    // Check for wrappable params
+    boolean wrappable = (this.parameter != null) && this.parameter.isWrappable();
+    if (wrappable) {
+      final double range = this.maxValue - this.minValue;
+      if (value < this.minValue) {
+        value = this.maxValue + ((value - this.minValue) % range);
+      } else if (value > this.maxValue) {
+        value = this.minValue + ((value - this.minValue) % range);
+      }
+    } else {
+      value = LXUtils.constrain(value, this.minValue, this.maxValue);
+    }
+
     if (this.value != value) {
       this.value = value;
       if (this.parameter != null && pushToParameter) {
         setValueCommand(value);
       }
-      this.onValueChange(this.value);
+      onValueChange(this.value);
       redraw();
     }
     return this;

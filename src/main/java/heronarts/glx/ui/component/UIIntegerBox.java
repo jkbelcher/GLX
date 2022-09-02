@@ -136,19 +136,24 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
   }
 
   protected UIIntegerBox setValue(int value, boolean pushToParameter) {
-    if (this.value != value) {
-      int min = getMinValue();
-      int max = getMaxValue();
-      boolean wrappable = (this.parameter == null) || this.parameter.isWrappable();
-      if (wrappable) {
-        int range = (max - min + 1);
-        while (value < min) {
-          value += range;
-        }
-        this.value = min + (value - min) % range;
-      } else {
-        this.value = LXUtils.constrain(value, min, max);
+    if (this.value == value) {
+      return this;
+    }
+    final int min = getMinValue();
+    final int max = getMaxValue();
+    final boolean wrappable = (this.parameter == null) || this.parameter.isWrappable();
+    if (wrappable) {
+      final int range = (max - min + 1);
+      if (value < min) {
+        value = max + ((value - min) % range);
+      } else if (value > max) {
+        value = min + ((value - min) % range);
       }
+    } else {
+      value = LXUtils.constrain(value, min, max);
+    }
+    if (this.value != value) {
+      this.value = value;
       if ((this.parameter != null) && pushToParameter) {
         if (this.useCommandEngine) {
           getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, this.value));
@@ -156,7 +161,7 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
           this.parameter.setValue(this.value);
         }
       }
-      this.onValueChange(this.value);
+      onValueChange(this.value);
       redraw();
     }
     return this;
