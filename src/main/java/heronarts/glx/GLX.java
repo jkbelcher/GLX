@@ -554,8 +554,8 @@ public class GLX extends LX {
         long drawStart = System.nanoTime();
         try {
           draw();
-        } catch (Exception x) {
-          error(x, "UI THREAD FAILURE: Unhandled exception in GLX.draw(): " + x.getLocalizedMessage());
+        } catch (Throwable x) {
+          error(x, "UI THREAD FAILURE: Unhandled error in GLX.draw(): " + x.getLocalizedMessage());
           fail(x);
 
           // The above should have set a UI failure window to be drawn...
@@ -563,7 +563,7 @@ public class GLX extends LX {
           // throw an uncaught error or exception, so be it.
           try {
             draw();
-          } catch (Exception ignored) {
+          } catch (Throwable ignored) {
             // Yeah, we thought that may happen.
           }
 
