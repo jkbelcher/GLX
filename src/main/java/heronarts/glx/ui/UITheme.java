@@ -330,6 +330,8 @@ public class UITheme {
   public final VGraphics.Image iconPlay;
   public final VGraphics.Image iconView;
   public final VGraphics.Image iconEdit;
+  public final VGraphics.Image iconPlaylist;
+  public final VGraphics.Image iconBlend;
 
   UITheme(VGraphics vg) throws IOException {
     this.controlFont = loadFont(vg, "Inter-SemiBold", "Inter-SemiBold.otf");
@@ -367,6 +369,8 @@ public class UITheme {
     this.iconPlay = loadIcon(vg, "icon-play@2x.png");
     this.iconView = loadIcon(vg, "icon-view@2x.png");
     this.iconEdit = loadIcon(vg, "icon-edit@2x.png");
+    this.iconPlaylist = loadIcon(vg, "icon-playlist@2x.png");
+    this.iconBlend = loadIcon(vg, "icon-blend@2x.png");
     LX.initProfiler.log("GLX: UI: Theme: Icons");
   }
 
