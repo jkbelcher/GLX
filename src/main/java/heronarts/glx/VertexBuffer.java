@@ -46,6 +46,25 @@ public abstract class VertexBuffer {
 
   protected abstract void bufferData(ByteBuffer buffer);
 
+  protected void putVertex(float x, float y, float z) {
+    putVertex(this.vertexData, x, y, z);
+  }
+
+  protected static void putVertex(ByteBuffer buffer, float x, float y, float z) {
+    buffer.putFloat(x);
+    buffer.putFloat(y);
+    buffer.putFloat(z);
+  }
+
+  protected void putTex2d(float u, float v) {
+    putTex2d(this.vertexData, u, v);
+  }
+
+  protected static void putTex2d(ByteBuffer buffer, float u, float v) {
+    buffer.putFloat(u);
+    buffer.putFloat(v);
+  }
+
   public short getHandle() {
     return this.vbh;
   }

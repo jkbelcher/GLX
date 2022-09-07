@@ -99,41 +99,23 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     @Override
     protected void bufferData(ByteBuffer buffer) {
       for (LXPoint p : model.points) {
-        buffer.putFloat(p.x);
-        buffer.putFloat(p.y);
-        buffer.putFloat(p.z);
-        buffer.putFloat(0f);
-        buffer.putFloat(0f);
+        putVertex(p.x, p.y, p.z);
+        putTex2d(0f, 0f);
 
-        buffer.putFloat(p.x);
-        buffer.putFloat(p.y);
-        buffer.putFloat(p.z);
-        buffer.putFloat(1f);
-        buffer.putFloat(0f);
+        putVertex(p.x, p.y, p.z);
+        putTex2d(1f, 0f);
 
-        buffer.putFloat(p.x);
-        buffer.putFloat(p.y);
-        buffer.putFloat(p.z);
-        buffer.putFloat(0f);
-        buffer.putFloat(1f);
+        putVertex(p.x, p.y, p.z);
+        putTex2d(0f, 1f);
 
-        buffer.putFloat(p.x);
-        buffer.putFloat(p.y);
-        buffer.putFloat(p.z);
-        buffer.putFloat(0f);
-        buffer.putFloat(1f);
+        putVertex(p.x, p.y, p.z);
+        putTex2d(0f, 1f);
 
-        buffer.putFloat(p.x);
-        buffer.putFloat(p.y);
-        buffer.putFloat(p.z);
-        buffer.putFloat(1f);
-        buffer.putFloat(0f);
+        putVertex(p.x, p.y, p.z);
+        putTex2d(1f, 0f);
 
-        buffer.putFloat(p.x);
-        buffer.putFloat(p.y);
-        buffer.putFloat(p.z);
-        buffer.putFloat(1f);
-        buffer.putFloat(1f);
+        putVertex(p.x, p.y, p.z);
+        putTex2d(1f, 1f);
       }
     }
   }
