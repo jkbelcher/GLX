@@ -427,6 +427,12 @@ public interface UIItemList {
      */
     private void setItems(List<? extends Item> items) {
       this.items.clear();
+      for (Item item : items) {
+        Section section = item.getSection();
+        if (section != null) {
+          section.addItem(item);
+        }
+      }
       this.items.addAll(items);
       if (this.focusIndex >= items.size()) {
         setFocusIndex(items.size() - 1);
