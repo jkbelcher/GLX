@@ -629,7 +629,7 @@ public class GLX extends LX {
 
   public void reloadContent() {
     this.registry.reloadContent();
-    this.ui.contextualHelpText.setValue("External content libraries reloaded");
+    pushStatusMessage("External content libraries reloaded");
   }
 
   public void showSaveProjectDialog() {

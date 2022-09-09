@@ -598,14 +598,13 @@ public class UI {
       }
     });
 
-    lx.statusMessage.addListener((p) -> {
+    lx.statusMessage.addListener(p -> {
       if (!isMapping()) {
         contextualHelpText.setValue(lx.statusMessage.getString());
       }
     });
 
-    lx.errorChanged.addListener((p) -> { showError(); });
-    showError();
+    lx.errorChanged.addListener(p -> { showError(); }, true);
 
     lx.failure.addListener((p) -> {
       float width = getWidth() * .8f;
