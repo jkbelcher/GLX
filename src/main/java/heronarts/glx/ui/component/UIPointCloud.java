@@ -40,7 +40,9 @@ import heronarts.lx.LXEngine;
 import heronarts.lx.LXSerializable;
 import heronarts.lx.model.LXModel;
 import heronarts.lx.model.LXPoint;
+import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.BoundedParameter;
+import heronarts.lx.parameter.DiscreteParameter;
 
 public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
@@ -72,7 +74,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
     @Override
     public void setUniforms(View view) {
-      bgfx_set_texture(0, this.uniformTexture, texture.getHandle(), BGFX_SAMPLER_NONE);
+      bgfx_set_texture(0, this.uniformTexture, textures[ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_NONE);
       this.dimensionsBuffer.put(0, view.getWidth());
       this.dimensionsBuffer.put(1, view.getHeight());
       this.dimensionsBuffer.put(2, view.getAspectRatio());
@@ -120,14 +122,30 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     }
   }
 
+  private static final String[] LED_STYLES = {
+    "led.ktx",
+    "led2.ktx",
+    "led3.ktx",
+    "led4.ktx",
+    "led5.ktx"
+  };
+
   public final BoundedParameter pointSize =
     new BoundedParameter("Point Size", 3, 1, 101)
     .setDescription("Size of points rendered in the preview display");
 
+  public final BooleanParameter depthTest =
+    new BooleanParameter("Depth Test", true)
+    .setDescription("Whether to use depth test in rendering");
+
+  public final DiscreteParameter ledStyle =
+    new DiscreteParameter("LED Style", 0, LED_STYLES.length)
+    .setDescription("Which LED texture to render");
+
   private final GLX lx;
 
   private final Program program;
-  private final Texture texture;
+  private final Texture[] textures = new Texture[LED_STYLES.length];
 
   private VertexBuffer modelBuffer;
   private DynamicVertexBuffer colorBuffer;
@@ -143,7 +161,10 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   public UIPointCloud(GLX lx) {
     this.lx = lx;
     this.program = new Program(lx);
-    this.texture = new Texture("led.ktx");
+    int ti = 0;
+    for (String texture : LED_STYLES) {
+      this.textures[ti++] = new Texture(texture);
+    };
     this.colorBuffer = null;
     this.modelBuffer = null;
   }
@@ -155,7 +176,9 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   @Override
   public void dispose() {
-    this.texture.dispose();
+    for (Texture texture : this.textures) {
+      texture.dispose();
+    }
     if (this.modelBuffer != null) {
       this.modelBuffer.dispose();
     }
@@ -217,19 +240,33 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.colorBuffer.update();
 
     // Submit our drawing program!
-    this.program.submit(view);
+    long state =
+      BGFX_STATE_WRITE_RGB |
+      BGFX_STATE_WRITE_Z |
+      BGFX_STATE_BLEND_ALPHA |
+      BGFX_STATE_ALPHA_REF(32);
+    if (this.depthTest.isOn()) {
+      state |= BGFX_STATE_DEPTH_TEST_LESS;
+    }
+    this.program.submit(view, state);
   }
 
   private static final String KEY_POINT_SIZE = "pointSize";
+  private static final String KEY_DEPTH_TEST = "depthTest";
+  private static final String KEY_LED_STYLE = "ledStyle";
 
   @Override
   public void save(LX lx, JsonObject object) {
     object.addProperty(KEY_POINT_SIZE, this.pointSize.getValue());
+    object.addProperty(KEY_DEPTH_TEST, this.depthTest.isOn());
+    object.addProperty(KEY_LED_STYLE, this.ledStyle.getValuei());
   }
 
   @Override
   public void load(LX lx, JsonObject object) {
     LXSerializable.Utils.loadDouble(this.pointSize, object, KEY_POINT_SIZE);
+    LXSerializable.Utils.loadBoolean(this.depthTest, object, KEY_DEPTH_TEST);
+    LXSerializable.Utils.loadInt(this.ledStyle, object, KEY_LED_STYLE);
 
   }
 
