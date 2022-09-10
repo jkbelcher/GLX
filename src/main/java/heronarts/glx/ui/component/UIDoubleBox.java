@@ -41,11 +41,7 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
   private boolean normalizedMouseEditing = true;
   protected double editMultiplier = 1;
 
-  private final LXParameterListener parameterListener = new LXParameterListener() {
-    public void onParameterChanged(LXParameter p) {
-      setValue(p);
-    }
-  };
+  private final LXParameterListener parameterListener = p -> { setValue(p); };
 
   public UIDoubleBox() {
     this(0, 0, 0, 0);
