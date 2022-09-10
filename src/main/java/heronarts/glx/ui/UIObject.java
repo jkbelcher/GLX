@@ -117,7 +117,13 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     return this;
   }
 
+  private boolean disposed = false;
+
   public void dispose() {
+    if (this.disposed) {
+      throw new IllegalStateException("Cannot dispose UIObject twice: " + this);
+    }
+    this.disposed = true;
     for (ParameterListener parameterListener : this.parameterListeners) {
       parameterListener.parameter.removeListener(parameterListener.listener);
     }
