@@ -54,6 +54,7 @@ import heronarts.glx.ui.UIDialogBox;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
+import heronarts.lx.clipboard.LXTextValue;
 import heronarts.lx.utils.LXUtils;
 
 public class GLX extends LX {
@@ -580,12 +581,18 @@ public class GLX extends LX {
       }
 
       // Copy something to the clipboard
-      String copyToClipboard = this._setSystemClipboardString;
+      final String copyToClipboard = this._setSystemClipboardString;
       if (copyToClipboard != null) {
         glfwSetClipboardString(this.window, copyToClipboard);
+        this._getSystemClipboardString = copyToClipboard;
         this._setSystemClipboardString = null;
+      } else {
+        String str = glfwGetClipboardString(NULL);
+        if ((str != null) && !str.equals(this._getSystemClipboardString)) {
+          this._getSystemClipboardString = str;
+          this.clipboard.setItem(new LXTextValue(str), false);
+        }
       }
-
     }
   }
 
@@ -797,6 +804,7 @@ public class GLX extends LX {
     ));
   }
 
+  private String _getSystemClipboardString = null;
   private String _setSystemClipboardString = null;
 
   @Override
