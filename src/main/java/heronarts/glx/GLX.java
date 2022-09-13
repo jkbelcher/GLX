@@ -738,16 +738,11 @@ public class GLX extends LX {
           );
           dialogShowing = false;
           if (path != null) {
-            boolean validSuffix = false;
-            for (String extension : extensions) {
-              if (path.endsWith("." + extension)) {
-                validSuffix = true;
-                break;
-              }
-            }
-            // If a valid suffix wasn't given, force the first one...
-            if (!validSuffix) {
+            final int index = path.indexOf('.');
+            if (index < 0) {
               path = path + "." + extensions[0];
+            } else if (index == path.length() - 1) {
+              path = path + extensions[0];
             }
             final String finalPath = path;
             engine.addTask(() -> {
