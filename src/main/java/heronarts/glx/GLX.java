@@ -738,8 +738,20 @@ public class GLX extends LX {
           );
           dialogShowing = false;
           if (path != null) {
+            boolean validSuffix = false;
+            for (String extension : extensions) {
+              if (path.endsWith("." + extension)) {
+                validSuffix = true;
+                break;
+              }
+            }
+            // If a valid suffix wasn't given, force the first one...
+            if (!validSuffix) {
+              path = path + "." + extensions[0];
+            }
+            final String finalPath = path;
             engine.addTask(() -> {
-              success.fileDialogCallback(path);
+              success.fileDialogCallback(finalPath);
             });
           }
         }
