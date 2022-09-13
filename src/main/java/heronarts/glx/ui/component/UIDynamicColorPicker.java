@@ -137,8 +137,7 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
       focusColor(dynamicColor.primary);
       controls.addToContainer(this);
 
-      dynamicColor.mode.addListener((p) -> { setMode(); } );
-      setMode();
+      addListener(dynamicColor.mode, p -> { setMode(); }, true);
     }
 
     private void setMode() {
@@ -175,7 +174,7 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
         super(0, 0, 16, 16);
         this.color = color;
         setBackgroundColor(color.getColor());
-        color.addListener((p) -> { setBackgroundColor(color.getColor()); });
+        addListener(color, p -> { setBackgroundColor(color.getColor()); });
       }
 
       @Override

@@ -83,7 +83,7 @@ public class UIButtonGroup extends UI2dContainer implements UIControlTarget, UIC
       .addToContainer(this);
     }
 
-    addListener(parameter, (p) -> {
+    addListener(parameter, p -> {
       int active = parameter.getValuei();
       inParameterUpdate = true;
       for (int i = 0; i < buttons.length; ++i) {

@@ -79,7 +79,7 @@ public class UIDiscreteColorBox extends UI2dComponent implements UIFocus {
     this.parameter = parameter;
     this.colorMenu = new UIDiscreteColorMenu(ui);
     this.colorMenu.setVisible(false);
-    parameter.addListener((p) -> {
+    addListener(parameter, p -> {
       setBackgroundColor(parameter.getColor());
       this.colorMenu.redraw();
     });

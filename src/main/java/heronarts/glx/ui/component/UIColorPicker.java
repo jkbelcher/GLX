@@ -272,7 +272,7 @@ public class UIColorPicker extends UI2dComponent {
         .setPosition(12, 148)
         .addToContainer(this);
 
-        linkedColor.mode.addListener(p -> {
+        addListener(linkedColor.mode, p -> {
           boolean isLinked = linkedColor.mode.getEnum() == LinkedColorParameter.Mode.PALETTE;
           swatch.setEnabled(!isLinked);
           hueBox.setEnabled(!isLinked);

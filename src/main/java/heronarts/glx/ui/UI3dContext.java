@@ -364,7 +364,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     }
 
     this.focusCamera = new ObjectParameter<Camera>("Camera", this.cue);
-    this.focusCamera.addListener((p) -> {
+    addListener(this.focusCamera, p -> {
       Camera selectCamera = this.focusCamera.getObject();
       if (!selectCamera.active.isOn()) {
         // Store state into the camera
@@ -408,7 +408,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
 
     computeCamera(true);
 
-    this.camera.radius.addListener((p) -> {
+    addListener(this.camera.radius, p -> {
       double value = this.camera.radius.getValue();
       if (value < this.minRadius || value > this.maxRadius) {
         this.camera.radius.setValue(LXUtils.constrain(value, this.minRadius, this.maxRadius));
