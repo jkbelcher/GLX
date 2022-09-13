@@ -798,7 +798,7 @@ public interface UIItemList {
             this.mouseChevronPress = (mx < SECTION_CHEVRON_WIDTH) && (getFocusedItem() instanceof Section);
             if (this.mouseChevronPress) {
               activate();
-            } else if (this.singleClickActivate || (mouseEvent.getCount() == 2)) {
+            } else if (this.singleClickActivate || mouseEvent.isDoubleClick()) {
               activate();
               if (this.isMomentary) {
                 this.mouseActivate = this.focusIndex;

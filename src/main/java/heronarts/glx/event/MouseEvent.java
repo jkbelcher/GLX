@@ -136,6 +136,10 @@ public class MouseEvent extends Event {
     return this.count;
   }
 
+  public boolean isDoubleClick() {
+    return (this.count % 2) == 0;
+  }
+
   @Override
   public String toString() {
     return "MouseEvent action=" + this.action + " button=" + this.button + " x=" + this.x + " y=" + this.y + " dx=" + this.dx + " dy=" + this.dy + " modifiers=" + this.modifiers;

@@ -143,7 +143,7 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     if (my < CONTENT_Y) {
-      if ((mx >= this.width - CHEVRON_PADDING) || (mx >= this.title.getX() && mouseEvent.getCount() == 2)) {
+      if ((mx >= this.width - CHEVRON_PADDING) || (mx >= this.title.getX() && mouseEvent.isDoubleClick())) {
         toggle();
       }
     }
