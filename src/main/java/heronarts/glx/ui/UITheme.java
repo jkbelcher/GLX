@@ -156,7 +156,7 @@ public class UITheme {
       "controlBorder", "444444",
       "controlDetent", "555555",
       "controlHandle", "9f9f9f",
-      "controlDisabled", "999999",
+      "controlDisabled", "909090",
       "controlText", "191919",
       "controlActiveText", "000000",
       "controlDisabledText", "303030",
