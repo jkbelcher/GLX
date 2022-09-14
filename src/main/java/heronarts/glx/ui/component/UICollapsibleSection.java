@@ -31,8 +31,10 @@ import heronarts.glx.ui.vg.VGraphics;
 public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus {
 
   private static final int PADDING = 4;
+  protected static final int TITLE_X = 18;
   private static final int TITLE_LABEL_HEIGHT = 12;
   private static final int CHEVRON_PADDING = 20;
+  public static final int BAR_HEIGHT = 20;
   private static final int CLOSED_HEIGHT = TITLE_LABEL_HEIGHT + 2*PADDING;
   private static final int CONTENT_Y = CLOSED_HEIGHT;
 
@@ -57,7 +59,7 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
     setFocusBackgroundColor(ui.theme.deviceFocusedBackgroundColor);
     setBorderRounding(4);
 
-    this.title = new UILabel(PADDING, PADDING, this.width - PADDING - CHEVRON_PADDING, TITLE_LABEL_HEIGHT);
+    this.title = new UILabel(TITLE_X, PADDING, this.width - TITLE_X - CHEVRON_PADDING, TITLE_LABEL_HEIGHT);
     this.title.setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
     addTopLevelComponent(this.title);
 
@@ -95,24 +97,28 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
     return this;
   }
 
-  public static void drawExpander(UI ui, VGraphics vg, boolean expanded, float x, float y) {
+  public static void drawHorizontalExpansionTriangle(UI ui, VGraphics vg, boolean expanded) {
     vg.fillColor(ui.theme.sectionExpanderBackgroundColor);
     vg.beginPath();
-    vg.rect(x, y, 12, 12, 4);
-    vg.fill();
-
-    vg.fillColor(ui.theme.controlTextColor);
-    vg.beginPath();
-    vg.rect(x + 3, y + 5, 6, 2);
-    if (!expanded) {
-      vg.rect(x + 5, y + 3, 2, 6);
+    float x = 5;
+    float y = BAR_HEIGHT - 5;
+    if (expanded) {
+      vg.moveTo(x, y);
+      vg.lineTo(x+10, y);
+      vg.lineTo(x+10, y-10);
+    } else {
+      vg.moveTo(x, y);
+      vg.lineTo(x, y-10);
+      vg.lineTo(x+10, y-10);
     }
+    vg.closePath();
     vg.fill();
   }
 
   @Override
   public void onDraw(UI ui, VGraphics vg) {
-    drawExpander(ui, vg, this.expanded, this.width - 16, PADDING);
+    super.onDraw(ui, vg);
+    UICollapsibleSection.drawHorizontalExpansionTriangle(ui, vg, this.expanded);
   }
 
   /**
@@ -143,7 +149,8 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     if (my < CONTENT_Y) {
-      if ((mx >= this.width - CHEVRON_PADDING) || (mx >= this.title.getX() && mouseEvent.isDoubleClick())) {
+      if ((mx < this.title.getX()) || mouseEvent.isDoubleClick()) {
+        mouseEvent.consume();
         toggle();
       }
     }
