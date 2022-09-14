@@ -33,6 +33,7 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
   private final UIContextMenu contextMenu;
   private float contextMenuWidth = -1;
   private Direction direction = Direction.DOWN;
+  private VGraphics.Image icon = null;
 
   /**
    * Direction that a context menu opens from a button
@@ -55,6 +56,11 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
     setFontColor(UI.get().theme.controlTextColor);
     setBackgroundColor(UI.get().theme.controlBackgroundColor);
     this.contextMenu = new UIContextMenu(0, 0, UIContextMenu.DEFAULT_WIDTH, 0);
+  }
+
+  public UIContextButton setIcon(VGraphics.Image icon) {
+    this.icon = icon;
+    return this;
   }
 
   /**
@@ -116,7 +122,14 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
 
   @Override
   public void onDraw(UI ui, VGraphics vg) {
-    if ((this.label != null) && (this.label.length() > 0)) {
+    if (this.icon != null) {
+      UIColor iconTint = this.mouseDown ? ui.theme.controlActiveTextColor : getFontColor();
+      this.icon.setTint(iconTint);
+      vg.beginPath();
+      vg.image(this.icon, this.width/2 - this.icon.width/2, this.height/2 - this.icon.height/2);
+      vg.fill();
+      this.icon.noTint();
+    } else if ((this.label != null) && (this.label.length() > 0)) {
       UIColor fontColor = this.mouseDown ? ui.theme.controlActiveTextColor : getFontColor();
       vg.fillColor(fontColor);
       vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());

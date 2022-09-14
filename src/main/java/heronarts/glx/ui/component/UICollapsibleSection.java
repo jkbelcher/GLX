@@ -30,7 +30,7 @@ import heronarts.glx.ui.vg.VGraphics;
  */
 public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus {
 
-  private static final int PADDING = 4;
+  protected static final int PADDING = 4;
   protected static final int TITLE_X = 18;
   private static final int TITLE_LABEL_HEIGHT = 12;
   private static final int CHEVRON_PADDING = 20;
