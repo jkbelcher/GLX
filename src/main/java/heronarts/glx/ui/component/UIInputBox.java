@@ -227,7 +227,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       this.editBuffer.substring(0, this.editRangeStart) +
       append +
       this.editBuffer.substring(this.editRangeEnd);
-    editCursor(this.editRangeEnd + 1);
+    editCursor(this.editRangeStart + 1);
     onEditChange(this.editBuffer);
     redraw();
   }
@@ -237,7 +237,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       this.editBuffer.substring(0, this.editRangeStart) +
       append +
       this.editBuffer.substring(this.editRangeEnd);
-    editCursor(this.editRangeEnd + append.length());
+    editCursor(this.editRangeStart + append.length());
     onEditChange(this.editBuffer);
     redraw();
   }
@@ -340,50 +340,96 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       vg.fillColor(hasFontColor() ? getFontColor() : ui.theme.controlTextColor);
     }
 
-    final float leftPadding = 2;
+    // Get the display string, clip it to width
+    final float availableWidth = this.width - TEXT_MARGIN - 1;
+    String rawString = this.editing ? this.editBuffer : getValueString();
+    String clippedString = null;
+    if (rawString != null) {
+      clippedString = clipTextToWidth(vg, rawString, availableWidth);
+    }
 
-    String displayString = this.editing ? this.editBuffer : getValueString();
-    if (displayString != null) {
-      displayString = clipTextToWidth(vg, displayString, this.width - TEXT_MARGIN);
+    int editCursor = this.editCursor;
+    int editRangeStart = this.editRangeStart;
+    int editRangeEnd = this.editRangeEnd;
+
+    if (this.editing) {
+      // The string is too big and we can't see where we're editing...
+      final int editMax = LXUtils.max(editCursor, editRangeEnd);
+      if (editMax > clippedString.length()) {
+        // Okay, we're editing, but either the cursor or the end of the selection
+        // is out of range. We're going to have to clip some stuff off the front
+        // and shift the whole string left.
+        int numClippedFromFront = 0;
+
+        // First, chop the string down to the max edit length. We know this
+        // string is too long, but we're gonna have to adjust it in one of two ways.
+        final String startToRange = rawString.substring(0, editMax);
+        if (editCursor >= editRangeEnd) {
+          // The cursor is ahead of the edit range, then let's just clip the
+          // string from the front and have the cursor at the very end
+          clippedString = clipTextToWidth(vg, startToRange, availableWidth, false);
+          numClippedFromFront = startToRange.length() - clippedString.length();
+        } else {
+          // The selected range is ahead of the cursor. We'd like to show *all* of the
+          // selected range if we can, but if it doesn't fit, we'll stick with the
+          // cursor at the very left.
+          final String cursorRange = rawString.substring(editCursor, editRangeEnd);
+          if (vg.textWidth(cursorRange) > availableWidth) {
+            // Can't see it all, we clip from back-to-front starting from the
+            // edit cursor, showing as much as possible
+            clippedString = clipTextToWidth(vg, cursorRange, availableWidth);
+            numClippedFromFront = editCursor;
+          } else {
+            // The whole range does fit! Get the end of the selection range on the
+            // right and let the cursor land somewhere in the middle.
+            clippedString = clipTextToWidth(vg, startToRange, availableWidth, false);
+            numClippedFromFront = startToRange.length() - clippedString.length();
+          }
+        }
+
+        // Move the goalposts based upon how much we clipped off the front...
+        editCursor -= numClippedFromFront;
+        editRangeStart -= numClippedFromFront;
+        editRangeEnd -= numClippedFromFront;
+
+      }
+    }
+
+    // Draw the display string
+    if (clippedString != null) {
       if (this.textAlignHorizontal == VGraphics.Align.LEFT) {
         vg.beginPath();
         vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
-        vg.text(leftPadding, this.height / 2 + 1, displayString);
+        vg.text(TEXT_MARGIN, this.height / 2 + 1, clippedString);
         vg.fill();
       } else {
         vg.beginPath();
         vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
-        vg.text(this.width / 2, this.height / 2 + 1, displayString);
+        vg.text(this.width / 2, this.height / 2 + 1, clippedString);
         vg.fill();
       }
     }
 
     if (this.editing) {
-      // Draw cursor, clamp range as redraw may happen after string is updated but before cursor moved
-      final int length = (displayString != null) ? displayString.length() : 0;
-      final int editCursor = LXUtils.constrain(this.editCursor, 0, length);
-      final int editRangeStart = LXUtils.constrain(this.editRangeStart, 0, length);
-      final int editRangeEnd = LXUtils.constrain(this.editRangeEnd, 0, length);
+      // Clamp the cursor values to available bounds, it's possible that we have a redraw
+      // after editBuffer has been updated but the cursor is not yet updated
+      final int length = clippedString.length();
+      editCursor = LXUtils.constrain(editCursor, 0, length);
+      editRangeStart = LXUtils.constrain(editRangeStart, 0, length);
+      editRangeEnd = LXUtils.constrain(editRangeEnd, 0, length);
 
       float fullWidth = 0;
       if (this.textAlignHorizontal != VGraphics.Align.LEFT) {
-        fullWidth = (displayString != null) ? vg.textWidth(displayString) : 0;
+        fullWidth = vg.textWidth(clippedString);
       }
 
       if (editRangeStart != editRangeEnd) {
-        float rangeStartWidth = 0, rangeEndWidth = 0;
-        if (displayString != null) {
-          if (editRangeStart != 0) {
-            rangeStartWidth = vg.textWidth(displayString.substring(0, editRangeStart));
-          }
-          if (editRangeEnd != 0) {
-            rangeEndWidth = vg.textWidth(displayString.substring(0, editRangeEnd));
-          }
-        }
+        final float rangeStartWidth = (editRangeStart == 0) ? 0 : vg.textWidth(clippedString.substring(0, editRangeStart));
+        final float rangeEndWidth = (editRangeEnd == 0) ? 0 : vg.textWidth(clippedString.substring(0, editRangeEnd));
         float rangeStartX = 0, rangeEndX = 0;
         if (this.textAlignHorizontal == VGraphics.Align.LEFT) {
-          rangeStartX = leftPadding + rangeStartWidth;
-          rangeEndX = leftPadding + rangeEndWidth;
+          rangeStartX = TEXT_MARGIN + rangeStartWidth;
+          rangeEndX = TEXT_MARGIN + rangeEndWidth;
         } else {
           rangeStartX = (this.width - fullWidth) / 2f + rangeStartWidth;
           rangeEndX = (this.width - fullWidth) / 2f + rangeEndWidth;
@@ -396,11 +442,11 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       }
 
       float cursorWidth = 0, cursorX = 0;
-      if ((displayString != null) && (editCursor > 0)) {
-        cursorWidth = vg.textWidth(displayString.substring(0, editCursor));
+      if ((clippedString != null) && (editCursor > 0)) {
+        cursorWidth = vg.textWidth(clippedString.substring(0, editCursor));
       }
       if (this.textAlignHorizontal == VGraphics.Align.LEFT) {
-        cursorX = leftPadding + cursorWidth;
+        cursorX = TEXT_MARGIN + cursorWidth;
       } else {
         cursorX = (this.width - fullWidth) / 2f + cursorWidth;
       }

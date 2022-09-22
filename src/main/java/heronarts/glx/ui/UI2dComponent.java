@@ -917,8 +917,21 @@ public abstract class UI2dComponent extends UIObject {
    * @return Clipped version of the string that will fit in the bounds
    */
   public static String clipTextToWidth(VGraphics vg, String str, float width) {
+    return clipTextToWidth(vg, str, width, true);
+  }
+
+  /**
+   * Clip a text to fit in the given width
+   *
+   * @param vg PGraphics
+   * @param str String
+   * @param width Width to fit in
+   * @param fromEnd True clips from end, false clips from the start
+   * @return Clipped version of the string that will fit in the bounds
+   */
+  public static String clipTextToWidth(VGraphics vg, String str, float width, boolean fromEnd) {
     while ((str.length() > 0) && (vg.textWidth(str) > width)) {
-      str = str.substring(0, str.length() - 1);
+      str = fromEnd ? str.substring(0, str.length() - 1) : str.substring(1);
     }
     return str;
   }
