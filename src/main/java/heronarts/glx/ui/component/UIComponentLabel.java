@@ -31,6 +31,7 @@ public class UIComponentLabel extends UILabel implements LXParameterListener {
   private LXComponent component;
   private String prefix = "";
   private boolean canonical = true;
+  private LXComponent root = null;
 
   public UIComponentLabel(float x, float y, float w, float h) {
     super(x, y, w, h);
@@ -41,6 +42,11 @@ public class UIComponentLabel extends UILabel implements LXParameterListener {
       this.prefix = prefix;
       updateLabel();
     }
+    return this;
+  }
+
+  public UIComponentLabel setRoot(LXComponent root) {
+    this.root = root;
     return this;
   }
 
@@ -85,7 +91,7 @@ public class UIComponentLabel extends UILabel implements LXParameterListener {
     if (this.component == null) {
       setLabel("");
     } else {
-      setLabel((this.prefix != null ? this.prefix : "") + (this.canonical ? this.component.getCanonicalLabel() : this.component.getLabel()));
+      setLabel((this.prefix != null ? this.prefix : "") + (this.canonical ? this.component.getCanonicalLabel(this.root) : this.component.getLabel()));
     }
   }
 
