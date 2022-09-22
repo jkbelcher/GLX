@@ -175,9 +175,9 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
   protected void onValueChange(int value) {}
 
   @Override
-  protected void saveEditBuffer() {
+  protected void saveEditBuffer(String editBuffer) {
     try {
-      setValue(this.editMultiplier * Integer.parseInt(this.editBuffer));
+      setValue(this.editMultiplier * Integer.parseInt(editBuffer));
     } catch (NumberFormatException nfx) {}
   }
 

@@ -196,10 +196,10 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
   protected /* abstract */ void onValueChange(double value) {}
 
   @Override
-  protected void saveEditBuffer() {
+  protected void saveEditBuffer(String editBuffer) {
     try {
       // Hacky solution for handling minutes + hours
-      String[] parts = this.editBuffer.split(":");
+      String[] parts = editBuffer.split(":");
       double value = 0;
       for (String part : parts) {
         value = value * 60 + Double.parseDouble(part);

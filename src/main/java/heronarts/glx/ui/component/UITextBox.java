@@ -85,7 +85,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   }
 
   @Override
-  protected String getEditBufferValue() {
+  protected String getInitialEditBufferValue() {
     return this.value;
   }
 
@@ -122,8 +122,8 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   protected /* abstract */ void onValueChange(String value) {}
 
   @Override
-  protected void saveEditBuffer() {
-    String value = this.editBuffer.trim();
+  protected void saveEditBuffer(String editBuffer) {
+    String value = editBuffer.trim();
     if (this.isEmptyValueAllowed || (value.length() > 0)) {
       setValue(value);
     }
@@ -163,6 +163,9 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
 
   @Override
   public LXClipboardItem onCopy() {
+    if (this.editing) {
+      return new LXTextValue(getEditRange());
+    }
     if (this.parameter != null) {
       return new LXTextValue(this.parameter);
     }
@@ -175,9 +178,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
     if (item instanceof LXTextValue) {
       if (isEnabled() && isEditable()) {
         if (this.editing) {
-          this.editBuffer = this.editBuffer + ((LXTextValue) item).getValue();
-          onEditChange(this.editBuffer);
-          redraw();
+          editAppend(((LXTextValue) item).getValue());
         } else {
           setValue(((LXTextValue) item).getValue());
         }

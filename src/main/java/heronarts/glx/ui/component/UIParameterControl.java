@@ -262,20 +262,20 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
 
   @Override
   @SuppressWarnings("fallthrough")
-  protected void saveEditBuffer() {
+  protected void saveEditBuffer(String editBuffer) {
     if (!isEditable()) {
       throw new IllegalStateException("Cannot save edit buffer on non-editable parameter");
     }
     if (this.parameter != null) {
       try {
-        if (this.editBuffer.indexOf(':') >= 0) {
+        if (editBuffer.indexOf(':') >= 0) {
           double multiplier = 1;
           switch (this.parameter.getUnits()) {
           case MILLISECONDS:
             multiplier = 1000;
             // intentional pass-thru
           case SECONDS:
-            String[] parts = this.editBuffer.split(":");
+            String[] parts = editBuffer.split(":");
             double value = 0;
             for (String part : parts) {
               value = value * 60 + Double.parseDouble(part);
@@ -291,7 +291,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
             break;
           }
         } else {
-          double value = Double.parseDouble(this.editBuffer);
+          double value = Double.parseDouble(editBuffer);
           if (this.useCommandEngine) {
             getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value));
           } else {
@@ -329,7 +329,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       vg.fontFace(ui.theme.getControlFont());
       vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
       vg.fillColor(ui.theme.primaryColor);
-      vg.text(this.width/2, this.height - LABEL_HEIGHT/2, clipTextToWidth(vg, this.editBuffer, this.width - TEXT_MARGIN));
+      vg.text(this.width/2, this.height - LABEL_HEIGHT/2, clipTextToWidth(vg, getEditBuffer(), this.width - TEXT_MARGIN));
       vg.fill();
 
     } else {
