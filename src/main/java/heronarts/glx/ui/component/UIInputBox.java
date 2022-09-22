@@ -47,7 +47,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   private boolean immediateEdit = false;
   private boolean mousePressEdit = false;
 
-  protected boolean editing = false;
+  protected volatile boolean editing = false;
 
   private String editBuffer = "";
   private int editCursor = -1;
@@ -215,9 +215,9 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       throw new IllegalStateException("May not edit a non-editable UIInputBox");
     }
     if (this.enabled && !this.editing) {
-      this.editing = true;
       this.editBuffer = editBufferValue;
-      editCursor(this.editBuffer.length());
+      editCursor(editBufferValue.length());
+      this.editing = true;
     }
     redraw();
   }
@@ -507,17 +507,19 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
               onEditChange(this.editBuffer);
             } else {
               if (this.editRangeEnd != this.editRangeStart) {
-                // Range deletion
+                // Range deletion, save the end point
+                final int rangeEnd = this.editRangeEnd;
+                // Move the cursor to front of deletion range
+                editCursor(this.editRangeStart);
                 this.editBuffer =
                   this.editBuffer.substring(0, this.editRangeStart) +
-                  this.editBuffer.substring(this.editRangeEnd);
-                  editCursor(this.editRangeStart);
+                  this.editBuffer.substring(rangeEnd);
               } else {
-                // Single char deletion from cursor position
-                this.editBuffer =
-                  this.editBuffer.substring(0, this.editCursor - 1) +
-                  this.editBuffer.substring(this.editCursor);
+                // Single char deletion, move the cursor back one, delete from there
                 editCursor(this.editCursor - 1);
+                this.editBuffer =
+                  this.editBuffer.substring(0, this.editCursor) +
+                  this.editBuffer.substring(this.editCursor + 1);
               }
               onEditChange(this.editBuffer);
             }
