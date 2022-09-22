@@ -526,6 +526,9 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
         } else if (keyCode == KeyEvent.VK_LEFT) {
           keyEvent.consume();
           int cursor = this.editCursor - 1;
+          if ((this.editRangeStart != this.editRangeEnd) && !keyEvent.isShiftDown()) {
+            cursor = this.editRangeStart;
+          }
           if (keyEvent.isCommand()) {
             cursor = 0;
           } else if (keyEvent.isAltDown()) {
@@ -542,6 +545,9 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
         } else if (keyCode == KeyEvent.VK_RIGHT) {
           keyEvent.consume();
           int cursor = this.editCursor + 1;
+          if ((this.editRangeStart != this.editRangeEnd) && !keyEvent.isShiftDown()) {
+            cursor = this.editRangeEnd;
+          }
           if (keyEvent.isCommand()) {
             cursor = this.editBuffer.length();
           } else if (keyEvent.isAltDown()) {
