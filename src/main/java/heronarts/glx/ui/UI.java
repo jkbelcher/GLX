@@ -35,6 +35,7 @@ import heronarts.lx.modulation.LXModulationEngine;
 import heronarts.lx.modulation.LXParameterModulation;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
+import heronarts.lx.parameter.MutableParameter;
 import heronarts.lx.parameter.StringParameter;
 import java.io.File;
 import java.io.IOException;
@@ -494,6 +495,8 @@ public class UI {
   boolean triggerTargetMapping = false;
   LXModulationEngine modulationEngine = null;
   LXParameterModulation highlightParameterModulation = null;
+  private LXParameter highlightModulationTarget = null;
+  public final MutableParameter highlightModulationTargetChanged = new MutableParameter();
 
   private UIControlTarget controlTarget = null;
   private UITriggerSource triggerSource = null;
@@ -651,6 +654,16 @@ public class UI {
         showContextOverlay(new UIDialogBox(this, error.message, () -> { lx.popError(); }));
       }
     }
+  }
+
+  public LXParameter getHighlightModulationTarget() {
+    return this.highlightModulationTarget;
+  }
+
+  public UI setHighlightModulationTarget(LXParameter highlightModulationTarget) {
+    this.highlightModulationTarget = highlightModulationTarget;
+    this.highlightModulationTargetChanged.bang();
+    return this;
   }
 
   public UI setHighlightParameterModulation(LXParameterModulation highlightParameterModulation) {

@@ -122,14 +122,25 @@ public class UICompoundParameterControl extends UIParameterControl {
   public List<UIContextActions.Action> getContextActions() {
     List<UIContextActions.Action> actions = super.getContextActions();
     if (this.parameter instanceof CompoundParameter) {
-      final CompoundParameter cp = (CompoundParameter) this.parameter;
-      if (!cp.modulations.isEmpty()) {
+      final CompoundParameter compoundParameter = (CompoundParameter) this.parameter;
+      if (!compoundParameter.modulations.isEmpty()) {
         actions.add(new UIContextActions.Action("Remove Modulation") {
           @Override
           public void onContextAction(UI ui) {
-            ui.lx.command.perform(new LXCommand.Modulation.RemoveModulations(cp));
+            ui.lx.command.perform(new LXCommand.Modulation.RemoveModulations(compoundParameter));
           }
         });
+        for (LXCompoundModulation modulation : compoundParameter.modulations) {
+          if (modulation.scope == getLX().engine.modulation) {
+            actions.add(new UIContextActions.Action("Show Modulation") {
+              @Override
+              public void onContextAction(UI ui) {
+                ui.setHighlightModulationTarget(compoundParameter);
+              }
+            });
+            break;
+          }
+        }
       }
     }
     return actions;
