@@ -130,15 +130,17 @@ public class UICompoundParameterControl extends UIParameterControl {
             ui.lx.command.perform(new LXCommand.Modulation.RemoveModulations(compoundParameter));
           }
         });
-        for (LXCompoundModulation modulation : compoundParameter.modulations) {
-          if (modulation.scope == getLX().engine.modulation) {
-            actions.add(new UIContextActions.Action("Show Modulation") {
-              @Override
-              public void onContextAction(UI ui) {
-                ui.setHighlightModulationTarget(compoundParameter);
-              }
-            });
-            break;
+        if (!getLX().engine.performanceMode.isOn()) {
+          for (LXCompoundModulation modulation : compoundParameter.modulations) {
+            if (modulation.scope == getLX().engine.modulation) {
+              actions.add(new UIContextActions.Action("Show Modulation") {
+                @Override
+                public void onContextAction(UI ui) {
+                  ui.setHighlightModulationTarget(compoundParameter);
+                }
+              });
+              break;
+            }
           }
         }
       }
