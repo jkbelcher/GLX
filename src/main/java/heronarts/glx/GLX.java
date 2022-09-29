@@ -261,7 +261,7 @@ public class GLX extends LX {
 
         StringBuilder logMessage = new StringBuilder();
         logMessage.append(
-          "[LWJGL] " + ERROR_CODES.get(error) + " error\n" +
+          ERROR_CODES.get(error) + " error\n" +
           "\tDescription : " + getDescription(description) + "\n" +
           "\tStacktrace  :"
         );
@@ -271,7 +271,7 @@ public class GLX extends LX {
           logMessage.append("\n\t\t" + stack[i].toString());
         }
 
-        error(logMessage.toString());
+        LX._error("LWJGL", logMessage.toString());
       }
     });
 
