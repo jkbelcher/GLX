@@ -95,6 +95,8 @@ public class UITheme {
       "attention", "ff3333",
       "cue", "666699",
       "aux", "996666",
+      "busA", "669966",
+      "busB", "888866",
       "surface", "666699",
       "recording", "a00044",
       "cursor", "555555",
@@ -170,6 +172,8 @@ public class UITheme {
       "attention", "cc0000",
       "cue", "8080bf",
       "aux", "bf8080",
+      "busA", "80bf80",
+      "busB", "acac80",
       "surface", "8080bf",
       "recording", "bf0053",
       "cursor", "555555",
@@ -270,6 +274,8 @@ public class UITheme {
   public final Color attentionColor = new Color("attention");
   public final Color cueColor = new Color("cue");
   public final Color auxColor = new Color("aux");
+  public final Color busAColor = new Color("busA");
+  public final Color busBColor = new Color("busB");
   public final Color surfaceColor = new Color("surface");
   public final Color recordingColor = new Color("recording");
   public final Color cursorColor = new Color("cursor");
