@@ -31,6 +31,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 
 import static org.lwjgl.bgfx.BGFX.*;
 import static org.lwjgl.bgfx.BGFXPlatform.*;
@@ -38,11 +39,13 @@ import static org.lwjgl.bgfx.BGFXPlatform.*;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.bgfx.BGFXInit;
 import org.lwjgl.bgfx.BGFXPlatformData;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWDropCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWNativeCocoa;
 import org.lwjgl.glfw.GLFWNativeWin32;
 import org.lwjgl.glfw.GLFWNativeX11;
+import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
 import org.lwjgl.system.macosx.ObjCRuntime;
@@ -243,8 +246,34 @@ public class GLX extends LX {
     return this.systemContentScaleY;
   }
 
+  private boolean ignoreClipboardError = false;
+
   private void initializeWindow() {
-    GLFWErrorCallback.createPrint(System.err).set();
+    glfwSetErrorCallback(new GLFWErrorCallback() {
+      private Map<Integer, String> ERROR_CODES =
+        APIUtil.apiClassTokens((field, value) -> 0x10000 < value && value < 0x20000, null, GLFW.class);
+
+      @Override
+      public void invoke(int error, long description) {
+        if (ignoreClipboardError) {
+          return;
+        }
+
+        StringBuilder logMessage = new StringBuilder();
+        logMessage.append(
+          "[LWJGL] " + ERROR_CODES.get(error) + " error\n" +
+          "\tDescription : " + getDescription(description) + "\n" +
+          "\tStacktrace  :"
+        );
+
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        for (int i = 4; i < stack.length; ++i) {
+          logMessage.append("\n\t\t" + stack[i].toString());
+        }
+
+        error(logMessage.toString());
+      }
+    });
 
     // Initialize GLFW. Most GLFW functions will not work before doing this.
     if (!glfwInit()) {
@@ -587,7 +616,9 @@ public class GLX extends LX {
         this._getSystemClipboardString = copyToClipboard;
         this._setSystemClipboardString = null;
       } else {
+        this.ignoreClipboardError = true;
         String str = glfwGetClipboardString(NULL);
+        this.ignoreClipboardError = false;
         if ((str != null) && !str.equals(this._getSystemClipboardString)) {
           this._getSystemClipboardString = str;
           this.clipboard.setItem(new LXTextValue(str), false);
