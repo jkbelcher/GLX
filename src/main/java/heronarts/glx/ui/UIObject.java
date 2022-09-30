@@ -758,7 +758,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     }
 
     // Escape key blurs items with key focus
-    if (!keyEvent.isBlurConsumed() && (keyCode == KeyEvent.VK_ESCAPE) && this instanceof UIKeyFocus) {
+    if (!keyEvent.isConsumed() && !keyEvent.isBlurConsumed() && (keyCode == KeyEvent.VK_ESCAPE) && this instanceof UIKeyFocus) {
       keyEvent.consumeBlur();
       blur();
     }
