@@ -852,7 +852,11 @@ public interface UIItemList {
         } else if (keyCode == KeyEvent.VK_BACKSPACE) {
           consume = true;
           if (this.renameBuffer.length() > 0) {
-            this.renameBuffer = this.renameBuffer.substring(0, this.renameBuffer.length() - 1);
+            if (keyEvent.isShiftDown() || keyEvent.isCommand()) {
+              this.renameBuffer = "";
+            } else {
+              this.renameBuffer = this.renameBuffer.substring(0, this.renameBuffer.length() - 1);
+            }
             this.list.redraw();
           }
         } else if (UITextBox.isValidTextCharacter(keyChar)) {
@@ -918,7 +922,7 @@ public interface UIItemList {
             if (this.isRenamable && this.focusIndex >= 0) {
               consume = true;
               this.renaming = true;
-              this.renameBuffer = "";
+              this.renameBuffer = this.items.get(this.focusIndex).getLabel();
               this.list.redraw();
             }
           }
