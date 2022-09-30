@@ -25,6 +25,7 @@ import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.UITimerTask;
 import heronarts.glx.ui.vg.VGraphics;
+import heronarts.lx.clipboard.LXTextValue;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.utils.LXUtils;
@@ -496,6 +497,25 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           this.editing = false;
           saveEditBuffer(this.editBuffer);
           redraw();
+        } else if (keyEvent.isCommand(KeyEvent.VK_X)) {
+          if (this.editRangeEnd != this.editRangeStart) {
+            keyEvent.consume();
+
+            // Cut the text, put it on the clipboard
+            final String cut = this.editBuffer.substring(this.editRangeStart, this.editRangeEnd);
+            getLX().clipboard.setItem(new LXTextValue(cut));
+
+            // Range deletion, save the end point
+            final int rangeEnd = this.editRangeEnd;
+            // Move the cursor to front of deletion range
+            editCursor(this.editRangeStart);
+            this.editBuffer =
+              this.editBuffer.substring(0, this.editRangeStart) +
+              this.editBuffer.substring(rangeEnd);
+
+            onEditChange(this.editBuffer);
+            redraw();
+          }
         } else if (keyEvent.isCommand(KeyEvent.VK_A)) {
           keyEvent.consume();
           this.editRangeStart = 0;
