@@ -342,15 +342,18 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
 
     // Get the display string, clip it to width
     final float availableWidth = this.width - TEXT_MARGIN - 1;
-    String rawString = this.editing ? this.editBuffer : getValueString();
+    final String rawString = this.editing ? this.editBuffer : getValueString();
+    final int rawLength = rawString.length();
     String clippedString = null;
     if (rawString != null) {
       clippedString = clipTextToWidth(vg, rawString, availableWidth);
     }
 
-    int editCursor = this.editCursor;
-    int editRangeStart = this.editRangeStart;
-    int editRangeEnd = this.editRangeEnd;
+    // Clamp these values upfront, since they're updated by the LX engine thread
+    // and we are here on the UI thread, they could be out of bounds.
+    int editCursor = LXUtils.constrain(this.editCursor, 0, rawLength);
+    int editRangeStart = LXUtils.constrain(this.editRangeStart, 0, rawLength);
+    int editRangeEnd = LXUtils.constrain(this.editRangeEnd, 0, rawLength);
 
     if (this.editing) {
       // The string is too big and we can't see where we're editing...
