@@ -328,7 +328,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       vg.beginPath();
       vg.fontFace(ui.theme.getControlFont());
       vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
-      vg.fillColor(ui.theme.primaryColor);
+      vg.fillColor(ui.theme.editTextColor);
       vg.text(this.width/2, this.height - LABEL_HEIGHT/2, clipTextToWidth(vg, getEditBuffer(), this.width - TEXT_MARGIN));
       vg.fill();
 

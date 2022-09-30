@@ -76,7 +76,6 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
   public UISlider(Direction direction, float x, float y, float w, float h) {
     super(x, y, w, h);
     this.keyEditable = true;
-    enableImmediateEdit(true);
     this.direction = direction;
     this.handleHeight = h;
   }

@@ -29,7 +29,6 @@ public abstract class UINumberBox extends UIInputBox {
 
   protected UINumberBox(float x, float y, float w, float h) {
     super(x, y, w, h);
-    enableImmediateEdit(true);
   }
 
   public UINumberBox setFillStyle(FillStyle fillStyle) {

@@ -45,8 +45,8 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   protected boolean mouseEditable = true;
 
   protected boolean returnKeyEdit = true;
-  private boolean immediateEdit = false;
-  private boolean mousePressEdit = false;
+  private boolean immediateEdit = true;
+  private boolean immediateAppend = false;
 
   protected volatile boolean editing = false;
 
@@ -135,18 +135,33 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     return this;
   }
 
-  public UIInputBox setReturnKeyEdit(boolean returnKeyEdit) {
-    this.returnKeyEdit = returnKeyEdit;
+  public UIInputBox disableReturnKeyEdit() {
+    this.returnKeyEdit = false;
     return this;
   }
 
-  public UIInputBox enableImmediateEdit(boolean immediateEdit) {
-    this.immediateEdit = immediateEdit;
+  public UIInputBox enableReturnKeyEdit() {
+    this.returnKeyEdit = true;
     return this;
   }
 
-  public UIInputBox enableMousePressEdit(boolean mousePressEdit) {
-    this.mousePressEdit = mousePressEdit;
+  public UIInputBox disableImmediateEdit() {
+    this.immediateEdit = false;
+    return this;
+  }
+
+  public UIInputBox enableImmediateEdit() {
+    this.immediateEdit = true;
+    return this;
+  }
+
+  public UIInputBox disableImmediateAppend() {
+    this.immediateAppend = false;
+    return this;
+  }
+
+  public UIInputBox enableImmediateAppend() {
+    this.immediateAppend = true;
     return this;
   }
 
@@ -612,13 +627,21 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
         // Not editing
         if (this.immediateEdit && isValidCharacter(keyChar) && !keyEvent.isCommand()) {
           keyEvent.consume();
-          edit(Character.toString(keyChar));
+          if (this.immediateAppend) {
+            edit(getInitialEditBufferValue() + keyChar);
+          } else {
+            edit(Character.toString(keyChar));
+          }
           onEditChange(this.editBuffer);
         } else if (this.immediateEdit && keyCode == KeyEvent.VK_BACKSPACE) {
           String editBuffer = getInitialEditBufferValue();
           if (!editBuffer.isEmpty()) {
             keyEvent.consume();
-            edit(editBuffer.substring(0, editBuffer.length() - 1));
+            if (keyEvent.isShiftDown() || keyEvent.isCommand()) {
+              edit("");
+            } else {
+              edit(editBuffer.substring(0, editBuffer.length() - 1));
+            }
             onEditChange(this.editBuffer);
           }
         } else if (keyEvent.isEnter()) {
@@ -668,11 +691,6 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       if (this.useCommandEngine) {
         this.mouseDragSetValue = new LXCommand.Parameter.SetValue(parameter, 0);
       }
-    }
-    if (this.enabled && this.editable && !this.editing && this.mousePressEdit) {
-      mouseEvent.consume();
-      edit();
-      redraw();
     }
   }
 

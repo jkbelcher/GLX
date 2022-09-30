@@ -37,7 +37,7 @@ public class UIEnumBox extends UIIntegerBox {
 
   public UIEnumBox(float x, float y, float w, float h, EnumParameter<?> parameter) {
     super(x, y, w, h);
-    enableImmediateEdit(false);
+    disableImmediateEdit();
     if (parameter != null) {
       setParameter(parameter);
     }

@@ -67,7 +67,6 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
   public UIKnob(float x, float y, float w, float h) {
     super(x, y, w, h);
     this.keyEditable = true;
-    enableImmediateEdit(true);
   }
 
   @Override

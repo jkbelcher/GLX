@@ -49,6 +49,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
 
   public UITextBox(float x, float y, float w, float h) {
     super(x, y, w, h);
+    enableImmediateAppend();
   }
 
   @Override
@@ -153,7 +154,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     super.onMousePressed(mouseEvent, mx, my);
     if (this.enabled && !this.editing) {
-      if (mouseEvent.getButton() == MouseEvent.BUTTON_LEFT && mouseEvent.getCount() == 2) {
+      if (mouseEvent.getButton() == MouseEvent.BUTTON_LEFT && mouseEvent.isDoubleClick()) {
         mouseEvent.consume();
         this.edit();
         redraw();
