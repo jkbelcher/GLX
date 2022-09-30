@@ -566,6 +566,22 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
             editCursor(cursor);
           }
           redraw();
+        } else if (keyCode == KeyEvent.VK_UP) {
+          if (keyEvent.isShiftDown()) {
+            keyEvent.consume();
+            editRange(0);
+          } else if (keyEvent.isCommand()) {
+            keyEvent.consume();
+            editCursor(0);
+          }
+        } else if (keyCode == KeyEvent.VK_DOWN) {
+          if (keyEvent.isShiftDown()) {
+            keyEvent.consume();
+            editRange(this.editBuffer.length());
+          } else if (keyEvent.isCommand()) {
+            keyEvent.consume();
+            editCursor(this.editBuffer.length());
+          }
         } else if (keyCode == KeyEvent.VK_ESCAPE) {
           keyEvent.consume();
           this.editing = false;
