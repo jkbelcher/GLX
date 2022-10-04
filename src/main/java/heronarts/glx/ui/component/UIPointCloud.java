@@ -42,7 +42,7 @@ import heronarts.lx.model.LXModel;
 import heronarts.lx.model.LXPoint;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.BoundedParameter;
-import heronarts.lx.parameter.DiscreteParameter;
+import heronarts.lx.parameter.EnumParameter;
 
 public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
@@ -122,30 +122,44 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     }
   }
 
-  private static final String[] LED_STYLES = {
-    "led.ktx",
-    "led2.ktx",
-    "led3.ktx",
-    "led4.ktx",
-    "led5.ktx"
-  };
+  public enum LedStyle {
+
+    LENS1("Lens 1", "led.ktx"),
+    LENS2("Lens 2", "led2.ktx"),
+    LENS3("Lens 3", "led3.ktx"),
+    CIRCLE("Circle", "led4.ktx"),
+    SQUARE("Square", "led5.ktx");
+
+    public final String label;
+    public final String texture;
+
+    private LedStyle(String label, String texture) {
+      this.label = label;
+      this.texture = texture;
+    }
+
+    @Override
+    public String toString() {
+      return this.label;
+    }
+  }
 
   public final BoundedParameter pointSize =
-    new BoundedParameter("Point Size", 3, 1, 101)
+    new BoundedParameter("Point Size", 3, .1, 101)
     .setDescription("Size of points rendered in the preview display");
 
   public final BooleanParameter depthTest =
     new BooleanParameter("Depth Test", true)
     .setDescription("Whether to use depth test in rendering");
 
-  public final DiscreteParameter ledStyle =
-    new DiscreteParameter("LED Style", 0, LED_STYLES.length)
+  public final EnumParameter<LedStyle> ledStyle =
+    new EnumParameter<LedStyle>("LED Style", LedStyle.LENS1)
     .setDescription("Which LED texture to render");
 
   private final GLX lx;
 
   private final Program program;
-  private final Texture[] textures = new Texture[LED_STYLES.length];
+  private final Texture[] textures = new Texture[LedStyle.values().length];
 
   private VertexBuffer modelBuffer;
   private DynamicVertexBuffer colorBuffer;
@@ -162,8 +176,8 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.lx = lx;
     this.program = new Program(lx);
     int ti = 0;
-    for (String texture : LED_STYLES) {
-      this.textures[ti++] = new Texture(texture);
+    for (LedStyle ledStyle : LedStyle.values()) {
+      this.textures[ti++] = new Texture(ledStyle.texture);
     };
     this.colorBuffer = null;
     this.modelBuffer = null;
