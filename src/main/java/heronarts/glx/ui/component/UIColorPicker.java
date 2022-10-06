@@ -266,7 +266,7 @@ public class UIColorPicker extends UI2dComponent {
 
         UI2dContainer.newHorizontalContainer(16, 4,
           new UIButton(64, 16, linkedColor.mode),
-          new UILabel(28, 12, "Index").setFont(ui.theme.getControlFont()),
+          new UILabel(28, 11, "Index").setFont(ui.theme.getControlFont()),
           indexBox
         )
         .setPosition(12, 148)
