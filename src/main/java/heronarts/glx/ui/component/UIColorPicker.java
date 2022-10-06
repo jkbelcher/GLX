@@ -156,7 +156,7 @@ public class UIColorPicker extends UI2dComponent {
   }
 
   protected void hideOverlay() {
-    getUI().hideContextOverlay();
+    getUI().clearContextOverlay(this.uiColorOverlay);
   }
 
   private void showOverlay() {

@@ -171,10 +171,10 @@ public class UIContextMenu extends UI2dContainer {
       if (this.highlight >= 0) {
         this.actions[this.highlight].onContextAction(getUI());
       }
-      getUI().hideContextOverlay();
+      getUI().clearContextOverlay(this);
     } else if (keyCode == KeyEvent.VK_ESCAPE) {
       keyEvent.consume();
-      getUI().hideContextOverlay();
+      getUI().clearContextOverlay(this);
     }
   }
 
@@ -194,7 +194,7 @@ public class UIContextMenu extends UI2dContainer {
     if (index >= 0 && index < this.actions.length) {
       this.actions[index].onContextAction(getUI());
     }
-    getUI().hideContextOverlay();
+    getUI().clearContextOverlay(this);
   }
 
 }

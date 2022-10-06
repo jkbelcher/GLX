@@ -81,7 +81,7 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
       new UIButton.Action(xp, yp, optionWidth[i], 16) {
         @Override
         protected void onClick() {
-          getUI().hideContextOverlay();
+          getUI().clearContextOverlay(UIDialogBox.this);
           if ((callbacks != null) && (callbacks[ii] != null)) {
             callbacks[ii].run();
           }

@@ -45,7 +45,7 @@ public class UIDiscreteColorBox extends UI2dComponent implements UIFocus {
       int xi = LXUtils.constrain((int) ((mx - SPACING) / (BOX_SIZE + SPACING)), 0, 8);
       int yi = LXUtils.constrain((int) ((my - SPACING) / (BOX_SIZE + SPACING)), 0, 3);
       parameter.setValue(xi + yi * 8);
-      getUI().hideContextOverlay();
+      getUI().clearContextOverlay(this);
     }
 
     @Override
@@ -100,7 +100,7 @@ public class UIDiscreteColorBox extends UI2dComponent implements UIFocus {
         this.colorMenu.setPosition(this, -this.colorMenu.getWidth() + UIDiscreteColorMenu.BOX_SIZE + UIDiscreteColorMenu.SPACING, -UIDiscreteColorMenu.SPACING);
         getUI().showContextOverlay(this.colorMenu);
       } else {
-        getUI().hideContextOverlay();
+        getUI().clearContextOverlay(this.colorMenu);
       }
     }
   }
