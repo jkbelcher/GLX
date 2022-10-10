@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Map;
 
 import static org.lwjgl.bgfx.BGFX.*;
@@ -442,9 +440,9 @@ public class GLX extends LX {
                 openProject(file);
               });
             } else if (file.getName().endsWith(".jar")) {
-              final File destination = new File(getMediaFolder(LX.Media.CONTENT), file.getName());
+              final File destination = new File(getMediaFolder(LX.Media.PACKAGES), file.getName());
               if (destination.exists()) {
-                showConfirmDialog(file.getName() + " already exists in content folder, overwrite?", () -> { importContentJar(file, destination); });
+                showConfirmDialog(file.getName() + " already exists in package folder, reinstall?", () -> { importContentJar(file, destination); });
               } else {
                 importContentJar(file, destination);
               }
@@ -653,21 +651,18 @@ public class GLX extends LX {
 
   protected void importContentJar(File file, File destination) {
     log("Importing content JAR: " + destination.toString());
-    try {
-      Files.copy(file.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    if (this.registry.installPackage(file, true)) {
       this.engine.addTask(() -> {
         reloadContent();
-        this.ui.contextualHelpText.setValue("New content imported into " + destination.getName());
-        this.ui.showContextDialogMessage("Added content JAR: " + destination.getName());
+        this.ui.contextualHelpText.setValue("New package imported into " + destination.getName());
+        this.ui.showContextDialogMessage("Installed package: " + destination.getName());
       });
-    } catch (IOException e) {
-      error(e, "Error copying " + file.getName() + " to content directory");
-    }
+    };
   }
 
   public void reloadContent() {
     this.registry.reloadContent();
-    pushStatusMessage("External content libraries reloaded");
+    pushStatusMessage("External packages reloaded");
   }
 
   public void showSaveProjectDialog() {
