@@ -64,6 +64,11 @@ public class InputDispatch implements LXEngine.Dispatch {
   void glfwKeyCallback(long window, int key, int scancode, int action, int mods) {
     this.modifiers = mods;
     queueEvent(this.keyEvent = new KeyEvent(key, scancode, action, mods));
+
+    // Hack-toggle to UI perf logging on the UI thread
+    if ((key == KeyEvent.VK_U) && (action == GLFW_PRESS) && keyEvent.isCommand() && keyEvent.isShiftDown()) {
+      lx.toggleUIPerformanceDebug();
+    }
   }
 
   void glfwCharCallback(long window, int codepoint) {

@@ -78,6 +78,8 @@ public class GLX extends LX {
   private float uiWidth = 0;
   private float uiHeight = 0;
 
+  private boolean flagUIDebug = false;
+
   float systemContentScaleX = 1;
   float systemContentScaleY = 1;
 
@@ -152,6 +154,11 @@ public class GLX extends LX {
 
     // Create the UI system
     this.ui = buildUI();
+  }
+
+  void toggleUIPerformanceDebug() {
+    this.flagUIDebug = !this.flagUIDebug;
+    log("UI thread performance logging " + (this.flagUIDebug ? "ON" : "OFF"));
   }
 
   public void run() {
@@ -601,7 +608,9 @@ public class GLX extends LX {
         if (!failed && (++frameCount == FRAME_PERF_LOG)) {
           frameCount = 0;
           now = System.currentTimeMillis();
-          GLX.log("UI thread healthy, running at: " + FRAME_PERF_LOG * 1000f / (now - before) + "fps, average draw time: " + (drawNanos / FRAME_PERF_LOG / 1000) + "us");
+          if (this.flagUIDebug) {
+            GLX.log("UI thread healthy, running at: " + FRAME_PERF_LOG * 1000f / (now - before) + "fps, average draw time: " + (drawNanos / FRAME_PERF_LOG / 1000) + "us");
+          }
           before = now;
           drawNanos = 0;
         }
