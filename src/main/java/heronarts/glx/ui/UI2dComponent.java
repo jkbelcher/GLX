@@ -1233,11 +1233,23 @@ public abstract class UI2dComponent extends UIObject {
    * @param vg View to draw into
    */
   void draw(UI ui, VGraphics vg) {
+    draw(ui, vg, false);
+  }
+
+  private void draw(UI ui, VGraphics vg, boolean forceRedraw) {
     if (!isVisible()) {
       return;
     }
+    final boolean hasMappingOverlay = hasMappingOverlay();
+    if (hasMappingOverlay) {
+      forceRedraw = true;
+    }
+    if (forceRedraw) {
+      this.needsRedraw = true;
+      this.childNeedsRedraw = true;
+    }
+
     final boolean needsBorder = this.needsRedraw || this.childNeedsRedraw;
-    final boolean needsMappingOverlay = this.needsRedraw;
 
     // NOTE(mcslee): these could change if the event processing thread receives
     // mouse scroll while UI thread is rendering! Cache values in this thread
@@ -1276,7 +1288,7 @@ public abstract class UI2dComponent extends UIObject {
       for (UIObject childObject : this.mutableChildren) {
         UI2dComponent child = (UI2dComponent) childObject;
         if (child.isVisible()) {
-          if (child.needsRedraw || child.childNeedsRedraw || child.needsBlit) {
+          if (forceRedraw || child.needsRedraw || child.childNeedsRedraw || child.needsBlit) {
             // NOTE(mcslee): loose threading here! the LX thread could
             // reposition UI based upon listeners, make sure un-translate
             // uses the strictly same value as translate
@@ -1288,7 +1300,7 @@ public abstract class UI2dComponent extends UIObject {
             // Only draw children that have at least *some* intersection!
             if (child.scissor.intersect(this.scissor, ox, oy, ow, oh)) {
               vg.translate(ox, oy);
-              child.draw(ui, vg);
+              child.draw(ui, vg, forceRedraw);
               vg.translate(-ox, -oy);
             }
           }
@@ -1307,7 +1319,7 @@ public abstract class UI2dComponent extends UIObject {
         drawMappingBorder(ui, vg);
       }
     }
-    if (needsMappingOverlay) {
+    if (hasMappingOverlay) {
       drawMappingOverlay(ui, vg, 0, 0, this.width, this.height);
     }
 
@@ -1336,6 +1348,14 @@ public abstract class UI2dComponent extends UIObject {
     vg.stroke();
   }
 
+  private boolean hasMappingOverlay() {
+    return
+      isMidiMapping() ||
+      isModulationSourceMapping() || isTriggerSourceMapping() ||
+      isModulationTargetMapping() || isTriggerTargetMapping() ||
+      isModulationHighlight();
+  }
+
   private void drawMappingOverlay(UI ui, VGraphics vg, float x, float y, float w, float h) {
     if (isModulationSource() || isTriggerSource()) {
       // Do nothing! Handled by drawMappingBorder
@@ -1358,7 +1378,7 @@ public abstract class UI2dComponent extends UIObject {
       vg.fillColor(ui.theme.modulationTargetMappingColor.mask(0x33));
       vg.fill();
     } else if (isModulationHighlight()) {
-      LXParameterModulation modulation = this.ui.highlightParameterModulation;
+      final LXParameterModulation modulation = this.ui.highlightParameterModulation;
       if (modulation != null) {
         vg.beginPath();
         vg.rect(x, y, w, h);
