@@ -172,7 +172,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <bottom>GLX library by Mark C. Slee. (C) 2012-2020</bottom>
+                    <bottom>GLX library by Mark C. Slee. (C) 2012-2022</bottom>
                     <verbose>false</verbose>
                     <stylesheetfile>build/stylesheet.css</stylesheetfile>
                     <doctitle>GLX API Specification</doctitle>
