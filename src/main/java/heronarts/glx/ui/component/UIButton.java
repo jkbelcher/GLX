@@ -316,7 +316,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     } else if (this.momentaryPressEngaged) {
       vg.beginPath();
       vg.fillColor(this.activeColor);
-      vg.rect(1, 1, this.width-2, this.height-2);
+      vgRoundedRect(this, vg, 1, 1, this.width-2, this.height-2);
       vg.fill();
     }
 
