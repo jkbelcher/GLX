@@ -230,6 +230,15 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
 
     private Camera() {}
 
+    private void reset() {
+      this.theta.reset();
+      this.phi.reset();
+      this.radius.reset();
+      this.x.reset();
+      this.y.reset();
+      this.z.reset();
+    }
+
     private void set(Camera that) {
       set(that, true);
     }
@@ -964,7 +973,11 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     LXSerializable.Utils.loadInt(this.projection, object, KEY_PROJECTION);
     LXSerializable.Utils.loadDouble(this.perspective, object, KEY_PERSPECTIVE);
     LXSerializable.Utils.loadDouble(this.depth, object, KEY_DEPTH);
-    LXSerializable.Utils.loadObject(lx, this.camera, object, KEY_CAMERA);
+    if (object.has(KEY_CAMERA)) {
+      LXSerializable.Utils.loadObject(lx, this.camera, object, KEY_CAMERA);
+    } else {
+      this.camera.reset();
+    }
     LXSerializable.Utils.loadArray(lx, this.cue, object, KEY_CUE);
     LXSerializable.Utils.loadInt(this.focusCamera, object, KEY_FOCUS);
 
