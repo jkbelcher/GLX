@@ -48,6 +48,8 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
 
   private final UIContextMenu contextMenu;
 
+  private float menuWidth = -1;
+
   public UIDropMenu(float x, float y, float w, DiscreteParameter parameter) {
     this(x, y, w, DEFAULT_HEIGHT, parameter);
   }
@@ -66,6 +68,11 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     setParameter(parameter);
     setBackgroundColor(UI.get().theme.controlBackgroundColor);
     setBorderColor(UI.get().theme.controlBorderColor);
+  }
+
+  public UIDropMenu setMenuWidth(float menuWidth) {
+    this.menuWidth = menuWidth;
+    return this;
   }
 
   @Override
@@ -194,7 +201,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
         } else {
           this.contextMenu.setPosition(this, 0, this.height);
         }
-        this.contextMenu.setWidth(this.width);
+        this.contextMenu.setWidth(this.menuWidth > 0 ? this.menuWidth : this.width);
         getUI().showContextOverlay(this.contextMenu);
       } else {
         getUI().clearContextOverlay(this.contextMenu);
