@@ -41,6 +41,8 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
     return arr;
   }
 
+  private boolean isError = false;
+
   public UIDialogBox(UI ui, String message) {
     this(ui, message, new String[] { "Okay" }, null);
   }
@@ -91,5 +93,14 @@ public class UIDialogBox extends UI2dContainer implements UIMouseFocus {
       .addToContainer(this);
       xp += optionWidth[i] + OPTION_PADDING;
     }
+  }
+
+  public UIDialogBox setError() {
+    this.isError = true;
+    return this;
+  }
+
+  public boolean isError() {
+    return this.isError;
   }
 }

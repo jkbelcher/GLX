@@ -122,19 +122,26 @@ public class UI {
       return getHeight();
     }
 
+    private boolean isErrorDialog(UI2dComponent component) {
+      if (component instanceof UIDialogBox) {
+        return ((UIDialogBox) component).isError();
+      }
+      return false;
+    }
+
     @Override
     void mousePressed(MouseEvent mouseEvent, float mx, float my) {
       // If a context menu is open, we'll want to close it on mouse-press
       // unless the mouse-press is within the context menu itself
-      boolean hideContext = false;
+      boolean hideContextOverlay = false;
       if (contextMenuOverlay.overlayContent != null) {
-        hideContext = true;
+        hideContextOverlay = true;
         contextMenuOverlay.mousePressed = false;
       }
       super.mousePressed(mouseEvent, mx, my);
 
       // Note: check
-      if (!mouseEvent.isContextMenuConsumed() && hideContext && !contextMenuOverlay.mousePressed) {
+      if (hideContextOverlay && !mouseEvent.isContextMenuConsumed() && !contextMenuOverlay.mousePressed && !isErrorDialog(contextMenuOverlay.overlayContent)) {
         hideContextOverlay();
       }
     }
@@ -649,9 +656,9 @@ public class UI {
           new Runnable[] {
             () -> { lx.setSystemClipboardString(error.getStackTrace()); },
             () -> { lx.popError(); }
-          }));
+          }).setError());
       } else {
-        showContextOverlay(new UIDialogBox(this, error.message, () -> { lx.popError(); }));
+        showContextOverlay(new UIDialogBox(this, error.message, () -> { lx.popError(); }).setError());
       }
     }
   }
