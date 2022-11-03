@@ -294,7 +294,28 @@ public class GLX extends LX {
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
 
+    // Detect window/framebuffer sizes and content scale
+    try (MemoryStack stack = MemoryStack.stackPush()) {
+      int xp = 0, yp = 0;
+      long primaryMonitor = glfwGetPrimaryMonitor();
+      if (primaryMonitor == NULL) {
+        error("Running on a system with no monitor, is this intended?");
+      } else {
+        IntBuffer xPos = stack.mallocInt(1);
+        IntBuffer yPos = stack.mallocInt(1);
+        IntBuffer xSize = stack.mallocInt(1);
+        IntBuffer ySize = stack.mallocInt(1);
+        glfwGetMonitorWorkarea(primaryMonitor, xPos, yPos, xSize, ySize);
+        xp = xPos.get();
+        yp = yPos.get();
+        this.displayWidth = xSize.get();
+        this.displayHeight = ySize.get();
+      }
+      log("GLX monitorWorkarea: size(" + this.displayWidth + "x" + this.displayHeight + "), pos(x:" + xp + ",y:" + yp + ")");
+    }
+
     // Create GLFW window
+    log("GLX createWindow: " + this.windowWidth + "x" + this.windowHeight);
     this.window = glfwCreateWindow(
       this.windowWidth,
       this.windowHeight,
@@ -319,6 +340,7 @@ public class GLX extends LX {
       glfwGetWindowContentScale(this.window, xScale, yScale);
       this.systemContentScaleX = xScale.get(0);
       this.systemContentScaleY = yScale.get(0);
+      log("GLX systemContentScale: " + this.systemContentScaleX + "x" + this.systemContentScaleY);
 
       // The window size is in terms of "OS window size" - best thought of
       // as an abstract setting which may or may not exactly correspond to
@@ -328,24 +350,19 @@ public class GLX extends LX {
       glfwGetWindowSize(this.window, xSize, ySize);
       this.windowWidth = xSize.get(0);
       this.windowHeight = ySize.get(0);
+      log("GLX windowSize: " + this.windowWidth + "x" + this.windowHeight);
+
+      final int xp = (int) ((this.displayWidth - this.windowWidth) * .5f);
+      final int yp = (int) ((this.displayHeight - this.windowHeight) * .5f);
+      log("GLX setWindowPos: " + xp + "," + yp);
+      glfwSetWindowPos(this.window, xp, yp);
 
       // See what is in the framebuffer. A retina Mac probably supplies
       // 2x the dimensions on framebuffer relative to window.
       glfwGetFramebufferSize(this.window, xSize, ySize);
       this.frameBufferWidth = xSize.get(0);
       this.frameBufferHeight = ySize.get(0);
-
-      long primaryMonitor = glfwGetPrimaryMonitor();
-      if (primaryMonitor == NULL) {
-        error("Running on a system with no monitor, is this intended?");
-      } else {
-        IntBuffer xPos = stack.mallocInt(1);
-        IntBuffer yPos = stack.mallocInt(1);
-        glfwGetMonitorWorkarea(primaryMonitor, xPos, yPos, xSize, ySize);
-        this.displayWidth = xSize.get();
-        this.displayHeight = ySize.get();
-      }
-      log("GLX display: " + this.displayWidth + "x" + this.displayHeight);
+      log("GLX framebufferSize: " + this.frameBufferWidth + "x" + this.frameBufferHeight);
 
       // Okay, let's figure out how many "virtual pixels" the GLX UI should
       // be. Note that on a Mac with 2x retina display, contentScale will be
@@ -356,12 +373,14 @@ public class GLX extends LX {
       // into a larger framebuffer.
       this.uiWidth = this.frameBufferWidth / this.systemContentScaleX / this.uiZoom;
       this.uiHeight = this.frameBufferHeight / this.systemContentScaleY / this.uiZoom;
+      log("GLX uiSize: " + this.uiWidth + "x" + this.uiHeight);
 
       // To make things even trickier... keep in mind that the OS specifies cursor
       // movement relative to its window size. We need to scale those onto our
       // virtual UI window size.
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
+      log("GLX cursorScale: " + this.cursorScaleX + "x" + this.cursorScaleY);
 
       // Set UI Zoom bounds based upon content scaling
       this.preferences.uiZoom.setRange((int) Math.ceil(100 / this.systemContentScaleX), 201);
@@ -376,11 +395,6 @@ public class GLX extends LX {
 //      this.cursorScaleX = this.uiWidth / this.windowWidth;
 //      this.cursorScaleY = this.uiHeight / this.windowHeight;
 
-      log("GLX window: " + this.windowWidth + "x" + this.windowHeight);
-      log("GLX frame: " + this.frameBufferWidth + "x" + this.frameBufferHeight);
-      log("GLX ui: " + this.uiWidth + "x" + this.uiHeight);
-      log("GLX content: " + this.systemContentScaleX + "x" + this.systemContentScaleY);
-      log("GLX cursor: " + this.cursorScaleX + "x" + this.cursorScaleY);
     }
 
     glfwSetWindowFocusCallback(this.window, (window, focused) -> {
@@ -411,6 +425,7 @@ public class GLX extends LX {
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
       this.preferences.setWindowSize(this.windowWidth, this.windowHeight);
+      log("GLX setWindowSize: " + width + "x" + height);
     });
 
     glfwSetWindowContentScaleCallback(this.window, (window, contentScaleX, contentScaleY) -> {
