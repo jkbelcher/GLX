@@ -417,7 +417,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       if ((keyCode == KeyEvent.VK_SPACE) || keyEvent.isEnter()) {
         keyEvent.consume();
         setShowValue(true);
-      } else if (isEnabled() && isEditable() && keyEvent.isShiftDown() && keyCode == KeyEvent.VK_BACKSPACE) {
+      } else if (isEnabled() && isEditable() && keyEvent.isShiftDown() && keyEvent.isDelete()) {
         keyEvent.consume();
         if (this.parameter != null) {
           this.parameter.reset();

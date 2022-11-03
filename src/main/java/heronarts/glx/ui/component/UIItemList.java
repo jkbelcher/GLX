@@ -849,7 +849,7 @@ public interface UIItemList {
           }
           this.renaming = false;
           this.list.redraw();
-        } else if (keyCode == KeyEvent.VK_BACKSPACE) {
+        } else if (keyEvent.isDelete()) {
           consume = true;
           if (this.renameBuffer.length() > 0) {
             if (keyEvent.isShiftDown() || keyEvent.isCommand()) {
@@ -911,7 +911,7 @@ public interface UIItemList {
             }
             activate();
           }
-        } else if (keyCode == KeyEvent.VK_BACKSPACE) {
+        } else if (keyEvent.isDelete()) {
           consume = true;
           delete();
         } else if (keyEvent.isCommand() && !keyEvent.isShiftDown()) {

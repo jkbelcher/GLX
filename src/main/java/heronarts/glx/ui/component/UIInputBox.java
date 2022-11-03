@@ -536,7 +536,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           this.editRangeStart = 0;
           this.editCursor = editRangeEnd = this.editBuffer.length();
           redraw();
-        } else if (keyCode == KeyEvent.VK_BACKSPACE) {
+        } else if (keyEvent.isDelete()) {
           keyEvent.consume();
           if (this.editBuffer.length() > 0) {
             if (keyEvent.isShiftDown() || keyEvent.isControlDown() || keyEvent.isMetaDown()) {
@@ -633,7 +633,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
             edit(Character.toString(keyChar));
           }
           onEditChange(this.editBuffer);
-        } else if (this.immediateEdit && keyCode == KeyEvent.VK_BACKSPACE) {
+        } else if (this.immediateEdit && keyEvent.isDelete()) {
           String editBuffer = getInitialEditBufferValue();
           if (!editBuffer.isEmpty()) {
             keyEvent.consume();
