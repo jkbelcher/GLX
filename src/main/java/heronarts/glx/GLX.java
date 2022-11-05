@@ -63,16 +63,23 @@ public class GLX extends LX {
   private static final int MIN_WINDOW_WIDTH = 820;
   private static final int MIN_WINDOW_HEIGHT = 480;
 
+  private static final int DEFAULT_WINDOW_WIDTH = 1280;
+  private static final int DEFAULT_WINDOW_HEIGHT = 720;
+
   private long window;
 
   private long handCursor;
   private long useCursor = 0;
   private boolean needsCursorUpdate = false;
 
+  private int displayX = -1;
+  private int displayY = -1;
   private int displayWidth = -1;
   private int displayHeight = -1;
-  private int windowWidth = 1280;
-  private int windowHeight = 720;
+  private int windowWidth = DEFAULT_WINDOW_WIDTH;
+  private int windowHeight = DEFAULT_WINDOW_HEIGHT;
+  private int windowPosX = -1;
+  private int windowPosY = -1;
   private int frameBufferWidth = 0;
   private int frameBufferHeight = 0;
   private float uiWidth = 0;
@@ -140,6 +147,8 @@ public class GLX extends LX {
       this.windowWidth = preferenceWidth;
       this.windowHeight = preferenceHeight;
     }
+    this.windowPosX = this.preferences.getWindowPosX();
+    this.windowPosY = this.preferences.getWindowPosY();
 
     initializeWindow();
     this.zZeroToOne = !bgfx_get_caps().homogeneousDepth();
@@ -291,12 +300,11 @@ public class GLX extends LX {
 
     // Configure GLFW
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_FALSE);
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
 
     // Detect window/framebuffer sizes and content scale
     try (MemoryStack stack = MemoryStack.stackPush()) {
-      int xp = 0, yp = 0;
       long primaryMonitor = glfwGetPrimaryMonitor();
       if (primaryMonitor == NULL) {
         error("Running on a system with no monitor, is this intended?");
@@ -306,13 +314,17 @@ public class GLX extends LX {
         IntBuffer xSize = stack.mallocInt(1);
         IntBuffer ySize = stack.mallocInt(1);
         glfwGetMonitorWorkarea(primaryMonitor, xPos, yPos, xSize, ySize);
-        xp = xPos.get();
-        yp = yPos.get();
+        this.displayX = xPos.get();
+        this.displayY = yPos.get();
         this.displayWidth = xSize.get();
         this.displayHeight = ySize.get();
       }
-      log("GLX monitorWorkarea: size(" + this.displayWidth + "x" + this.displayHeight + "), pos(x:" + xp + ",y:" + yp + ")");
+      log("GLX monitorWorkarea: size(" + this.displayWidth + "x" + this.displayHeight + "), pos(x:" + this.displayX + ",y:" + this.displayY + ")");
     }
+
+    // Ensure initial window bounds do not exceed the available display
+    this.windowWidth = LXUtils.min(this.windowWidth, this.displayWidth);
+    this.windowHeight = LXUtils.min(this.windowHeight, this.displayHeight);
 
     // Create GLFW window
     log("GLX createWindow: " + this.windowWidth + "x" + this.windowHeight);
@@ -352,10 +364,13 @@ public class GLX extends LX {
       this.windowHeight = ySize.get(0);
       log("GLX windowSize: " + this.windowWidth + "x" + this.windowHeight);
 
-      final int xp = (int) ((this.displayWidth - this.windowWidth) * .5f);
-      final int yp = (int) ((this.displayHeight - this.windowHeight) * .5f);
-      log("GLX setWindowPos: " + xp + "," + yp);
-      glfwSetWindowPos(this.window, xp, yp);
+      // Restore window position if restored from preferences
+      if (this.windowPosX >= 0 && this.windowPosY >= 0) {
+        this.windowPosX = LXUtils.constrain(this.windowPosX, this.displayX, this.displayX + this.displayWidth - this.windowWidth);
+        this.windowPosY = LXUtils.constrain(this.windowPosY, this.displayY, this.displayY + this.displayHeight - this.windowHeight);
+        log("GLX setWindowPos: " + this.windowPosX + "," + this.windowPosY);
+        glfwSetWindowPos(this.window, this.windowPosX, this.windowPosY);
+      }
 
       // See what is in the framebuffer. A retina Mac probably supplies
       // 2x the dimensions on framebuffer relative to window.
@@ -420,12 +435,30 @@ public class GLX extends LX {
     });
 
     glfwSetWindowSizeCallback(this.window, (window, width, height) -> {
+      // NOTE(mcslee): This call should *follow* a call from glfwSetFramebufferSizeCallback, the window
+      // properties change after the underlying framebuffer
       this.windowWidth = width;
       this.windowHeight = height;
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
-      this.preferences.setWindowSize(this.windowWidth, this.windowHeight);
-      log("GLX setWindowSize: " + width + "x" + height);
+      try (MemoryStack stack = MemoryStack.stackPush()) {
+        // NOTE(mcslee): need to grab the new window position here as well! If a top or left
+        // corner of the window is used for a drag-resize operation, then the window's X or Y
+        // position can change without a glfwSetWindowPosCallback being invoked from a window
+        // move operation
+        IntBuffer xPos = stack.mallocInt(1);
+        IntBuffer yPos = stack.mallocInt(1);
+        glfwGetWindowPos(this.window, xPos, yPos);
+        this.windowPosX = xPos.get();
+        this.windowPosY = yPos.get();
+      }
+      this.preferences.setWindowSize(this.windowWidth, this.windowHeight, this.windowPosX, this.windowPosY);
+    });
+
+    glfwSetWindowPosCallback(this.window, (window, x, y) -> {
+      this.windowPosX = x;
+      this.windowPosY = y;
+      this.preferences.setWindowPosition(this.windowPosX, this.windowPosY);
     });
 
     glfwSetWindowContentScaleCallback(this.window, (window, contentScaleX, contentScaleY) -> {
