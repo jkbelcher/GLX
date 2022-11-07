@@ -727,7 +727,7 @@ public class GLX extends LX {
       "Save Project",
       "Project File",
       new String[] { "lxp" },
-      getMediaFolder(LX.Media.PROJECTS).toString() + File.separator + "default.lxp",
+      getMediaFile(LX.Media.PROJECTS, "default.lxp").toString(),
       (path) -> { saveProject(new File(path)); }
     );
   }
@@ -741,7 +741,7 @@ public class GLX extends LX {
         "Open Project",
         "Project File",
         new String[] { "lxp" },
-        getMediaFolder(LX.Media.PROJECTS).toString(),
+        getMediaFile(LX.Media.PROJECTS, "default.lxp").toString(),
         (path) -> { openProject(new File(path)); }
       );
     });
@@ -752,7 +752,7 @@ public class GLX extends LX {
       "Save Schedule",
       "Schedule File",
       new String[] { "lxs" },
-      getMediaFolder(LX.Media.PROJECTS).toString() + File.separator + "default.lxs",
+      getMediaFile(LX.Media.PROJECTS, "default.lxs").toString(),
       (path) -> { this.scheduler.saveSchedule(new File(path)); }
     );
   }
@@ -765,7 +765,7 @@ public class GLX extends LX {
       "Add Project to Schedule",
       "Project File",
       new String[] { "lxp" },
-      getMediaFolder(LX.Media.PROJECTS).toString(),
+      getMediaFile(LX.Media.PROJECTS, "default.lxp").toString(),
       (path) -> { this.scheduler.addEntry(new File(path)); }
     );
   }
@@ -778,7 +778,7 @@ public class GLX extends LX {
       "Open Schedule",
       "Schedule File",
       new String[] { "lxs" },
-      getMediaFolder(LX.Media.PROJECTS).toString(),
+      getMediaFile(LX.Media.PROJECTS, "default.lxs").toString(),
       (path) -> { this.scheduler.openSchedule(new File(path)); }
     );
   }
