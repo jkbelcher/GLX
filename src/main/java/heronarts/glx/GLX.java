@@ -741,7 +741,7 @@ public class GLX extends LX {
         "Open Project",
         "Project File",
         new String[] { "lxp" },
-        new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
+        getMediaFolder(LX.Media.PROJECTS).toString(),
         (path) -> { openProject(new File(path)); }
       );
     });
@@ -765,7 +765,7 @@ public class GLX extends LX {
       "Add Project to Schedule",
       "Project File",
       new String[] { "lxp" },
-      new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
+      getMediaFolder(LX.Media.PROJECTS).toString(),
       (path) -> { this.scheduler.addEntry(new File(path)); }
     );
   }
@@ -778,7 +778,7 @@ public class GLX extends LX {
       "Open Schedule",
       "Schedule File",
       new String[] { "lxs" },
-      new File(getMediaFolder(LX.Media.PROJECTS), ".").toString(),
+      getMediaFolder(LX.Media.PROJECTS).toString(),
       (path) -> { this.scheduler.openSchedule(new File(path)); }
     );
   }
