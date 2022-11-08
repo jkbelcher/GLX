@@ -194,6 +194,10 @@ public class UILabel extends UI2dComponent {
 
   private static final int MAX_LABEL_LENGTH = 1024;
 
+  public String getLabel() {
+    return this.label;
+  }
+
   public UILabel setLabel(String label) {
     if (this.label != label) {
       // Avoid crashing the UI with crazy long display strings, 1K is more than enough
