@@ -811,6 +811,7 @@ public interface UIItemList {
 
     private void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
       if (this.dragging) {
+        mouseEvent.consume();
         setScrollY(getScrollY() - dy * (getScrollHeight() / getHeight()));
       }
     }
