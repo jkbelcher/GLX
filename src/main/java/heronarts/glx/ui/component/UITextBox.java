@@ -153,10 +153,10 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   @Override
   protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     super.onMousePressed(mouseEvent, mx, my);
-    if (this.enabled && !this.editing) {
+    if (this.enabled && !this.editing && this.editable) {
       if (mouseEvent.getButton() == MouseEvent.BUTTON_LEFT && mouseEvent.isDoubleClick()) {
         mouseEvent.consume();
-        this.edit();
+        edit();
         redraw();
       }
     }
