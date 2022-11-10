@@ -124,7 +124,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   /**
    * Perspective of view
    */
-  public final BoundedParameter perspective = (BoundedParameter)
+  public final BoundedParameter perspective =
     new BoundedParameter("Perspective", 60, 15, 150)
     .setExponent(2)
     .setUnits(BoundedParameter.Units.DEGREES)
@@ -147,7 +147,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   /**
    * Animation time
    */
-  public final BoundedParameter animationTime = (BoundedParameter)
+  public final BoundedParameter animationTime =
     new BoundedParameter("Animation Time", 1000, 100, 300000)
     .setExponent(2)
     .setUnits(LXParameter.Units.MILLISECONDS)
@@ -201,13 +201,13 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
       new BooleanParameter("Active", false)
       .setDescription("Whether this camera view is active");
 
-    public final BoundedParameter theta = (BoundedParameter)
+    public final BoundedParameter theta =
       new BoundedParameter("Theta", 0, 360)
       .setWrappable(true)
       .setUnits(BoundedParameter.Units.DEGREES)
       .setDescription("Camera azimuth about the Y-axis");
 
-    public final BoundedParameter phi = (BoundedParameter)
+    public final BoundedParameter phi =
       new BoundedParameter("Phi", 0, -89, 89)
       .setUnits(BoundedParameter.Units.DEGREES)
       .setDescription("Camera elevation from the XZ plane");
