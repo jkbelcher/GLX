@@ -34,7 +34,6 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
   private int maxValue = Integer.MAX_VALUE;
   private int value = 0;
   protected DiscreteParameter parameter = null;
-  protected int editMultiplier = 1;
 
   private final LXParameterListener parameterListener = (p) -> {
     setValue(this.parameter.getValuei(), false);
@@ -101,11 +100,6 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
       return this.parameter.getMaxValue();
     }
     return this.maxValue;
-  }
-
-  public UIIntegerBox setEditMultiplier(int editMultiplier) {
-    this.editMultiplier = editMultiplier;
-    return this;
   }
 
   @Override
@@ -177,7 +171,7 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
   @Override
   protected void saveEditBuffer(String editBuffer) {
     try {
-      setValue(this.editMultiplier * Integer.parseInt(editBuffer));
+      setValue(Integer.parseInt(editBuffer));
     } catch (NumberFormatException nfx) {}
   }
 

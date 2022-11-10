@@ -39,7 +39,6 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
   private BoundedParameter parameter = null;
 
   private boolean normalizedMouseEditing = true;
-  protected double editMultiplier = 1;
 
   private final LXParameterListener parameterListener = p -> { setValue(p); };
 
@@ -66,11 +65,6 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
   public UIDoubleBox(float x, float y, float w, float h, BoundedParameter parameter) {
     this(x, y, w, h);
     setParameter(parameter);
-  }
-
-  public UIDoubleBox setEditMultiplier(double editMultiplier) {
-    this.editMultiplier = editMultiplier;
-    return this;
   }
 
   public UIDoubleBox setNormalizedMouseEditing(boolean normalizedMouseEditing) {
@@ -198,13 +192,10 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
   @Override
   protected void saveEditBuffer(String editBuffer) {
     try {
-      // Hacky solution for handling minutes + hours
-      String[] parts = editBuffer.split(":");
-      double value = 0;
-      for (String part : parts) {
-        value = value * 60 + Double.parseDouble(part);
-      }
-      setValue(this.editMultiplier * value);
+      setValue((this.parameter != null) ?
+        this.parameter.getUnits().parseDouble(editBuffer) :
+        Double.parseDouble(editBuffer)
+      );
     } catch (NumberFormatException nfx) {}
   }
 

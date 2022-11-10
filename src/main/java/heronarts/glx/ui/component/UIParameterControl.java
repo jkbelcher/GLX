@@ -261,42 +261,17 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   }
 
   @Override
-  @SuppressWarnings("fallthrough")
   protected void saveEditBuffer(String editBuffer) {
     if (!isEditable()) {
       throw new IllegalStateException("Cannot save edit buffer on non-editable parameter");
     }
     if (this.parameter != null) {
       try {
-        if (editBuffer.indexOf(':') >= 0) {
-          double multiplier = 1;
-          switch (this.parameter.getUnits()) {
-          case MILLISECONDS:
-            multiplier = 1000;
-            // intentional pass-thru
-          case SECONDS:
-            String[] parts = editBuffer.split(":");
-            double value = 0;
-            for (String part : parts) {
-              value = value * 60 + Double.parseDouble(part);
-            }
-            if (this.useCommandEngine) {
-              getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value * multiplier));
-            } else {
-              this.parameter.setValue(value * multiplier);
-            }
-            break;
-          default:
-            // No colon character allowed for other types
-            break;
-          }
+        final double value = this.parameter.getUnits().parseDouble(editBuffer);
+        if (this.useCommandEngine) {
+          getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value));
         } else {
-          double value = Double.parseDouble(editBuffer);
-          if (this.useCommandEngine) {
-            getLX().command.perform(new LXCommand.Parameter.SetValue(this.parameter, value));
-          } else {
-            this.parameter.setValue(value);
-          }
+          this.parameter.setValue(value);
         }
       } catch (NumberFormatException nfx) {}
     }
