@@ -56,6 +56,7 @@ import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXEngine;
 import heronarts.lx.clipboard.LXTextValue;
+import heronarts.lx.model.LXModel;
 import heronarts.lx.utils.LXUtils;
 
 public class GLX extends LX {
@@ -133,7 +134,11 @@ public class GLX extends LX {
   public final Flags flags;
 
   protected GLX(Flags flags) throws IOException {
-    super(flags);
+    this(flags, null);
+  }
+
+  protected GLX(Flags flags, LXModel model) throws IOException {
+    super(flags, model);
     this.flags = flags;
 
     if (this.flags.useOpenGL) {
