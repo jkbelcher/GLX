@@ -127,6 +127,9 @@ public class GLX extends LX {
   public final Programs program;
 
   public static class Flags extends LX.Flags {
+    public int windowWidth = -1;
+    public int windowHeight = -1;
+    public boolean windowResizable = true;
     public String windowTitle = "GLX";
     public boolean useOpenGL = false;
   }
@@ -151,6 +154,9 @@ public class GLX extends LX {
     if (preferenceWidth > 0 && preferenceHeight > 0) {
       this.windowWidth = preferenceWidth;
       this.windowHeight = preferenceHeight;
+    } else if (this.flags.windowWidth > 0 && this.flags.windowHeight > 0) {
+      this.windowWidth = this.flags.windowWidth;
+      this.windowHeight = this.flags.windowHeight;
     }
     this.windowPosX = this.preferences.getWindowPosX();
     this.windowPosY = this.preferences.getWindowPosY();
@@ -307,6 +313,7 @@ public class GLX extends LX {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_FALSE);
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, flags.windowResizable ? GLFW_TRUE : GLFW_FALSE);
 
     // Detect window/framebuffer sizes and content scale
     try (MemoryStack stack = MemoryStack.stackPush()) {
