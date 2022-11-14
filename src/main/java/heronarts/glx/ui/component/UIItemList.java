@@ -411,9 +411,6 @@ public interface UIItemList {
     }
 
     private void moveItem(Item item, int index) {
-      if (!this.isReorderable) {
-        throw new IllegalStateException("Cannot move items in non-reorderable list");
-      }
       this.items.remove(item);
       this.items.add(index, item);
       this.list.redraw();
