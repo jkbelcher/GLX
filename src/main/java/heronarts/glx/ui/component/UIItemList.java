@@ -287,6 +287,20 @@ public interface UIItemList {
       }
     }
 
+    private float getFocusYOffset(int focusIndex) {
+      float offset = 0;
+      int i = 0;
+      for (Item item : this.items) {
+        if (i++ >= focusIndex) {
+          break;
+        }
+        if (item.isVisible()) {
+          offset += ROW_SPACING;
+        }
+      }
+      return offset;
+    }
+
     private void setFocusIndex(int focusIndex) {
       setFocusIndex(focusIndex, true);
     }
@@ -294,13 +308,14 @@ public interface UIItemList {
     private void setFocusIndex(int focusIndex, boolean scroll) {
       focusIndex = LXUtils.constrain(focusIndex, -1, this.items.size() - 1);
       if (this.focusIndex != focusIndex) {
-        if (focusIndex >= 0 && scroll && this.list instanceof ScrollList) {
+        if ((focusIndex >= 0) && scroll && this.list instanceof ScrollList) {
           ScrollList scrollList = (ScrollList) this.list;
-          float yp = ROW_SPACING * focusIndex + scrollList.getScrollY();
-          if (yp < 0) {
-            scrollList.setScrollY(-ROW_SPACING * focusIndex);
-          } else if (yp >= list.getHeight() - ROW_SPACING) {
-            scrollList.setScrollY(list.getHeight() - ROW_SPACING * (focusIndex+1) - ROW_MARGIN);
+          final float yOffset = getFocusYOffset(focusIndex);
+          final float yDelta = yOffset + scrollList.getScrollY();
+          if (yDelta < 0) {
+            scrollList.setScrollY(-yOffset);
+          } else if (yDelta >= list.getHeight() - ROW_SPACING) {
+            scrollList.setScrollY(list.getHeight() - ROW_SPACING - ROW_MARGIN - yOffset);
           }
         }
         this.focusIndex = focusIndex;
@@ -756,12 +771,12 @@ public interface UIItemList {
     }
 
     private int getMouseItemIndex(float my) {
-      if ((my % (ROW_HEIGHT + ROW_MARGIN)) < ROW_MARGIN) {
+      if ((my % (ROW_SPACING)) < ROW_MARGIN) {
         // Don't detect clicks on strip between rows
         return -1;
       }
 
-      int visibleIndex = (int) (my / (ROW_HEIGHT + ROW_MARGIN));
+      int visibleIndex = (int) (my / (ROW_SPACING));
       int counter = 0;
       int itemIndex = 0;
       int mouseIndex = -1;
