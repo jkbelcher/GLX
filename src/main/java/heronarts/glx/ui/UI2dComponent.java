@@ -213,6 +213,46 @@ public abstract class UI2dComponent extends UIObject {
     return this.y;
   }
 
+
+  /**
+   * Gets the absolute X position of this component relative to the entire UI
+   *
+   * @return X position in absolute UI space
+   */
+  public final float getAbsoluteX() {
+    float absX = getX();
+    UIObject parent = getParent();
+    while (parent != null) {
+      absX += parent.getX();
+      if (parent instanceof UI2dScrollInterface) {
+        UI2dScrollInterface scrollInterface = (UI2dScrollInterface) parent;
+        absX += scrollInterface.getScrollX();
+      }
+      parent = parent.getParent();
+    }
+    return absX;
+  }
+
+  /**
+   * Gets the absolute Y position of this component relative to the entire UI
+   *
+   * @return Y position in absolute UI space
+   */
+  public final float getAbsoluteY() {
+    float absY = getY();
+    UIObject parent = getParent();
+    while (parent != null) {
+      absY += parent.getY();
+      if (parent instanceof UI2dScrollInterface) {
+        UI2dScrollInterface scrollInterface = (UI2dScrollInterface) parent;
+        absY += scrollInterface.getScrollY();
+      }
+      parent = parent.getParent();
+    }
+    return absY;
+  }
+
+
   /**
    * Width
    *
