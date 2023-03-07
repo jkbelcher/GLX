@@ -64,27 +64,39 @@ public class UI {
 
   private class UIRoot extends UIObject implements UIContainer {
 
-    private final View view;
+    private final View viewClear;
+    private final View view2d;
 
     private UIRoot() {
       this.ui = UI.this;
-      this.view = new View(this.ui.lx);
-      this.view.setClearFlags(BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
-      this.view.setClearColor(0);
-      this.view.setScreenOrtho();
+
+      this.viewClear = new View(this.ui.lx);
+      this.viewClear.setClearColor(0x000000ff);
+      this.viewClear.setScreenOrtho();
+
+      this.view2d = new View(this.ui.lx);
+      this.view2d.setClearFlags(BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
+      this.view2d.setClearColor(0);
+      this.view2d.setScreenOrtho();
     }
 
     protected void resize() {
-      // Note that our getWidth() / getHeight() methods are in UI-space. We must multiply by
-      // the content scale factor when setting the view bounds, which are in framebuffer
-      // space.
-      this.view.setRect(
+      this.viewClear.setRect(
         0,
         0,
-        (int) (getWidth() * this.ui.getContentScaleX()),
-        (int) (getHeight() * this.ui.getContentScaleY())
+        lx.getFrameBufferWidth(),
+        lx.getFrameBufferHeight()
       );
-      this.view.setScreenOrtho();
+      this.viewClear.setScreenOrtho();
+
+      this.view2d.setRect(
+        0,
+        0,
+        lx.getFrameBufferWidth(),
+        lx.getFrameBufferHeight()
+      );
+      this.view2d.setScreenOrtho();
+
     }
 
     /**
@@ -285,6 +297,9 @@ public class UI {
 
       short viewId = 1;
 
+      // Clear the whole window background to avoid edge-flicker
+      this.viewClear.bind(viewId++).touch();
+
       // If the redraw flag is set, we need to walk all 2d hierarchies and
       // see which contexts need to be redrawn with the vg layer
       if (redrawFlag.compareAndSet(true, false)) {
@@ -319,10 +334,10 @@ public class UI {
       for (UIObject child : this.glfwThreadChildren) {
         if (child instanceof UI2dContext) {
           if (bind2d) {
-            this.view.bind(viewId++);
+            this.view2d.bind(viewId++);
             bind2d = false;
           }
-          ((UI2dContext) child).draw(this.ui, this.view);
+          ((UI2dContext) child).draw(this.ui, this.view2d);
         } else if (child instanceof UI3dContext) {
           UI3dContext context3d = (UI3dContext) child;
           context3d.view.setId(viewId++);
