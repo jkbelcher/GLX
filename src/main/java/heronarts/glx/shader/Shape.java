@@ -45,6 +45,12 @@ public class Shape extends ShaderProgram {
     setFillColor(0xffffffff);
   }
 
+  /**
+   * Sets the fill color of the shape
+   *
+   * @param fillColor Fill color in ARGB format
+   * @return this
+   */
   public Shape setFillColor(int fillColor) {
     this.fillColorBuffer.put(0, ((fillColor >>> 16) & 0xff) / 255f);
     this.fillColorBuffer.put(1, ((fillColor >>> 8) & 0xff) / 255f);
