@@ -59,7 +59,7 @@ public class UIMeter extends UI2dComponent implements UIModulationSource {
 
   @Override
   public String getDescription() {
-    return this.parameter.getLabel() + ": " + this.parameter.getDescription();
+    return UIParameterControl.getDescription(this.parameter);
   }
 
   @Override
