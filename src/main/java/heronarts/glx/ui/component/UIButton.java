@@ -57,7 +57,6 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       this(x, y, w, h);
       setLabel(label);
     }
-
   }
 
   public static class Trigger extends UIButton {
@@ -78,6 +77,33 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
         setParameter(trigger);
       }
     }
+  }
+
+  public static class Toggle extends UIButton {
+
+    public static final int SIZE = 12;
+
+    public Toggle() {
+      this(null);
+    }
+
+    public Toggle(BooleanParameter parameter) {
+      this(0, 0, parameter);
+    }
+
+    public Toggle(float x, float y) {
+      this(x, y, null);
+    }
+
+    public Toggle(float x, float y, BooleanParameter parameter) {
+      super(x, y, SIZE, SIZE);
+      setBorderRounding(2);
+      setLabel("");
+      if (parameter != null) {
+        setParameter(parameter);
+      }
+    }
+
   }
 
   private LXParameter controlSource = null;
