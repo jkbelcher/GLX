@@ -31,7 +31,7 @@ public class UIMeter extends UI2dComponent implements UIModulationSource {
     HORIZONTAL
   };
 
-  private final LXNormalizedParameter parameter;
+  private LXNormalizedParameter parameter;
   private final Axis axis;
 
   private float d = 0;
@@ -49,7 +49,8 @@ public class UIMeter extends UI2dComponent implements UIModulationSource {
     this.axis = axis;
 
     addLoopTask((deltaMs) -> {
-      float dv = ((axis == Axis.VERTICAL) ? (this.height-2) : (this.width - 2)) * this.parameter.getNormalizedf();
+      float normalized = (this.parameter == null) ? 0 : this.parameter.getNormalizedf();
+      float dv = ((axis == Axis.VERTICAL) ? (this.height-2) : (this.width - 2)) * normalized;
       if (dv != this.d) {
         this.d = dv;
         redraw();
@@ -57,9 +58,14 @@ public class UIMeter extends UI2dComponent implements UIModulationSource {
     });
   }
 
+  public UIMeter setParameter(LXNormalizedParameter parameter) {
+    this.parameter = parameter;
+    return this;
+  }
+
   @Override
   public String getDescription() {
-    return UIParameterControl.getDescription(this.parameter);
+    return (this.parameter == null) ? "No parameter" : UIParameterControl.getDescription(this.parameter);
   }
 
   @Override
