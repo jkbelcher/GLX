@@ -99,8 +99,16 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   public UIDropMenu setParameter(DiscreteParameter parameter) {
     if (this.parameter != null) {
       this.parameter.removeListener(this);
+      this.parameter.optionsChanged.removeListener(this);
     }
     this.parameter = parameter;
+    updateActions();
+    this.parameter.addListener(this);
+    this.parameter.optionsChanged.addListener(this);
+    return this;
+  }
+
+  private void updateActions() {
     this.actions = new UIContextActions.Action[parameter.getRange()];
     for (int i = 0; i < this.actions.length; ++i) {
       final int ii = i;
@@ -118,14 +126,18 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     setOptions(this.parameter.getOptions());
     this.contextMenu.setActions(this.actions);
     this.contextMenu.setHighlight(this.parameter.getValuei());
-    this.parameter.addListener(this);
     redraw();
-    return this;
   }
 
   public void onParameterChanged(LXParameter p) {
-    this.contextMenu.setHighlight(this.parameter.getValuei());
-    redraw();
+    if (this.parameter != null) {
+      if (p == this.parameter) {
+        this.contextMenu.setHighlight(this.parameter.getValuei());
+        redraw();
+      } else if (p == this.parameter.optionsChanged) {
+        updateActions();
+      }
+    }
   }
 
   /**
@@ -257,6 +269,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   public void dispose() {
     if (this.parameter != null) {
       this.parameter.removeListener(this);
+      this.parameter.optionsChanged.removeListener(this);
     }
     super.dispose();
   }
