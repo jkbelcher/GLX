@@ -136,6 +136,9 @@ public class UIColorPicker extends UI2dComponent {
     } else {
       setDrawColor(LXColor.BLACK);
     }
+    if (this.uiColorOverlay != null) {
+      this.uiColorOverlay.updateColor();
+    }
   }
 
   @Override
@@ -235,6 +238,9 @@ public class UIColorPicker extends UI2dComponent {
   protected class UIColorOverlay extends UI2dContainer {
 
     private final UISwatch swatch;
+    private final UIDoubleBox hue;
+    private final UIDoubleBox saturation;
+    private final UIDoubleBox brightness;
 
     UIColorOverlay(UI ui) {
       this(ui, color instanceof LinkedColorParameter ? 38 : 8);
@@ -252,17 +258,17 @@ public class UIColorPicker extends UI2dComponent {
 
       float xp = this.swatch.getX() + this.swatch.getWidth();
       float yp = 16;
-      final UIDoubleBox hueBox = (UIDoubleBox) new UIDoubleBox(xp, yp, 56, color.hue).addToContainer(this);
+      this.hue = (UIDoubleBox) new UIDoubleBox(xp, yp, 56, color.hue).addToContainer(this);
       new UILabel(xp, yp + 16, 56, "Hue").setTextAlignment(VGraphics.Align.CENTER).addToContainer(this);
 
       yp += 40;
 
-      final UIDoubleBox satBox = (UIDoubleBox) new UIDoubleBox(xp, yp, 56, color.saturation).addToContainer(this);
+      this.saturation = (UIDoubleBox) new UIDoubleBox(xp, yp, 56, color.saturation).addToContainer(this);
       new UILabel(xp, yp + 16, 56, "Sat").setTextAlignment(VGraphics.Align.CENTER).addToContainer(this);
 
       yp += 40;
 
-      final UIDoubleBox brtBox = (UIDoubleBox) new UIDoubleBox(xp, yp, 56, color.brightness).addToContainer(this);
+      this.brightness = (UIDoubleBox) new UIDoubleBox(xp, yp, 56, color.brightness).addToContainer(this);
       new UILabel(xp, yp + 16, 56, "Bright").setTextAlignment(VGraphics.Align.CENTER).addToContainer(this);
 
       if (color instanceof LinkedColorParameter) {
@@ -286,11 +292,23 @@ public class UIColorPicker extends UI2dComponent {
         addListener(linkedColor.mode, p -> {
           boolean isLinked = linkedColor.mode.getEnum() == LinkedColorParameter.Mode.PALETTE;
           swatch.setEnabled(!isLinked);
-          hueBox.setEnabled(!isLinked);
-          satBox.setEnabled(!isLinked);
-          brtBox.setEnabled(!isLinked);
+          this.hue.setEnabled(!isLinked);
+          this.saturation.setEnabled(!isLinked);
+          this.brightness.setEnabled(!isLinked);
           indexBox.setEnabled(isLinked);
         }, true);
+      }
+    }
+
+    private void updateColor() {
+      if (color == null) {
+        this.hue.setParameter(null);
+        this.saturation.setParameter(null);
+        this.brightness.setParameter(null);
+      } else {
+        this.hue.setParameter(color.hue);
+        this.saturation.setParameter(color.saturation);
+        this.brightness.setParameter(color.brightness);
       }
     }
 
