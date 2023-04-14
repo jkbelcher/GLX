@@ -166,6 +166,12 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     return this;
   }
 
+  public UI2dContainer setLayout(Layout layout, float childSpacing) {
+    setLayout(layout);
+    setChildSpacing(childSpacing);
+    return this;
+  }
+
   public UI2dContainer setLayout(Layout layout) {
     if (this.contentTarget.layout != layout) {
       this.contentTarget.layout = layout;
