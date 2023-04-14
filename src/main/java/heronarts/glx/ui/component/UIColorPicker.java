@@ -31,6 +31,7 @@ import heronarts.lx.color.ColorParameter;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.color.LinkedColorParameter;
 import heronarts.lx.command.LXCommand;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.utils.LXUtils;
 
@@ -46,6 +47,7 @@ public class UIColorPicker extends UI2dComponent {
   private Corner corner = Corner.BOTTOM_RIGHT;
 
   private ColorParameter color;
+  private final LXNormalizedParameter subparameter;
 
   private UIColorOverlay uiColorOverlay = null;
 
@@ -64,16 +66,25 @@ public class UIColorPicker extends UI2dComponent {
   }
 
   public UIColorPicker(float x, float y, float w, float h, ColorParameter color) {
-    this(x, y, w, h, color, false);
+    this(x, y, w, h, color, null, false);
+  }
+
+  public UIColorPicker(float x, float y, float w, float h, ColorParameter color, LXNormalizedParameter subparameter) {
+    this(x, y, w, h, color, subparameter, false);
   }
 
   protected UIColorPicker(float x, float y, float w, float h, ColorParameter color, boolean isDynamic) {
+    this(x, y, w, h, color, null, isDynamic);
+  }
+
+  protected UIColorPicker(float x, float y, float w, float h, ColorParameter color, LXNormalizedParameter subparameter, boolean isDynamic) {
     super(x, y, w, h);
     setColor(color);
+    this.subparameter = subparameter;
 
     // Redraw with color in real-time, if modulated
     if (!isDynamic) {
-      setDescription(UIParameterControl.getDescription(color));
+      setDescription(UIParameterControl.getDescription(subparameter != null ? subparameter : color));
       addLoopTask(new UITimerTask(30, UITimerTask.Mode.FPS) {
         @Override
         protected void run() {
@@ -151,7 +162,7 @@ public class UIColorPicker extends UI2dComponent {
     vg.fill();
 
     if (this.deviceMode) {
-      UIParameterControl.drawParameterLabel(ui, vg, this, (this.color != null) ? this.color.getLabel() : "-");
+      UIParameterControl.drawParameterLabel(ui, vg, this, this.subparameter != null ? this.subparameter.getLabel() : (this.color != null) ? this.color.getLabel() : "-");
     }
   }
 

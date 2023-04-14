@@ -20,11 +20,16 @@ package heronarts.glx.ui.component;
 
 import heronarts.glx.ui.UIFocus;
 import heronarts.lx.color.ColorParameter;
+import heronarts.lx.parameter.LXNormalizedParameter;
 
 public class UIColorControl extends UIColorPicker implements UIFocus {
 
   public UIColorControl(float x, float y, ColorParameter color) {
-    super(x, y, UIKnob.WIDTH, UIKnob.HEIGHT, color);
+    this(x, y, color, null);
+  }
+
+  public UIColorControl(float x, float y, ColorParameter color, LXNormalizedParameter subparameter) {
+    super(x, y, UIKnob.WIDTH, UIKnob.HEIGHT, color, subparameter);
     setDeviceMode(true);
     setCorner(Corner.TOP_RIGHT);
   }
