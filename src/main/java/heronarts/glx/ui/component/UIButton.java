@@ -136,6 +136,16 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   private EnumParameter<? extends Object> enumParameter = null;
   private BooleanParameter booleanParameter = null;
 
+  private EnumFormatter enumFormatter = EnumFormatter.DEFAULT;
+
+  public interface EnumFormatter {
+    public String toString(EnumParameter<? extends Object> enumParameter);
+
+    static EnumFormatter DEFAULT = (ep) -> {
+      return ep.getEnum().toString();
+    };
+  }
+
   private float iconOffsetX = 0, iconOffsetY = 0;
 
   private final LXParameterListener booleanParameterListener = (p) -> {
@@ -143,7 +153,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   };
 
   private final LXParameterListener enumParameterListener = (p) -> {
-    setLabel(enumParameter.getEnum().toString());
+    setLabel(enumFormatter.toString(enumParameter));
   };
 
   public UIButton() {
@@ -167,7 +177,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   public UIButton(float w, float h, EnumParameter<?> p) {
     this(0, 0, w, h);
     setParameter(p);
-    setLabel(p.getEnum().toString());
+    setLabel(enumFormatter.toString(p));
   }
 
   public UIButton(float x, float y, float w, float h) {
@@ -273,9 +283,14 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
         this.enumParameter.addListener(this.enumParameterListener);
         setActive(false);
         setMomentary(true);
-        setLabel(this.enumParameter.getEnum().toString());
+        setLabel(this.enumFormatter.toString(this.enumParameter));
       }
     }
+    return this;
+  }
+
+  public UIButton setEnumFormatter(EnumFormatter formatter) {
+    this.enumFormatter = formatter;
     return this;
   }
 

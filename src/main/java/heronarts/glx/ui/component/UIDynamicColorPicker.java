@@ -19,6 +19,7 @@
 package heronarts.glx.ui.component;
 
 import heronarts.lx.color.ColorParameter;
+import heronarts.lx.color.GradientUtils;
 import heronarts.lx.color.LXDynamicColor;
 import heronarts.lx.command.LXCommand;
 import heronarts.glx.event.KeyEvent;
@@ -97,11 +98,22 @@ public class UIDynamicColorPicker extends UIColorPicker implements UIFocus {
       UI2dContainer controls = UI2dContainer.newHorizontalContainer(16, 4);
       controls.setPosition(12, 148);
 
-      new UIButton(64, 16, dynamicColor.mode)
+      new UIButton(48, 16, dynamicColor.mode)
       .addToContainer(controls);
 
       this.blendMode =
-        new UIButton(28, dynamicColor.blendMode)
+        new UIButton(44, dynamicColor.blendMode)
+        .setEnumFormatter(ep -> {
+          Object e = ep.getEnum();
+          if (e == GradientUtils.BlendMode.HSVM) {
+            return "Min";
+          } else if (e == GradientUtils.BlendMode.HSVCW) {
+            return "CW";
+          } else if (e == GradientUtils.BlendMode.HSVCCW) {
+            return "CCW";
+          }
+          return e.toString();
+        })
         .addToContainer(controls);
 
       this.primaryColorSelector = new UIColorSelector(dynamicColor.primary)
