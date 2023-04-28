@@ -51,13 +51,31 @@ public class UIEnumBox extends UIIntegerBox {
     return super.getValueString();
   }
 
+  private String numericEntry = "";
+
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
-    if (this.enabled && (keyEvent.isEnter() || (keyCode == KeyEvent.VK_SPACE))) {
-      keyEvent.consume();
-      incrementValue(keyEvent);
-    } else {
-      super.onKeyPressed(keyEvent, keyChar, keyCode);
+    if (this.enabled) {
+      if (keyEvent.isEnter() || (keyCode == KeyEvent.VK_SPACE)) {
+        keyEvent.consume();
+        if (this.numericEntry.isEmpty()) {
+          incrementValue(keyEvent);
+        } else {
+          try {
+            setValue(Integer.parseInt(this.numericEntry) - 1);
+          } catch (Exception x) {}
+        }
+        this.numericEntry = "";
+        return;
+      } else if (keyEvent.isDigit()) {
+        this.numericEntry = this.numericEntry + keyChar;
+        keyEvent.consume();
+        return;
+      }
     }
+
+    // Not handled above
+    this.numericEntry = "";
+    super.onKeyPressed(keyEvent, keyChar, keyCode);
   }
 }
