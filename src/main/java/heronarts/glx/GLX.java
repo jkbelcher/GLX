@@ -48,7 +48,8 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.Platform;
 import org.lwjgl.system.macosx.ObjCRuntime;
 
-import heronarts.glx.shader.Shape;
+import heronarts.glx.shader.UniformFill;
+import heronarts.glx.shader.VertexFill;
 import heronarts.glx.shader.Tex2d;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UIDialogBox;
@@ -111,19 +112,25 @@ public class GLX extends LX {
   public final class Programs {
 
     public final Tex2d tex2d;
-    public final Shape shape;
+    public final UniformFill uniformFill;
+    public final VertexFill vertexFill;
 
     public Programs(GLX glx) {
       this.tex2d = new Tex2d(glx);
-      this.shape = new Shape(glx);
+      this.uniformFill = new UniformFill(glx);
+      this.vertexFill = new VertexFill(glx);
     }
 
     public void dispose() {
       this.tex2d.dispose();
-      this.shape.dispose();
+      this.uniformFill.dispose();
+      this.vertexFill.dispose();
     }
   }
 
+  /**
+   * Publicly accessible, globally reusable shader programs.
+   */
   public final Programs program;
 
   public static class Flags extends LX.Flags {
