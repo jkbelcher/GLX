@@ -42,6 +42,15 @@ public class UILabel extends UI2dComponent {
    */
   private String label = "";
 
+  public static class Control extends UILabel {
+    public Control(UI ui, float x, float y, float w, float h, String label) {
+      super(x, y, w, h);
+      setLabel(label);
+      setFont(ui.theme.getControlFont());
+      setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
+    }
+  }
+
   public UILabel() {
     this(0, 0, 0, 0);
   }
