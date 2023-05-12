@@ -31,6 +31,30 @@ public abstract class VertexBuffer {
   private final short vbh;
   private final int numVertices;
 
+  public static class UnitCube extends VertexBuffer {
+    public UnitCube(GLX glx) {
+      super(glx, 14, VertexDeclaration.ATTRIB_POSITION);
+    }
+
+    @Override
+    protected void bufferData(ByteBuffer buffer) {
+      putVertex(+0.5f, +0.5f, +0.5f); // Back-top-right
+      putVertex(-0.5f, +0.5f, +0.5f); // Back-top-left
+      putVertex(+0.5f, -0.5f, +0.5f); // Back-bottom-right
+      putVertex(-0.5f, -0.5f, +0.5f); // Back-bottom-left
+      putVertex(-0.5f, -0.5f, -0.5f); // Front-bottom-left
+      putVertex(-0.5f, +0.5f, +0.5f); // Back-top-left
+      putVertex(-0.5f, +0.5f, -0.5f); // Front-top-left
+      putVertex(+0.5f, +0.5f, +0.5f); // Back-top-right
+      putVertex(+0.5f, +0.5f, -0.5f); // Front-top-right
+      putVertex(+0.5f, -0.5f, +0.5f); // Back-bottom-right
+      putVertex(+0.5f, -0.5f, -0.5f); // Front-bottom-right
+      putVertex(-0.5f, -0.5f, -0.5f); // Front-bottom-left
+      putVertex(+0.5f, +0.5f, -0.5f); // Front-top-right
+      putVertex(-0.5f, +0.5f, -0.5f); // Front-top-left
+    }
+  }
+
   public VertexBuffer(GLX glx, int numVertices) {
     this(glx, numVertices, VertexDeclaration.ATTRIB_POSITION | VertexDeclaration.ATTRIB_TEXCOORD0);
   }
