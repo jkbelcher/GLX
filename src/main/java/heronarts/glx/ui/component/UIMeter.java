@@ -36,6 +36,14 @@ public class UIMeter extends UI2dComponent implements UIModulationSource {
 
   private float d = 0;
 
+  public static UIMeter newHorizontalMeter(UI ui, LXNormalizedParameter parameter, float w, float h) {
+    return new UIMeter(ui, parameter, Axis.HORIZONTAL, 0, 0, w, h);
+  }
+
+  public static UIMeter newVerticalMeter(UI ui, LXNormalizedParameter parameter, float w, float h) {
+    return new UIMeter(ui, parameter, Axis.VERTICAL, 0, 0, w, h);
+  }
+
   public UIMeter(UI ui, LXNormalizedParameter parameter, float x, float y, float w, float h) {
     this(ui, parameter, Axis.VERTICAL, x, y, w, h);
   }

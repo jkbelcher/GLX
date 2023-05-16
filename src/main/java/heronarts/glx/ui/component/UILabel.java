@@ -43,6 +43,11 @@ public class UILabel extends UI2dComponent {
   private String label = "";
 
   public static class Control extends UILabel {
+
+    public Control(UI ui, float w, float h, String label) {
+      this(ui, 0, 0, w, h, label);
+    }
+
     public Control(UI ui, float x, float y, float w, float h, String label) {
       super(x, y, w, h);
       setLabel(label);
