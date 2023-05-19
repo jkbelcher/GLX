@@ -256,7 +256,16 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     }
 
     private void lerp(Camera one, Camera two, double amt) {
-      this.theta.setValue(LXUtils.lerp(one.theta.getValue(), two.theta.getValue(), amt));
+      double thetaOne = one.theta.getValue();
+      double thetaTwo = two.theta.getValue();
+      if (Math.abs(thetaOne - thetaTwo) > 180) {
+        if (thetaOne < thetaTwo) {
+          thetaOne += 360;
+        } else {
+          thetaTwo += 360;
+        }
+      }
+      this.theta.setValue(LXUtils.lerp(thetaOne, thetaTwo, amt) % 360.);
       this.phi.setValue(LXUtils.lerp(one.phi.getValue(), two.phi.getValue(), amt));
       this.radius.setValue(LXUtils.lerp(one.radius.getValue(), two.radius.getValue(), amt));
       this.x.setValue(LXUtils.lerp(one.x.getValue(), two.x.getValue(), amt));
