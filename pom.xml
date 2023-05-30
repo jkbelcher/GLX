@@ -183,6 +183,7 @@
                     <doctitle>GLX API Specification</doctitle>
                     <version>false</version>
                     <windowtitle>GLX API</windowtitle>
+                    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
                 </configuration>
             </plugin>
 
