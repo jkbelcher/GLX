@@ -18,6 +18,10 @@
 
 package heronarts.glx.ui.component;
 
+import heronarts.glx.event.MouseEvent;
+import heronarts.lx.command.LXCommand;
+import heronarts.lx.parameter.LXParameter;
+
 public abstract class UINumberBox extends UIInputBox {
 
   protected boolean hasShiftMultiplier = false;
@@ -70,6 +74,19 @@ public abstract class UINumberBox extends UIInputBox {
     this.hasShiftMultiplier = true;
     this.shiftMultiplier = shiftMultiplier;
     return this;
+  }
+
+  @Override
+  protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+    super.onMousePressed(mouseEvent, mx, my);
+    LXParameter parameter = getParameter();
+    if ((parameter != null) && isEditable() && mouseEvent.isDoubleClick()) {
+      if (this.useCommandEngine) {
+        getLX().command.perform(new LXCommand.Parameter.Reset(parameter));
+      } else {
+        parameter.reset();
+      }
+    }
   }
 
 }

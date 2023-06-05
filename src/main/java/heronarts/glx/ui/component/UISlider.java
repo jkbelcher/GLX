@@ -363,7 +363,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
       dim = this.width;
       break;
     }
-    if ((mouseEvent.getCount() > 1) && Math.abs(mp - this.doubleClickP) < 3) {
+    if (mouseEvent.isDoubleClick() && Math.abs(mp - this.doubleClickP) < 3) {
       setNormalized(this.doubleClickMode);
     }
     this.doubleClickP = mp;
