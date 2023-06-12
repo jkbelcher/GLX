@@ -29,6 +29,11 @@ import heronarts.lx.utils.LXUtils;
 
 public abstract class UI2dComponent extends UIObject {
 
+  /**
+   * Marker interface for components whose drawing should be scissored
+   */
+  public interface Scissored {}
+
   protected static class Scissor {
     public float x;
     public float y;
@@ -1298,10 +1303,9 @@ public abstract class UI2dComponent extends UIObject {
     final float sy = this.scrollY;
 
     final boolean needsVgScissor =
-      (this.needsRedraw || this.childNeedsRedraw) &&
-      (this instanceof UI2dScrollContainer) && (
-        (((UI2dScrollContainer)this).getScrollWidth() > this.getWidth()) ||
-        (((UI2dScrollContainer)this).getScrollHeight() > this.getHeight())
+      (this.needsRedraw || this.childNeedsRedraw) && (
+        (this instanceof Scissored) ||
+        ((this instanceof UI2dScrollContainer) && ((UI2dScrollContainer) this).hasScroll())
       );
 
     // Put down the background first, before scissoring

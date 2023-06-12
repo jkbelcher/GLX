@@ -171,6 +171,12 @@ public class UI2dScrollContainer extends UI2dContainer implements UI2dScrollInte
     return this;
   }
 
+  public boolean hasScroll() {
+    return
+      (getScrollWidth() > getWidth()) ||
+      (getScrollHeight() > getHeight());
+  }
+
   @Override
   protected void onResize() {
     super.onResize();
