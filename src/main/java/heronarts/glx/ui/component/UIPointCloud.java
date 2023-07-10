@@ -145,7 +145,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   }
 
   public final BoundedParameter pointSize =
-    new BoundedParameter("Point Size", 3, .1, 1000)
+    new BoundedParameter("Point Size", 3, .1, 100000)
     .setDescription("Size of points rendered in the preview display");
 
   public final BooleanParameter depthTest =
