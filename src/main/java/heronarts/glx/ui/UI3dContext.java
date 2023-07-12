@@ -195,7 +195,7 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
 
   public class Camera implements LXSerializable {
 
-    private static final double RANGE_LIMIT = 1000000;
+    private static final double RANGE_LIMIT = 100000000;
 
     public final BooleanParameter active =
       new BooleanParameter("Active", false)
