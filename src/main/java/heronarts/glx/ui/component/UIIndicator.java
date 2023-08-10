@@ -18,12 +18,15 @@
 
 package heronarts.glx.ui.component;
 
+import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
 import heronarts.lx.parameter.BooleanParameter;
+import heronarts.lx.parameter.TriggerParameter;
 
 public class UIIndicator extends UI2dComponent {
 
+  private final BooleanParameter bool;
   private double timeout = 0;
 
   public boolean timerMode = false;
@@ -41,6 +44,7 @@ public class UIIndicator extends UI2dComponent {
     super(x, y, w, h);
     setBorderRounding(4);
     setDescription(bool.getDescription());
+    this.bool = bool;
     addListener(bool, p -> {
       if (bool.isOn()) {
         setBackgroundColor(ui.theme.primaryColor);
@@ -63,5 +67,21 @@ public class UIIndicator extends UI2dComponent {
     this.timerMode = true;
     this.indicatorTimeMs = indicatorTimeMs;
     return this;
+  }
+
+  @Override
+  public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+    if (mouseEvent.isCommand()) {
+      mouseEvent.consume();
+      this.bool.setValue(true);
+    }
+  }
+
+  @Override
+  public void onMouseReleased(MouseEvent mouseEvent, float mx, float my) {
+    if (mouseEvent.isCommand() && !(this.bool instanceof TriggerParameter)) {
+      mouseEvent.consume();
+      this.bool.setValue(false);
+    }
   }
 }
