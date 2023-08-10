@@ -18,6 +18,8 @@
 
 package heronarts.glx.ui;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -359,13 +361,32 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     return (UI2dComponent) this.contentTarget.mutableChildren.get(i);
   }
 
+  private boolean hasSameKeyFocus(UIObject object) {
+    return
+      (object instanceof UI2dContainer) &&
+      this.arrowKeyFocus == ((UI2dContainer)object).arrowKeyFocus &&
+      object.isVisible();
+  }
+
   private void keyFocus(KeyEvent keyEvent, int delta) {
     if (this.children.size() > 0) {
       UIObject focusedChild = getFocusedChild();
       if (focusedChild == null) {
-        for (UIObject object : this.children) {
+
+        // God damn this is so fugly just to iterate the
+        // CopyOnWriteArrayList in reverse
+        List<UIObject> test = this.children;
+        if (delta < 0) {
+          test = new ArrayList<UIObject>(this.mutableChildren);
+          Collections.reverse(test);
+        }
+
+        for (UIObject object : test) {
           if (object.isVisible() && (object instanceof UIKeyFocus)) {
             object.focus(keyEvent);
+            break;
+          } else if (hasSameKeyFocus(object)) {
+            ((UI2dContainer) object).keyFocus(keyEvent, delta);
             break;
           }
         }
@@ -374,11 +395,25 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
         while (true) {
           index += delta;
           if (index < 0 || index >= this.children.size()) {
+            UI2dComponent sibling = this;
+            while (sibling != null) {
+              sibling = (index < 0) ? sibling.getPrevSibling() : sibling.getNextSibling();
+              if ((sibling instanceof UIKeyFocus) && sibling.isVisible()) {
+                sibling.focus(keyEvent);
+                break;
+              } else if (hasSameKeyFocus(sibling)) {
+                ((UI2dContainer) sibling).keyFocus(keyEvent, delta);
+                break;
+              }
+            }
             break;
           }
           UIObject object = this.children.get(index);
           if (object.isVisible() && (object instanceof UIKeyFocus)) {
             object.focus(keyEvent);
+            break;
+          } else if (hasSameKeyFocus(object)) {
+            ((UI2dContainer) object).keyFocus(keyEvent, delta);
             break;
           }
         }

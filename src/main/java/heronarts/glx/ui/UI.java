@@ -27,12 +27,14 @@ import heronarts.glx.ui.component.UIContextMenu;
 import heronarts.glx.ui.component.UILabel;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
+import heronarts.lx.LXComponent;
 import heronarts.lx.LXLoopTask;
 import heronarts.lx.LXMappingEngine;
 import heronarts.lx.midi.LXMidiEngine;
 import heronarts.lx.midi.LXMidiMapping;
 import heronarts.lx.modulation.LXModulationEngine;
 import heronarts.lx.modulation.LXParameterModulation;
+import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.MutableParameter;
@@ -796,6 +798,14 @@ public class UI {
 
   UITriggerSource getTriggerSource() {
     return this.triggerSource;
+  }
+
+  LXComponent getTriggerSourceComponent() {
+    final BooleanParameter source = this.triggerSource.getTriggerSource();
+    if (source != null) {
+      return source.getParent();
+    }
+    return null;
   }
 
   public UI mapModulationSource() {

@@ -454,7 +454,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
       return
         (target != null) &&
         this.ui.modulationEngine.isValidTarget(target) &&
-        !target.isDescendant(this.ui.getTriggerSource().getTriggerSource().getParent());
+        !target.isDescendant(this.ui.getTriggerSourceComponent());
     }
     return false;
   }
