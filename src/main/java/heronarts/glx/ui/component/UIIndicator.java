@@ -29,8 +29,10 @@ public class UIIndicator extends UI2dComponent {
   private final BooleanParameter bool;
   private double timeout = 0;
 
+  private static final int DEFAULT_TIMER_MS = 200;
+
   public boolean timerMode = false;
-  public double indicatorTimeMs = 0;
+  public double indicatorTimeMs = -1;
 
   public UIIndicator(UI ui, final BooleanParameter bool) {
     this(ui, 0, 0, 12, 12, bool);
@@ -61,6 +63,15 @@ public class UIIndicator extends UI2dComponent {
         }
       }
     });
+  }
+
+  public UIIndicator setIndicatorTime(boolean timerMode) {
+    if (timerMode) {
+      setIndicatorTime(DEFAULT_TIMER_MS);
+    } else {
+      this.timerMode = false;
+    }
+    return this;
   }
 
   public UIIndicator setIndicatorTime(double indicatorTimeMs) {
