@@ -21,10 +21,12 @@ package heronarts.glx.ui.component;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
+import heronarts.glx.ui.UITheme.Color;
+import heronarts.glx.ui.UITriggerSource;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.TriggerParameter;
 
-public class UIIndicator extends UI2dComponent {
+public class UIIndicator extends UI2dComponent implements UITriggerSource {
 
   private final BooleanParameter bool;
   private double timeout = 0;
@@ -33,6 +35,11 @@ public class UIIndicator extends UI2dComponent {
 
   public boolean timerMode = false;
   public double indicatorTimeMs = -1;
+
+  private boolean triggerable = false;
+
+  private Color indicatorBackgroundColor;
+  private final UI ui;
 
   public UIIndicator(UI ui, final BooleanParameter bool) {
     this(ui, 0, 0, 12, 12, bool);
@@ -46,23 +53,42 @@ public class UIIndicator extends UI2dComponent {
     super(x, y, w, h);
     setBorderRounding(4);
     setDescription(bool.getDescription());
+    this.ui = ui;
     this.bool = bool;
+    this.indicatorBackgroundColor = ui.theme.controlBackgroundColor;
     addListener(bool, p -> {
       if (bool.isOn()) {
         setBackgroundColor(ui.theme.primaryColor);
         this.timeout = 0;
       } else if (!this.timerMode) {
-        setBackgroundColor(ui.theme.controlBackgroundColor);
+        setBackgroundColor(this.indicatorBackgroundColor);
       }
     }, true);
     addLoopTask(deltaMs -> {
       if (this.timerMode && (this.timeout < this.indicatorTimeMs)) {
         this.timeout += deltaMs;
         if (this.timeout >= this.indicatorTimeMs) {
-          setBackgroundColor(ui.theme.controlBackgroundColor);
+          setBackgroundColor(this.indicatorBackgroundColor);
         }
       }
     });
+  }
+
+  public UIIndicator setEnabled(boolean enabled) {
+    setIndicatorBackgroundColor(enabled ? this.ui.theme.controlBackgroundColor : this.ui.theme.controlDisabledColor);
+    return this;
+  }
+
+  public UIIndicator setIndicatorBackgroundColor(Color indicatorBackground) {
+    if (this.indicatorBackgroundColor != indicatorBackground) {
+      setBackgroundColor(this.indicatorBackgroundColor = indicatorBackground);
+    }
+    return this;
+  }
+
+  public UIIndicator setTriggerable(boolean triggerable) {
+    this.triggerable = triggerable;
+    return this;
   }
 
   public UIIndicator setIndicatorTime(boolean timerMode) {
@@ -94,5 +120,10 @@ public class UIIndicator extends UI2dComponent {
       mouseEvent.consume();
       this.bool.setValue(false);
     }
+  }
+
+  @Override
+  public BooleanParameter getTriggerSource() {
+    return this.triggerable ? this.bool : null;
   }
 }
