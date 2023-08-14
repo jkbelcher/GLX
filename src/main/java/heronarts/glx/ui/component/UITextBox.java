@@ -50,6 +50,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   public UITextBox(float x, float y, float w, float h) {
     super(x, y, w, h);
     enableImmediateAppend();
+    setMouseEditable(false);
   }
 
   @Override
