@@ -4,7 +4,7 @@
 
     <groupId>com.heronarts</groupId>
     <artifactId>glx</artifactId>
-    <version>0.4.5-SNAPSHOT</version>
+    <version>0.4.2.TE.6-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
     <properties>
