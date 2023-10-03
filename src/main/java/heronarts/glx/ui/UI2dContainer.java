@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import heronarts.glx.event.KeyEvent;
+import heronarts.lx.utils.LXUtils;
 
 public class UI2dContainer extends UI2dComponent implements UIContainer, Iterable<UIObject> {
 
@@ -32,7 +33,9 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     VERTICAL,
     HORIZONTAL,
     VERTICAL_GRID,
-    HORIZONTAL_GRID
+    HORIZONTAL_GRID,
+    VERTICAL_EVEN,
+    HORIZONTAL_EVEN
   }
 
   public enum ArrowKeyFocus {
@@ -267,6 +270,54 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
         }
       }
       setContentHeight(Math.max(this.minHeight, y + h + this.bottomPadding));
+    } else if (this.layout == Layout.VERTICAL_EVEN) {
+      int countVisible = 0;
+      for (UIObject child : this) {
+        if (child.isVisible()) {
+          countVisible++;
+        }
+      }
+      if (countVisible > 0) {
+        // Subtract all spaces between children
+        float totalChildHeight = getContentHeight() - this.topPadding - this.bottomPadding - (this.childSpacingY * (countVisible - 1));
+        if (totalChildHeight > 0) {
+          // Divide remaining space evenly among visible children
+          float childHeight = totalChildHeight / countVisible;
+          float y = this.topPadding;
+          for (UIObject child : this) {
+            if (child.isVisible()) {
+              UI2dComponent component = (UI2dComponent) child;
+              component.setPosition(this.leftPadding + component.marginLeft, y + component.marginTop);
+              component.setHeight(LXUtils.maxf(0, childHeight - component.marginTop - component.marginBottom));
+              y += childHeight + this.childSpacingY;
+            }
+          }
+        }
+      }
+    } else if (this.layout == Layout.HORIZONTAL_EVEN) {
+      int countVisible = 0;
+      for (UIObject child : this) {
+        if (child.isVisible()) {
+          countVisible++;
+        }
+      }
+      if (countVisible > 0) {
+        // Subtract all spaces between children
+        float totalChildWidth = getContentWidth() - this.leftPadding - this.rightPadding - (this.childSpacingX * (countVisible - 1));
+        if (totalChildWidth > 0) {
+          // Divide remaining space evenly among visible children
+          float childWidth = totalChildWidth / countVisible;
+          float x = this.leftPadding;
+          for (UIObject child : this) {
+            if (child.isVisible()) {
+              UI2dComponent component = (UI2dComponent) child;
+              component.setPosition(x + component.marginLeft, this.topPadding + component.marginTop);
+              component.setWidth(LXUtils.maxf(0, childWidth - component.marginLeft - component.marginRight));
+              x += childWidth + this.childSpacingX;
+            }
+          }
+        }
+      }
     }
     onReflow();
     this.inReflow = false;
