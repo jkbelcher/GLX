@@ -115,7 +115,7 @@ public abstract class UI2dComponent extends UIObject {
     borderRoundingTopLeft = 0,
     borderRoundingTopRight = 0,
     borderRoundingBottomRight = 0,
-    borderRoundingBottomLeft = 0;;
+    borderRoundingBottomLeft = 0;
 
   private boolean hasFocusCorners = true;
 
