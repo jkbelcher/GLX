@@ -36,6 +36,7 @@ import heronarts.glx.shader.ShaderProgram;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI3dComponent;
 import heronarts.lx.LX;
+import heronarts.lx.LXComponent;
 import heronarts.lx.LXEngine;
 import heronarts.lx.LXSerializable;
 import heronarts.lx.model.LXModel;
@@ -278,10 +279,15 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   @Override
   public void load(LX lx, JsonObject object) {
-    LXSerializable.Utils.loadDouble(this.pointSize, object, KEY_POINT_SIZE);
-    LXSerializable.Utils.loadBoolean(this.depthTest, object, KEY_DEPTH_TEST);
-    LXSerializable.Utils.loadInt(this.ledStyle, object, KEY_LED_STYLE);
-
+    if (object.has(LXComponent.KEY_RESET)) {
+      this.pointSize.reset();
+      this.depthTest.reset();
+      this.ledStyle.reset();
+    } else {
+      LXSerializable.Utils.loadDouble(this.pointSize, object, KEY_POINT_SIZE);
+      LXSerializable.Utils.loadBoolean(this.depthTest, object, KEY_DEPTH_TEST);
+      LXSerializable.Utils.loadInt(this.ledStyle, object, KEY_LED_STYLE);
+    }
   }
 
 }

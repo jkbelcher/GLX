@@ -136,6 +136,10 @@ public class MouseEvent extends Event {
     return this.count;
   }
 
+  public boolean isButton(int button) {
+    return this.button == button;
+  }
+
   public boolean isDoubleClick() {
     return (this.count % 2) == 0;
   }

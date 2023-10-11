@@ -822,11 +822,11 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
   private MouseInteraction getInteraction(MouseEvent mouseEvent) {
     switch (this.mouseMode.getEnum()) {
     case OBJECT:
-     if (mouseEvent.isShiftDown()) {
-       if (mouseEvent.isMetaDown() || mouseEvent.isControlDown()) {
+      if (mouseEvent.isShiftDown()) {
+        if (mouseEvent.isMetaDown() || mouseEvent.isControlDown()) {
          return MouseInteraction.ROTATE_VIEW;
-       }
-       return MouseInteraction.TRANSLATE_Z;
+        }
+        return MouseInteraction.TRANSLATE_Z;
       } else if (mouseEvent.isMetaDown() || mouseEvent.isControlDown()) {
         return MouseInteraction.ROTATE_OBJECT;
       }

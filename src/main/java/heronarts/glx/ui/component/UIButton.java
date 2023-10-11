@@ -23,9 +23,11 @@ import java.util.Objects;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
+import heronarts.glx.ui.UITheme;
 import heronarts.glx.ui.UITriggerSource;
 import heronarts.glx.ui.UITriggerTarget;
 import heronarts.glx.ui.vg.VGraphics;
@@ -37,6 +39,46 @@ import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
 
 public class UIButton extends UIParameterComponent implements UIControlTarget, UITriggerSource, UITriggerTarget, UIFocus {
+
+  public static class Tooltip extends UIButton {
+
+    private final float tipWidth, tipHeight;
+    private final String message;
+
+    public Tooltip(float tipWidth, float tipHeight, String message) {
+      super(0, 0, 12, 12);
+      setBorder(false);
+      setBorderRounding(2);
+      setLabel("?");
+      setTextOffset(0, 1);
+      setMomentary(true);
+      setFocusCorners(false);
+      setDescription(message);
+      this.tipWidth = tipWidth;
+      this.tipHeight = tipHeight;
+      this.message = message;
+    }
+
+    @Override
+    public void onClick() {
+      final UITheme theme = getUI().theme;
+      final UI2dComponent overlay =
+        new UILabel.Control(getUI(), this.width/2, this.height/2 - this.tipHeight, this.tipWidth, this.tipHeight, this.message) {
+          @Override
+          public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
+            getUI().clearContextOverlay(this);
+          }
+        }
+        .setBreakLines(true)
+        .setPadding(4)
+        .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
+        .setBackgroundColor(theme.contextBackgroundColor)
+        .setBorderColor(theme.contextBorderColor)
+        .setBorderRounding(4)
+        .setPosition(this, this.width/2, this.height/2 - this.tipHeight);
+      getUI().showContextOverlay(overlay);
+    }
+  }
 
   public static class Action extends UIButton {
     public Action(float w, float h) {
