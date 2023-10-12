@@ -4,7 +4,7 @@
 
     <groupId>com.heronarts</groupId>
     <artifactId>glx</artifactId>
-    <version>0.4.2.TE.6-SNAPSHOT</version>
+    <version>0.4.2.TE.7-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
     <properties>
@@ -24,30 +24,6 @@
     </properties>
     
     <profiles>
-		<profile>
-			<id>lwjgl-natives-linux-amd64</id>
-			<activation>
-				<os>
-					<family>unix</family>
-					<arch>amd64</arch>
-				</os>
-			</activation>
-			<properties>
-				<lwjgl.natives>natives-linux</lwjgl.natives>
-			</properties>
-		</profile>
-		<profile>
-			<id>lwjgl-natives-linux-aarch64</id>
-			<activation>
-				<os>
-					<family>unix</family>
-					<arch>aarch64</arch>
-				</os>
-			</activation>
-			<properties>
-				<lwjgl.natives>natives-linux-arm64</lwjgl.natives>
-			</properties>
-		</profile>
 		<profile>
 			<id>lwjgl-natives-macos-x86_64</id>
 			<activation>
@@ -84,6 +60,32 @@
 				<lwjgl.natives>natives-windows</lwjgl.natives>
 			</properties>
 		</profile>
+		<!--
+		<profile>
+			<id>lwjgl-natives-linux-amd64</id>
+			<activation>
+				<os>
+					<family>unix</family>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<properties>
+				<lwjgl.natives>natives-linux</lwjgl.natives>
+			</properties>
+		</profile>
+		<profile>
+			<id>lwjgl-natives-linux-aarch64</id>
+			<activation>
+				<os>
+					<family>unix</family>
+					<arch>aarch64</arch>
+				</os>
+			</activation>
+			<properties>
+				<lwjgl.natives>natives-linux-arm64</lwjgl.natives>
+			</properties>
+		</profile>
+		-->
 	</profiles>
     
     <dependencyManagement>
