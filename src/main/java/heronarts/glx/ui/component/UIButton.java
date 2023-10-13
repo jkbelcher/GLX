@@ -42,8 +42,16 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   public static class Tooltip extends UIButton {
 
+    public enum Placement {
+      TOP_RIGHT,
+      TOP_LEFT,
+      BOTTOM_RIGHT,
+      BOTTOM_LEFT;
+    }
+
     private final float tipWidth, tipHeight;
     private final String message;
+    private Placement placement = Placement.TOP_RIGHT;
 
     public Tooltip(float tipWidth, float tipHeight, String message) {
       super(0, 0, 12, 12);
@@ -57,6 +65,11 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       this.tipWidth = tipWidth;
       this.tipHeight = tipHeight;
       this.message = message;
+    }
+
+    public Tooltip setPlacement(Placement placement) {
+      this.placement = placement;
+      return this;
     }
 
     @Override
@@ -74,8 +87,22 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
         .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
         .setBackgroundColor(theme.contextBackgroundColor)
         .setBorderColor(theme.contextBorderColor)
-        .setBorderRounding(4)
-        .setPosition(this, this.width/2, this.height/2 - this.tipHeight);
+        .setBorderRounding(4);
+
+      switch (this.placement) {
+      case TOP_RIGHT:
+        overlay.setPosition(this, this.width/2, this.height/2 - this.tipHeight);
+        break;
+      case TOP_LEFT:
+        overlay.setPosition(this, this.width/2 - this.tipWidth, this.height/2 - this.tipHeight);
+        break;
+      case BOTTOM_RIGHT:
+        overlay.setPosition(this, this.width/2, this.height/2);
+        break;
+      case BOTTOM_LEFT:
+        overlay.setPosition(this, this.width/2 - this.tipWidth, this.height/2);
+        break;
+      }
       getUI().showContextOverlay(overlay);
     }
   }
