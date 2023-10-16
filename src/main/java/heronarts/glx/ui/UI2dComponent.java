@@ -934,8 +934,8 @@ public abstract class UI2dComponent extends UIObject {
   /**
    * Sets the text alignment of this component
    *
-   * @param horizontalAlignment From VGrahpics.Align
-   * @param verticalAlignment From VGrahpics.Align
+   * @param horizontalAlignment From VGraphics.Align
+   * @param verticalAlignment From VGraphics.Align
    * @return this
    */
   public UI2dComponent setTextAlignment(VGraphics.Align horizontalAlignment, VGraphics.Align verticalAlignment) {
@@ -956,7 +956,7 @@ public abstract class UI2dComponent extends UIObject {
   /**
    * Clip a text to fit in the given width
    *
-   * @param vg PGraphics
+   * @param vg VGraphics
    * @param str String
    * @param width Width to fit in
    * @return Clipped version of the string that will fit in the bounds
@@ -968,7 +968,7 @@ public abstract class UI2dComponent extends UIObject {
   /**
    * Clip a text to fit in the given width
    *
-   * @param vg PGraphics
+   * @param vg VGraphics
    * @param str String
    * @param width Width to fit in
    * @param fromEnd True clips from end, false clips from the start
@@ -1002,7 +1002,7 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   /**
-   * Removes this components from the container is is held by
+   * Removes this component from the container it is held by
    *
    * @return this
    */
@@ -1011,7 +1011,7 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   /**
-   * Removes this components from the container is is held by
+   * Removes this component from the container it is held by
    *
    * @param redraw Whether to reflow and redraw the container
    * @return this
