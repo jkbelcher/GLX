@@ -52,7 +52,11 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
   }
 
   public UIIntegerBox(float w, float h, DiscreteParameter parameter) {
-    this(0, 0, w, h);
+    this(0, 0, w, h, parameter);
+  }
+
+  public UIIntegerBox(float x, float y, float w, float h, DiscreteParameter parameter) {
+    this(x, y, w, h);
     setParameter(parameter);
   }
 

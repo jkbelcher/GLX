@@ -234,7 +234,11 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton(float w, float h, BooleanParameter p) {
-    this(0, 0, w, h);
+    this(0, 0, w, h, p);
+  }
+
+  public UIButton(float x, float y, float w, float h, BooleanParameter p) {
+    this(x, y, w, h);
     setParameter(p);
     setLabel(p.getLabel());
   }
@@ -244,6 +248,10 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton(float w, float h, EnumParameter<?> p) {
+    this(0, 0, w, h, p);
+  }
+
+  public UIButton(float x, float y, float w, float h, EnumParameter<?> p) {
     this(0, 0, w, h);
     setParameter(p);
     setLabel(enumFormatter.toString(p));
