@@ -128,6 +128,101 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     }
   }
 
+  public static class Expander extends Action {
+
+    public enum Direction {
+      BOTTOM_LEFT,
+      BOTTOM_RIGHT,
+      TOP_LEFT,
+      TOP_RIGHT;
+    }
+
+    private Direction direction = Direction.BOTTOM_LEFT;
+
+    public Expander(BooleanParameter param) {
+      this(0, 0, param);
+    }
+
+    public Expander(float x, float y, BooleanParameter param) {
+      super(x, y, 12, 12);
+      setParameter(param);
+    }
+
+    public Expander setDirection(Direction direction) {
+      this.direction = direction;
+      return this;
+    }
+
+    @Override
+    protected void drawBackground(UI ui, VGraphics vg) {
+      drawParentBackground(ui, vg);
+    }
+
+    @Override
+    protected void drawBorder(UI ui, VGraphics vg) {}
+
+    @Override
+    protected void onDraw(UI ui, VGraphics vg) {
+      vg.beginPath();
+      vg.fillColor(ui.theme.sectionExpanderBackgroundColor);
+
+      boolean isOn = getParameter().getValue() > 0;
+
+      switch (this.direction) {
+      case TOP_RIGHT:
+        isOn = !isOn;
+      //$FALL-THROUGH$
+      case BOTTOM_LEFT:
+        if (isOn) {
+          drawBottomLeft(ui, vg);
+        } else {
+          drawTopRight(ui, vg);
+        }
+        break;
+      case TOP_LEFT:
+        isOn = !isOn;
+      //$FALL-THROUGH$
+      case BOTTOM_RIGHT:
+        if (isOn) {
+          drawBottomRight(ui, vg);
+        } else {
+          drawTopLeft(ui, vg);
+        }
+        break;
+      }
+
+      vg.fill();
+    }
+
+    protected void drawBottomLeft(UI ui, VGraphics vg) {
+      final float x = 1, y = getHeight()-1;
+      vg.moveTo(x, y-10);
+      vg.lineTo(x+10, y);
+      vg.lineTo(x, y);
+    }
+
+    protected void drawTopRight(UI ui, VGraphics vg) {
+      final float x = 1, y = getHeight()-1;
+      vg.moveTo(x, y-10);
+      vg.lineTo(x+10, y-10);
+      vg.lineTo(x+10, y);
+    }
+
+    protected void drawBottomRight(UI ui, VGraphics vg) {
+      final float x = 1, y = getHeight()-1;
+      vg.moveTo(x, y);
+      vg.lineTo(x+10, y-10);
+      vg.lineTo(x+10, y);
+    }
+
+    protected void drawTopLeft(UI ui, VGraphics vg) {
+      final float x = 1, y = getHeight()-1;
+      vg.moveTo(x, y-10);
+      vg.lineTo(x+10, y-10);
+      vg.lineTo(x, y);
+    }
+  }
+
   public static class Trigger extends UIButton {
 
     public static final int HEIGHT = 12;
@@ -252,7 +347,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton(float x, float y, float w, float h, EnumParameter<?> p) {
-    this(0, 0, w, h);
+    this(x, y, w, h);
     setParameter(p);
     setLabel(enumFormatter.toString(p));
   }

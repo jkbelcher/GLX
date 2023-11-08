@@ -1443,18 +1443,7 @@ public abstract class UI2dComponent extends UIObject {
       // If we don't have our own background, or our borders are rounded,
       // then we need to walk up the UI tree to figure out how to paint
       // in the background.
-      UIObject component = this.parent;
-      while ((component != null) && (component instanceof UI2dComponent)) {
-        UI2dComponent component2d = (UI2dComponent) component;
-        if (component2d.hasBackground || (component2d.hasFocus && component2d.hasFocusBackground)) {
-          vg.beginPath();
-          vg.rect(0, 0, this.width, this.height);
-          vg.fillColor((component2d.hasFocus && component2d.hasFocusBackground) ? component2d.focusBackgroundColor : component2d.backgroundColor);
-          vg.fill();
-          break;
-        }
-        component = component.parent;
-      }
+      drawParentBackground(ui, vg);
     }
 
     if (ownBackground) {
@@ -1463,7 +1452,21 @@ public abstract class UI2dComponent extends UIObject {
       vg.fillColor((this.hasFocus && this.hasFocusBackground) ? this.focusBackgroundColor : this.backgroundColor);
       vg.fill();
     }
+  }
 
+  protected void drawParentBackground(UI ui, VGraphics vg) {
+    UIObject component = this.parent;
+    while ((component != null) && (component instanceof UI2dComponent)) {
+      UI2dComponent component2d = (UI2dComponent) component;
+      if (component2d.hasBackground || (component2d.hasFocus && component2d.hasFocusBackground)) {
+        vg.beginPath();
+        vg.rect(0, 0, this.width, this.height);
+        vg.fillColor((component2d.hasFocus && component2d.hasFocusBackground) ? component2d.focusBackgroundColor : component2d.backgroundColor);
+        vg.fill();
+        break;
+      }
+      component = component.parent;
+    }
   }
 
   protected void drawBorder(UI ui, VGraphics vg) {
