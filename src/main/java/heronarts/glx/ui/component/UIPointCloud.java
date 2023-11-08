@@ -22,6 +22,10 @@ import static org.lwjgl.bgfx.BGFX.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
+import java.util.Comparator;
+
+import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
 import com.google.gson.JsonObject;
@@ -35,6 +39,7 @@ import heronarts.glx.View;
 import heronarts.glx.shader.ShaderProgram;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI3dComponent;
+import heronarts.glx.ui.UI3dContext;
 import heronarts.lx.LX;
 import heronarts.lx.LXComponent;
 import heronarts.lx.LXEngine;
@@ -60,17 +65,17 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     }
 
     @Override
+    public void setVertexBuffers(View view) {
+      bgfx_set_dynamic_vertex_buffer(0, modelBuffer.getHandle(), 0, modelBuffer.getNumVertices());
+      bgfx_set_dynamic_vertex_buffer(1, colorBuffer.getHandle(), 0, colorBuffer.getNumVertices());
+    }
+
+    @Override
     public void dispose() {
       bgfx_destroy_uniform(this.uniformTexture);
       bgfx_destroy_uniform(this.uniformDimensions);
       MemoryUtil.memFree(this.dimensionsBuffer);
       super.dispose();
-    }
-
-    @Override
-    public void setVertexBuffers(View view) {
-      bgfx_set_vertex_buffer(0, modelBuffer.getHandle(), 0, modelBuffer.getNumVertices());
-      bgfx_set_dynamic_vertex_buffer(1, colorBuffer.getHandle(), 0, colorBuffer.getNumVertices());
     }
 
     @Override
@@ -91,35 +96,86 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     }
   }
 
-  private class ModelBuffer extends VertexBuffer {
+  private class ModelBuffer extends DynamicVertexBuffer {
 
     private static final int VERTICES_PER_POINT = 6;
 
-    private ModelBuffer(GLX lx) {
-      super(lx, model.size * VERTICES_PER_POINT, VertexDeclaration.ATTRIB_POSITION | VertexDeclaration.ATTRIB_TEXCOORD0);
+    private class Point {
+      private final LXPoint point;
+      private float zDepth;
+
+      private Point(LXPoint point) {
+        this.point = point;
+      }
     }
 
-    @Override
-    protected void bufferData(ByteBuffer buffer) {
+    private final Point[] orderedPoints = new Point[model.size];
+
+    private ModelBuffer(GLX lx) {
+      super(lx, model.size * VERTICES_PER_POINT, VertexDeclaration.ATTRIB_POSITION | VertexDeclaration.ATTRIB_TEXCOORD0);
       for (LXPoint p : model.points) {
-        putVertex(p.x, p.y, p.z);
-        putTex2d(0f, 0f);
-
-        putVertex(p.x, p.y, p.z);
-        putTex2d(1f, 0f);
-
-        putVertex(p.x, p.y, p.z);
-        putTex2d(0f, 1f);
-
-        putVertex(p.x, p.y, p.z);
-        putTex2d(0f, 1f);
-
-        putVertex(p.x, p.y, p.z);
-        putTex2d(1f, 0f);
-
-        putVertex(p.x, p.y, p.z);
-        putTex2d(1f, 1f);
+        this.orderedPoints[p.index] = new Point(p);
       }
+      sortAndUpdate();
+    }
+
+    private final Comparator<Point> pointComparator = new Comparator<Point>() {
+      @Override
+      public int compare(Point p1, Point p2) {
+        if (p1.zDepth < p2.zDepth) {
+          return 1;
+        } else if (p1.zDepth > p2.zDepth) {
+          return -1;
+        }
+        return 0;
+      }
+    };
+
+    protected void sortAndUpdate() {
+      // long start = System.currentTimeMillis();
+
+      final Matrix4f viewMatrix = getContext().getViewMatrix();
+      final float m02 = viewMatrix.m02();
+      final float m12 = viewMatrix.m12();
+      final float m22 = viewMatrix.m22();
+
+      for (Point p : this.orderedPoints) {
+        p.zDepth = m02 * p.point.x + m12 * p.point.y + m22 * p.point.z;
+      }
+      Arrays.sort(this.orderedPoints, this.pointComparator);
+      putData();
+
+      // long end = System.currentTimeMillis();
+      // GLX.log("Sorted " + this.orderedPoints.length + " points in: " + (end-start) + "ms");
+
+    }
+
+    protected void putData() {
+      final ByteBuffer buffer = getVertexData();
+      buffer.rewind();
+      for (Point point : this.orderedPoints) {
+        LXPoint p = point.point;
+
+        VertexBuffer.putVertex(buffer, p.x, p.y, p.z);
+        VertexBuffer.putTex2d(buffer, 0f, 0f);
+
+        VertexBuffer.putVertex(buffer, p.x, p.y, p.z);
+        VertexBuffer.putTex2d(buffer, 1f, 0f);
+
+        VertexBuffer.putVertex(buffer, p.x, p.y, p.z);
+        VertexBuffer.putTex2d(buffer, 0f, 1f);
+
+        VertexBuffer.putVertex(buffer, p.x, p.y, p.z);
+        VertexBuffer.putTex2d(buffer, 0f, 1f);
+
+        VertexBuffer.putVertex(buffer, p.x, p.y, p.z);
+        VertexBuffer.putTex2d(buffer, 1f, 0f);
+
+        VertexBuffer.putVertex(buffer, p.x, p.y, p.z);
+        VertexBuffer.putTex2d(buffer, 1f, 1f);
+      }
+      buffer.flip();
+      update();
     }
   }
 
@@ -162,7 +218,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   private final Program program;
   private final Texture[] textures = new Texture[LedStyle.values().length];
 
-  private VertexBuffer modelBuffer;
+  private ModelBuffer modelBuffer;
   private DynamicVertexBuffer colorBuffer;
 
   // This is the model that our current vertex buffers (UI thread) is based upon,
@@ -243,12 +299,22 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       this.modelGeneration = frameModelGeneration;
     }
 
-    // Update the color data
-    ByteBuffer colorData = this.colorBuffer.getVertexData();
+    // Sort the model buffer if the camera perspective has changed
+    // We employ a timeout here to avoid needlessly resorting every single frame when
+    // the camera is under active motion... instead just do one sort as long as the
+    // flag has been set and a timeout has elapsed.
+    if (this.needsZSort && (ui.lx.engine.nowMillis - this.zSortMillis) > Z_SORT_TIMEOUT_MS) {
+      this.modelBuffer.sortAndUpdate();
+      this.needsZSort = false;
+    }
+
+    // Update the color data every frame
+    final ByteBuffer colorData = this.colorBuffer.getVertexData();
     colorData.rewind();
-    for (int c : this.auxiliary ? frame.getAuxColors() : frame.getColors()) {
+    final int[] colors = frame.getColors(this.auxiliary);
+    for (ModelBuffer.Point p : this.modelBuffer.orderedPoints) {
       for (int i = 0; i < ModelBuffer.VERTICES_PER_POINT; ++i) {
-        colorData.putInt(c);
+        colorData.putInt(colors[p.point.index]);
       }
     }
     colorData.flip();
@@ -264,6 +330,16 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       state |= BGFX_STATE_DEPTH_TEST_LESS;
     }
     this.program.submit(view, state);
+  }
+
+  private static final long Z_SORT_TIMEOUT_MS = 100;
+  private boolean needsZSort = false;
+  private long zSortMillis = 0;
+
+  @Override
+  protected void onCameraChanged(UI ui, UI3dContext context) {
+    this.needsZSort = true;
+    this.zSortMillis = ui.lx.engine.nowMillis;
   }
 
   private static final String KEY_POINT_SIZE = "pointSize";

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.bgfx.BGFX;
 
@@ -714,6 +715,12 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     return this.eye;
   }
 
+  private final LXParameter.MultiMonitor cameraMonitor =
+    new LXParameter.MultiMonitor(
+      this.radiusDamped, this.thetaDamped, this.phiDamped,
+      this.xDamped, this.yDamped, this.zDamped
+    );
+
   private void computeCamera(boolean initialize) {
     if (this.animating.isRunning() || this.animating.finished()) {
       this.camera.lerp(this.cameraFrom, this.cameraTo, this.animating.getBasis());
@@ -742,7 +749,6 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
       pz - rv * cosphi * costheta
     );
     this.eye.set(this.eyeDamped);
-
   }
 
   private boolean needsClear = false;
@@ -792,10 +798,25 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     this.view.bind();
     BGFX.bgfx_touch(this.view.getId());
 
+    // Check if view has changed
+    if (this.cameraMonitor.changed()) {
+      for (UIObject child : this.mutableChildren) {
+        ((UI3dComponent) child).onCameraChanged(ui, this);
+      }
+    }
+
     // Draw all the components in the scene
     for (UIObject child : this.mutableChildren) {
       ((UI3dComponent) child).draw(ui, this.view);
     }
+  }
+
+  public Matrix4f getViewMatrix() {
+    return this.view.getViewMatrix();
+  }
+
+  public Matrix4f getProjectionMatrix() {
+    return this.view.getProjectionMatrix();
   }
 
   @Override
