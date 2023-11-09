@@ -54,6 +54,15 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     super(x, y, w, h);
   }
 
+  public UIToggleSet(float w, float h, DiscreteParameter parameter) {
+    this(0, 0, w, h, parameter);
+  }
+
+  public UIToggleSet(float x, float y, float w, float h, DiscreteParameter parameter) {
+    this(x, y, w, h);
+    setParameter(parameter);
+  }
+
   public UIToggleSet setActiveColor(int activeColor) {
     return setActiveColor(new UIColor(activeColor));
   }
@@ -143,8 +152,12 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   }
 
   public UIToggleSet setEvenSpacing() {
-    if (!this.evenSpacing) {
-      this.evenSpacing = true;
+    return setEvenSpacing(true);
+  }
+
+  public UIToggleSet setEvenSpacing(boolean evenSpacing) {
+    if (this.evenSpacing != evenSpacing) {
+      this.evenSpacing = evenSpacing;
       computeBoundaries();
       redraw();
     }
