@@ -21,6 +21,7 @@ package heronarts.glx.ui.component;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UI2dContainer;
 import heronarts.glx.ui.UIMouseFocus;
 import heronarts.glx.ui.vg.VGraphics;
@@ -95,6 +96,13 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
   public UICollapsibleSection setTitle(String title) {
     this.title.setLabel(title);
     return this;
+  }
+
+  protected UI2dContainer controlRow(UI ui, String label, UI2dComponent control) {
+    return UI2dContainer.newHorizontalContainer(16, 0,
+      new UILabel.Control(ui, getContentWidth()-60, 16, label),
+      control.setWidth(60)
+    );
   }
 
   public static void drawHorizontalExpansionTriangle(UI ui, VGraphics vg, boolean expanded) {
