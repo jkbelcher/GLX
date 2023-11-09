@@ -29,11 +29,11 @@ public abstract class IndexBuffer {
   private final short indexBufferHandle;
   private final int numIndices;
 
-  public IndexBuffer(GLX glx, int numIndices) {
-    this.indexData = MemoryUtil.memAlloc(Short.BYTES * numIndices);
+  public IndexBuffer(GLX glx, int numIndices, boolean int32) {
+    this.indexData = MemoryUtil.memAlloc((int32 ? Integer.BYTES : Short.BYTES) * numIndices);
     bufferData(this.indexData);
     this.indexData.flip();
-    this.indexBufferHandle = bgfx_create_index_buffer(bgfx_make_ref(this.indexData), BGFX_BUFFER_NONE);
+    this.indexBufferHandle = bgfx_create_index_buffer(bgfx_make_ref(this.indexData), int32 ? BGFX_BUFFER_INDEX32 : BGFX_BUFFER_NONE);
     this.numIndices = numIndices;
   }
 

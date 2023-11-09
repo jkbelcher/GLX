@@ -30,8 +30,12 @@ public class DynamicIndexBuffer {
   private final int numIndices;
 
   public DynamicIndexBuffer(GLX glx, int numIndices) {
-    this.indexData = MemoryUtil.memAlloc(Short.BYTES * numIndices);
-    this.indexBufferHandle = bgfx_create_dynamic_index_buffer(numIndices, BGFX_BUFFER_NONE);
+    this(glx, numIndices, false);
+  }
+
+  public DynamicIndexBuffer(GLX glx, int numIndices, boolean int32) {
+    this.indexData = MemoryUtil.memAlloc((int32 ? Integer.BYTES : Short.BYTES) * numIndices);
+    this.indexBufferHandle = bgfx_create_dynamic_index_buffer(numIndices, int32 ? BGFX_BUFFER_INDEX32 : BGFX_BUFFER_NONE);
     this.numIndices = numIndices;
   }
 

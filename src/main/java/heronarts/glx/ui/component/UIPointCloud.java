@@ -124,7 +124,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     private final Point[] orderedPoints;
 
     public IndexBuffer(GLX glx) {
-      super(glx, model.size * ModelBuffer.VERTICES_PER_POINT);
+      super(glx, model.size * ModelBuffer.VERTICES_PER_POINT, true);
 
       this.orderedPoints = new Point[model.size];
       int i = 0;
@@ -158,9 +158,9 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       final ByteBuffer buffer = getIndexData();
       buffer.rewind();
       for (Point point : this.orderedPoints) {
-        short index = (short) (point.point.index * ModelBuffer.VERTICES_PER_POINT);
+        int index = point.point.index * ModelBuffer.VERTICES_PER_POINT;
         for (int i = 0; i < ModelBuffer.VERTICES_PER_POINT; ++i) {
-          buffer.putShort(index++);
+          buffer.putInt(index++);
         }
       }
       buffer.flip();
