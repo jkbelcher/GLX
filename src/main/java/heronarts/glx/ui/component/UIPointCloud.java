@@ -123,8 +123,10 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
     private final Point[] orderedPoints;
 
+    private static final int INDICES_PER_POINT = 6;
+
     public IndexBuffer(GLX glx) {
-      super(glx, model.size * ModelBuffer.VERTICES_PER_POINT, true);
+      super(glx, model.size * INDICES_PER_POINT, true);
 
       this.orderedPoints = new Point[model.size];
       int i = 0;
@@ -159,9 +161,12 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       buffer.rewind();
       for (Point point : this.orderedPoints) {
         int index = point.point.index * ModelBuffer.VERTICES_PER_POINT;
-        for (int i = 0; i < ModelBuffer.VERTICES_PER_POINT; ++i) {
-          buffer.putInt(index++);
-        }
+        buffer.putInt(index);
+        buffer.putInt(index+1);
+        buffer.putInt(index+2);
+        buffer.putInt(index+2);
+        buffer.putInt(index+1);
+        buffer.putInt(index+3);
       }
       buffer.flip();
       update();
@@ -170,7 +175,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   private class ModelBuffer extends VertexBuffer {
 
-    private static final int VERTICES_PER_POINT = 6;
+    private static final int VERTICES_PER_POINT = 4;
 
     private ModelBuffer(GLX lx) {
       super(lx, model.size * VERTICES_PER_POINT, VertexDeclaration.ATTRIB_POSITION | VertexDeclaration.ATTRIB_TEXCOORD0);
@@ -187,12 +192,6 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
         putVertex(p.x, p.y, p.z);
         putTex2d(0f, 1f);
-
-        putVertex(p.x, p.y, p.z);
-        putTex2d(0f, 1f);
-
-        putVertex(p.x, p.y, p.z);
-        putTex2d(1f, 0f);
 
         putVertex(p.x, p.y, p.z);
         putTex2d(1f, 1f);
