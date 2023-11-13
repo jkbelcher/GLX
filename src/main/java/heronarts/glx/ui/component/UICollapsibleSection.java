@@ -25,6 +25,7 @@ import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UI2dContainer;
 import heronarts.glx.ui.UIMouseFocus;
 import heronarts.glx.ui.vg.VGraphics;
+import heronarts.lx.parameter.BoundedParameter;
 
 /**
  * Section with a title which can collapse/expand
@@ -98,13 +99,6 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
     return this;
   }
 
-  protected UI2dContainer controlRow(UI ui, String label, UI2dComponent control) {
-    return UI2dContainer.newHorizontalContainer(16, 0,
-      new UILabel.Control(ui, getContentWidth()-60, 16, label),
-      control.setWidth(60)
-    );
-  }
-
   public static void drawHorizontalExpansionTriangle(UI ui, VGraphics vg, boolean expanded) {
     vg.fillColor(ui.theme.sectionExpanderBackgroundColor);
     vg.beginPath();
@@ -176,5 +170,38 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
   @Override
   public UI2dContainer getContentTarget() {
     return this.content;
+  }
+
+  protected UI2dContainer controlRow(UI ui, String label, UI2dComponent control) {
+    return UI2dContainer.newHorizontalContainer(16, 0,
+      new UILabel.Control(ui, getContentWidth()-60, 16, label),
+      control.setWidth(60)
+    );
+  }
+
+  public interface Utils {
+
+    public default UI2dContainer controlRow(UI ui, float contentWidth, String label, UI2dComponent control) {
+      return UI2dContainer.newHorizontalContainer(16, 0,
+        new UILabel.Control(ui, contentWidth-60, 16, label),
+        control.setWidth(60)
+      );
+    }
+
+    public default UILabel geometryLabel(UI ui, String label) {
+      return (UILabel) new UILabel.Control(ui, 10, 16, label).setTextAlignment(VGraphics.Align.CENTER);
+    }
+
+    public default UIDoubleBox geometryBox(BoundedParameter p) {
+      return new UIDoubleBox(42, 16, p).setNormalizedMouseEditing(false);
+    }
+
+    public default UI2dComponent geometryContainer(UI ui, float contentWidth, UI2dComponent ... components) {
+      return UI2dContainer.newVerticalContainer(contentWidth, 2, components)
+        .setPadding(4)
+        .setBackgroundColor(ui.theme.listBackgroundColor)
+        .setBorderColor(ui.theme.listBorderColor)
+        .setBorderRounding(4);
+    }
   }
 }
