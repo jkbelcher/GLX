@@ -422,7 +422,11 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
       float delta = dv / (dim - HANDLE_SIZE - 2*PADDING);
       LXCompoundModulation modulation = getModulation(mouseEvent.isShiftDown());
       if (modulation != null && (mouseEvent.isMetaDown() || mouseEvent.isControlDown())) {
-        modulation.range.setValue(modulation.range.getValue() + delta);
+        if (this.useCommandEngine) {
+          setModulationRangeCommand(modulation.range, modulation.range.getValue() + delta);
+        } else {
+          modulation.range.setValue(modulation.range.getValue() + delta);
+        }
       } else {
         if (mouseEvent.isShiftDown()) {
           delta /= 10;
