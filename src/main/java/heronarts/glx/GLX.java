@@ -905,6 +905,14 @@ public class GLX extends LX {
     );
   }
 
+  @Override
+  protected void showConfirmUnsavedModelDialog(File file, Runnable confirm) {
+    showConfirmDialog(
+      "You have modified the imported model file " + file.getName() +", do you want to export the changes you have made to this model?",
+      confirm
+    );
+  }
+
   public void showConfirmDialog(String message, Runnable confirm) {
     this.ui.showContextOverlay(new UIDialogBox(this.ui,
       message,
