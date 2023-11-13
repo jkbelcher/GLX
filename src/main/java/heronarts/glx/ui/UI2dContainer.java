@@ -56,6 +56,24 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
 
   private UI2dContainer contentTarget;
 
+  /* Rational for Content Alignment being different that this.alignment:
+   *  - With size, a container's size relative to its peers and its children is the same.
+   *    But with alignment, the container's alignment is relevant to its placement within
+   *    its parent.  And a container's *content* alignment is the default for any child that
+   *    does not have an explicit alignment.
+   *  - Thinking this is mainly relevant to the secondary orientation.
+   *    Example:
+   *      UI2dContainer column = newVerticalContainer(70);
+   *      column.setContentHAlignment(HAlign.FILL);                  // Default secondary alignment for children
+   *      column.addChild(newLabel("Autosized!"));
+   *      column.addChild(newKnob(param).setHAlign(HAlign.CENTER));  // Child HAlign takes priority
+   *
+   * TODO: delete this note
+   */
+  private HAlign contentHAlign = HAlign.DEFAULT;
+
+  private VAlign contentVAlign = VAlign.DEFAULT;
+
   public static UI2dContainer newHorizontalContainer(float height) {
     return newHorizontalContainer(height, 0, (UI2dComponent[]) null);
   }
@@ -213,27 +231,113 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     this.inReflow = true;
 
     if (this.layout == Layout.VERTICAL) {
+      float childrenHeight = 0;
+      int numVisible = 0;
+      int numFill = 0;
+      // Calculate net height used by non-fill children
+      for (UIObject child : this) {
+        if (child.isVisible()) {
+          numVisible++;
+          UI2dComponent component = (UI2dComponent) child;
+          if (component.getVAlign() == VAlign.FILL) {
+            numFill++;
+          } else {
+            childrenHeight += component.getHeight();
+          }
+        }
+      }
+      // Calculate height remaining for fill children
+      final float netSpacing = this.childSpacingY * LXUtils.max(0, numVisible - 1);
+      final float fillHeight = LXUtils.maxf(0f,  this.getContentHeight() - this.topPadding - this.bottomPadding - childrenHeight - netSpacing);
       float y = this.topPadding;
+      final float contentWidth = getContentWidth() - this.leftPadding - this.rightPadding;
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
           component.setY(y + component.marginTop);
-          y += component.marginTop + component.getHeight() + component.marginBottom + this.childSpacingY;
+          final float componentHeight = component.getVAlign() == VAlign.FILL ? fillHeight * component.getVFillPercent() / 100f : component.getHeight();
+          y += component.marginTop + componentHeight + component.marginBottom + this.childSpacingY;
+          // Secondary orientation
+          final HAlign componentHAlign = component.getHAlign().or(getContentHAlign());  // TODO: determine priority for collection vs child secondary alignment
+          switch (componentHAlign) {
+          case LEFT:
+            component.setX(this.leftPadding);
+            break;
+          case CENTER:
+            component.setX(this.leftPadding + ((contentWidth - component.getWidth()) / 2));
+            break;
+          case RIGHT:
+            component.setX(this.leftPadding + contentWidth - component.getWidth());
+            break;
+          case FILL:
+            component.setX(this.leftPadding);
+            component.setWidth(contentWidth);
+            break;
+          case DEFAULT:
+            break;
+          default:
+            break;
+          }
         }
       }
-      y += this.bottomPadding;
-      setContentHeight(Math.max(this.minHeight, y - this.childSpacingY));
+      if (numFill == 0) {
+        y += this.bottomPadding;
+        setContentHeight(Math.max(this.minHeight, y - (numVisible > 0 ? this.childSpacingY : 0)));
+      }
     } else if (this.layout == Layout.HORIZONTAL) {
+      float childrenWidth = 0;
+      int numVisible = 0;
+      int numFill = 0;
+      // Calculate net width used by non-fill children
+      for (UIObject child : this) {
+        if (child.isVisible()) {
+          numVisible++;
+          UI2dComponent component = (UI2dComponent) child;
+          if (component.getHAlign() == HAlign.FILL) {
+            numFill++;
+          } else {
+            childrenWidth += component.getWidth();
+          }
+        }
+      }
+      // Calculate width remaining for fill children
+      final float netSpacing = this.childSpacingX * LXUtils.max(0, numVisible - 1);
+      final float fillWidth =  LXUtils.maxf(0f, this.getContentWidth() - this.leftPadding - this.rightPadding - childrenWidth - netSpacing);
+      // Set child locations
       float x = this.leftPadding;
+      final float contentHeight = getContentHeight() - this.topPadding - this.bottomPadding;
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
           component.setX(x + component.marginLeft);
-          x += component.marginLeft + component.getWidth() + component.marginRight + this.childSpacingX;
+          final float componentWidth = component.getHAlign() == HAlign.FILL ? fillWidth * component.getHFillPercent() / 100f : component.getWidth();
+          x += component.marginLeft + componentWidth + component.marginRight + this.childSpacingX;
+          // Secondary orientation
+          final VAlign componentVAlign = component.getVAlign().or(getContentVAlign());  // TODO: determine priority for collection vs child secondary alignment
+          switch (componentVAlign) {
+          case TOP:
+            component.setY(this.topPadding);
+            break;
+          case MIDDLE:
+            component.setY(this.topPadding + ((contentHeight - component.getHeight()) / 2));
+            break;
+          case BOTTOM:
+            component.setY(this.topPadding + contentHeight - component.getHeight());
+            break;
+          case FILL:
+            component.setY(this.topPadding);
+            component.setHeight(contentHeight);
+            break;
+          case DEFAULT:
+          default:
+            break;
+          }
         }
       }
-      x += this.rightPadding;
-      setContentWidth(Math.max(this.minWidth, x - this.childSpacingX));
+      if (numFill == 0) {
+        x += this.rightPadding;
+        setContentWidth(Math.max(this.minWidth, x - (numVisible > 0 ? this.childSpacingX : 0)));
+      }
     } else if (this.layout == Layout.VERTICAL_GRID) {
       float x = this.leftPadding;
       float y = this.topPadding;
@@ -379,6 +483,41 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
 
   public UI2dContainer setContentSize(float w, float h) {
     this.contentTarget.setSize(w, h);
+    return this;
+  }
+
+  public HAlign getContentHAlign() {
+    // return this.contentHAlign;  // Alternate
+    if (this.contentTarget == this) {
+      return this.contentHAlign;
+    } else {
+      return this.contentTarget.getContentHAlign();
+    }
+  }
+
+  public VAlign getContentVAlign() {
+    if (this.contentTarget == this) {
+      return this.contentVAlign;
+    } else {
+      return this.contentTarget.getContentVAlign();
+    }
+  }
+
+  public UI2dContainer setContentHAlign(HAlign hAlign) {
+    if (this.contentTarget == this) {
+      this.contentHAlign = hAlign;
+    } else {
+      this.contentTarget.setContentHAlign(hAlign);
+    }
+    return this;
+  }
+
+  public UI2dContainer setContentVAlign(VAlign vAlign) {
+    if (this.contentTarget == this) {
+      this.contentVAlign = vAlign;
+    } else {
+      this.contentTarget.setContentVAlign(vAlign);
+    }
     return this;
   }
 

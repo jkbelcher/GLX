@@ -65,6 +65,32 @@ public abstract class UI2dComponent extends UIObject {
 
   protected final Scissor scissor = new Scissor();
 
+  public static enum HAlign {
+    DEFAULT,
+    LEFT,
+    CENTER,
+    RIGHT,
+    FILL;
+    // TODO: add enum value for Fixed/Absolute? For children overriding a container's content alignment.
+
+    public HAlign or(HAlign other) {
+      return this == DEFAULT ? other : this;
+    }
+  }
+
+  public static enum VAlign {
+    DEFAULT,
+    TOP,
+    MIDDLE,
+    BOTTOM,
+    FILL;
+    // TODO: add enum value for Fixed/Absolute? For children overriding a container's content alignment.
+
+    public VAlign or(VAlign other) {
+      return this == DEFAULT ? other : this;
+    }
+  }
+
   /**
    * Position of the object, relative to parent, top left corner
    */
@@ -90,6 +116,22 @@ public abstract class UI2dComponent extends UIObject {
     marginRight = 0,
     marginBottom = 0,
     marginLeft = 0;
+
+  protected HAlign hAlign = HAlign.DEFAULT;
+
+  protected VAlign vAlign = VAlign.DEFAULT;
+
+  /**
+   * When horizontal alignment is FILL, the percentage
+   * of available space in parent.
+   */
+  private float hFillPercent = 100f;
+
+  /**
+   * When vertical alignment is FILL, the percentage
+   * of available space in parent.
+   */
+  private float vFillPercent = 100f;
 
   float scrollX = 0;
 
@@ -575,6 +617,56 @@ public abstract class UI2dComponent extends UIObject {
     if (reflow && (this.parent instanceof UI2dContainer)) {
       ((UI2dContainer) this.parent).reflow();
     }
+    return this;
+  }
+
+  public HAlign getHAlign() {
+    return this.hAlign;
+  }
+
+  public VAlign getVAlign() {
+    return this.vAlign;
+  }
+
+  public UI2dComponent setHAlign(HAlign hAlign) {
+    return setAlign(hAlign, this.vAlign);
+  }
+
+  public UI2dComponent setVAlign(VAlign vAlign) {
+    return setAlign(this.hAlign, vAlign);
+  }
+
+  public UI2dComponent setAlign(HAlign hAlign, VAlign vAlign) {
+    boolean reflow = false;
+    if (this.hAlign != hAlign) {
+      this.hAlign = hAlign;
+      reflow = true;
+    }
+    if (this.vAlign != vAlign) {
+      this.vAlign = vAlign;
+      reflow = true;
+    }
+    if (reflow && (this.parent instanceof UI2dContainer)) {
+      ((UI2dContainer) this.parent).reflow();
+    }
+    return this;
+  }
+
+  public float getHFillPercent() {
+    return this.hFillPercent;
+  }
+
+  public float getVFillPercent() {
+    return this.vFillPercent;
+  }
+
+  public UI2dComponent setHFillPercent(float hFillPercent) {
+    this.hFillPercent = LXUtils.maxf(0f, hFillPercent);
+    return this;
+  }
+
+  public UI2dComponent setVFillPercent(float vFillPercent) {
+    this.vFillPercent = LXUtils.maxf(0f, vFillPercent);
     return this;
   }
 
