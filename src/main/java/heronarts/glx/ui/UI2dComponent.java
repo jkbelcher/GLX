@@ -629,6 +629,27 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   public UI2dComponent setHAlign(HAlign hAlign) {
+    return setHAlign(hAlign, false);
+  }
+
+  public UI2dComponent setHAlign(HAlign hAlign, boolean setTextAlign) {
+    if (setTextAlign) {
+      switch (hAlign) {
+      case LEFT:
+        setTextAlignment(VGraphics.Align.LEFT);
+        break;
+      case FILL:
+      case CENTER:
+        setTextAlignment(VGraphics.Align.CENTER);
+        break;
+      case RIGHT:
+        setTextAlignment(VGraphics.Align.RIGHT);
+        break;
+      case DEFAULT:
+      default:
+        break;
+      }
+    }
     return setAlign(hAlign, this.vAlign);
   }
 
