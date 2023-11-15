@@ -32,6 +32,8 @@ import heronarts.glx.ui.UI2dContainer;
 import heronarts.glx.ui.UIColor;
 import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
+import heronarts.lx.LX;
+import heronarts.lx.clipboard.LXTextValue;
 import heronarts.lx.utils.LXUtils;
 
 /**
@@ -218,6 +220,8 @@ public interface UIItemList {
     private static final int CHECKBOX_SIZE = 8;
     private static final int SECTION_CHEVRON_WIDTH = 14;
 
+    private final LX lx;
+
     private final UI2dContainer list;
 
     private final List<Item> items = new CopyOnWriteArrayList<Item>();
@@ -240,7 +244,7 @@ public interface UIItemList {
 
     private boolean renaming = false;
 
-    private String renameBuffer = "";
+    private UIInputBox.EditState editState = new UIInputBox.EditState();
 
     private boolean dragging;
 
@@ -257,10 +261,19 @@ public interface UIItemList {
     private String filter = null;
 
     private Impl(UI ui, UI2dContainer list) {
+      this.lx = ui.lx;
       this.list = list;
       list.setBackgroundColor(ui.theme.listBackgroundColor);;
       list.setBorderColor(ui.theme.listBorderColor);;
       list.setBorderRounding(4);
+
+      // Animate cursor while editing
+      list.addLoopTask(deltaMs -> {
+        if (this.renaming) {
+          this.editState.animateCursor(deltaMs);
+          list.redraw();
+        }
+      });
     }
 
     private void addListener(Listener listener) {
@@ -310,6 +323,7 @@ public interface UIItemList {
     private void setFocusIndex(int focusIndex, boolean scroll) {
       focusIndex = LXUtils.constrain(focusIndex, -1, this.items.size() - 1);
       if (this.focusIndex != focusIndex) {
+        this.renaming = false;
         if ((focusIndex >= 0) && scroll && this.list instanceof ScrollList) {
           ScrollList scrollList = (ScrollList) this.list;
           final float yOffset = getFocusYOffset(focusIndex);
@@ -480,6 +494,21 @@ public interface UIItemList {
 
     private void setRenamable(boolean isRenamable) {
       this.isRenamable = isRenamable;
+    }
+
+    private boolean isRenaming() {
+      return this.renaming;
+    }
+
+    private String getRenameBuffer() {
+      return this.editState.getRange();
+    }
+
+    private void renameAppend(String append) {
+      if (this.renaming && !append.isEmpty()) {
+        this.editState.append(append);
+        this.list.redraw();
+      }
     }
 
     private void setMomentary(boolean momentary) {
@@ -673,7 +702,7 @@ public interface UIItemList {
       int index = 0;
       float yp = ROW_MARGIN + scrollY;
 
-      float rowWidth = getRowWidth();
+      final float rowWidth = getRowWidth();
 
       if (hasScroll) {
         float eligibleHeight = height - 2*PADDING;
@@ -755,16 +784,15 @@ public interface UIItemList {
 
           textX += CHECKBOX_SIZE + 4;
         }
+
         if (renameItem) {
           vg.beginPath();
           vg.fillColor(ui.theme.editTextBackgroundColor);
           vg.rect(textX-2, yp+1, rowWidth - 2*PADDING - textX + 2, ROW_HEIGHT-2, 4);
           vg.fill();
 
-          vg.beginPath();
           vg.fillColor(ui.theme.editTextColor);
-          vg.text(textX, yp + ROW_SPACING/2-.5f, UI2dComponent.clipTextToWidth(vg, this.renameBuffer, rowWidth - textX - 2));
-          vg.fill();
+          UIInputBox.onDrawText(ui, vg, this.editState, this.editState.buffer, true, VGraphics.Align.LEFT, textX - 2, yp - .5f, rowWidth, ROW_HEIGHT, rowWidth - textX - 5);
         } else {
           vg.fillColor(textColor);
           vg.beginPath();
@@ -882,7 +910,7 @@ public interface UIItemList {
           this.list.redraw();
         } else if (keyEvent.isEnter()) {
           consume = true;
-          String newName = this.renameBuffer.trim();
+          String newName = this.editState.buffer.trim();
           if (newName.length() > 0) {
             this.items.get(this.focusIndex).onRename(newName);
           }
@@ -890,17 +918,36 @@ public interface UIItemList {
           this.list.redraw();
         } else if (keyEvent.isDelete()) {
           consume = true;
-          if (this.renameBuffer.length() > 0) {
+          if (this.editState.buffer.length() > 0) {
             if (keyEvent.isShiftDown() || keyEvent.isCommand()) {
-              this.renameBuffer = "";
+              this.editState.deleteAll();
             } else {
-              this.renameBuffer = this.renameBuffer.substring(0, this.renameBuffer.length() - 1);
+              this.editState.delete();
             }
             this.list.redraw();
           }
+        } else if (keyEvent.isCommand(KeyEvent.VK_X)) {
+          final String cut = this.editState.cut();
+          if (cut != null) {
+            consume = true;
+            this.lx.clipboard.setItem(new LXTextValue(cut));
+            this.list.redraw();
+          }
+        } else if (keyEvent.isCommand(KeyEvent.VK_A)) {
+          consume = true;
+          this.editState.selectAll();
+          this.list.redraw();
+        } else if (keyCode == KeyEvent.VK_LEFT) {
+          consume = true;
+          this.editState.cursorLeft(keyEvent);
+          this.list.redraw();
+        } else if (keyCode == KeyEvent.VK_RIGHT) {
+          consume = true;
+          this.editState.cursorRight(keyEvent);
+          this.list.redraw();
         } else if (UITextBox.isValidTextCharacter(keyChar)) {
           consume = true;
-          this.renameBuffer += keyChar;
+          this.editState.append(keyChar);
           this.list.redraw();
         }
       } else {
@@ -963,7 +1010,7 @@ public interface UIItemList {
             if (this.isRenamable && this.focusIndex >= 0) {
               consume = true;
               this.renaming = true;
-              this.renameBuffer = this.items.get(this.focusIndex).getLabel();
+              this.editState.init(this.items.get(this.focusIndex).getLabel());
               this.list.redraw();
             }
           }
@@ -1131,6 +1178,21 @@ public interface UIItemList {
     public UIItemList setRenamable(boolean isRenamable) {
       this.impl.setRenamable(isRenamable);
       return this;
+    }
+
+    @Override
+    public boolean isRenaming() {
+      return this.impl.isRenaming();
+    }
+
+    @Override
+    public String getRenameBuffer() {
+      return this.impl.getRenameBuffer();
+    }
+
+    @Override
+    public void renameAppend(String append) {
+      this.impl.renameAppend(append);
     }
 
     @Override
@@ -1325,6 +1387,21 @@ public interface UIItemList {
     public UIItemList setRenamable(boolean isRenamable) {
       this.impl.setRenamable(isRenamable);
       return this;
+    }
+
+    @Override
+    public boolean isRenaming() {
+      return this.impl.isRenaming();
+    }
+
+    @Override
+    public String getRenameBuffer() {
+      return this.impl.getRenameBuffer();
+    }
+
+    @Override
+    public void renameAppend(String append) {
+      this.impl.renameAppend(append);
     }
 
     @Override
@@ -1534,6 +1611,27 @@ public interface UIItemList {
    * @return this
    */
   public UIItemList setRenamable(boolean isRenamable);
+
+  /**
+   * Whether this control is in the midst of an item rename operation
+   *
+   * @return True if an item is being renamed
+   */
+  public boolean isRenaming();
+
+  /**
+   * Gets the current value in the rename buffer for copy/paste
+   *
+   * @return Rename buffer segment
+   */
+  public String getRenameBuffer();
+
+  /**
+   * Appends a string to the active rename buffer
+   *
+   * @param append Value to append to the rename buffer
+   */
+  public void renameAppend(String append);
 
   /**
    * Sets whether the item list is momentary. If so, then clicking on an item

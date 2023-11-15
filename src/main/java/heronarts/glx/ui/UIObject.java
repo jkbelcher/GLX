@@ -155,7 +155,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    * @param loopTask Task to be performed on every UI frame
    * @return this
    */
-  protected UIObject addLoopTask(LXLoopTask loopTask) {
+  public UIObject addLoopTask(LXLoopTask loopTask) {
     this.loopTasks.add(loopTask);
     return this;
   }
@@ -166,7 +166,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    * @param loopTask Task to be removed from work list
    * @return this
    */
-  protected UIObject removeLoopTask(LXLoopTask loopTask) {
+  public UIObject removeLoopTask(LXLoopTask loopTask) {
     this.loopTasks.remove(loopTask);
     return this;
   }
@@ -738,8 +738,11 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     if (!keyEvent.isConsumed()) {
       if (keyEvent.isMetaDown() || keyEvent.isControlDown()) {
         if (keyCode == KeyEvent.VK_C && this instanceof UICopy) {
-          this.ui.lx.clipboard.setItem(((UICopy)this).onCopy());
-          keyEvent.consume();
+          LXClipboardItem item = ((UICopy) this).onCopy();
+          if (item != null) {
+            keyEvent.consume();
+            this.ui.lx.clipboard.setItem(item);
+          }
         } else if (keyCode == KeyEvent.VK_V && this instanceof UIPaste) {
           LXClipboardItem item = this.ui.lx.clipboard.getItem();
           if (item != null) {
