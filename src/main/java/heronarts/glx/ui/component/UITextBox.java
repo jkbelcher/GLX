@@ -18,6 +18,7 @@
 
 package heronarts.glx.ui.component;
 
+import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UICopy;
 import heronarts.glx.ui.UIPaste;
@@ -147,7 +148,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   }
 
   @Override
-  protected boolean isValidCharacter(char keyChar) {
+  public boolean isValidCharacter(char keyChar) {
     return this.validCharacters.indexOf(keyChar) >= 0;
   }
 
@@ -161,6 +162,19 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
         redraw();
       }
     }
+  }
+
+  /**
+   * Gives the text box focus and processes the key event which just occurred which would
+   * give it focus
+   *
+   * @param keyEvent Key Event
+   * @param keyChar Key character
+   * @param keyCode Key code
+   */
+  public void focusKeyPress(KeyEvent keyEvent, char keyChar, int keyCode) {
+    focus(keyEvent);
+    onKeyPressed(keyEvent, keyChar, keyCode);
   }
 
   @Override

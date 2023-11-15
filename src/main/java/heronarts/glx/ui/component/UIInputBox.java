@@ -187,6 +187,11 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
    */
   protected /* abstract */ void onEditChange(String editBuffer) {}
 
+  /**
+   * Subclasses may override to handle when an edit is finished
+   */
+  protected /* abstract */ void onEditFinished() {}
+
   public boolean isEditable() {
     return this.editable;
   }
@@ -297,10 +302,19 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   protected void onBlur() {
     super.onBlur();
     if (this.editing) {
-      this.editing = false;
-      saveEditBuffer(this.editBuffer);
+      editFinished(true);
       redraw();
     }
+  }
+
+  private void editFinished(boolean save) {
+    this.editing = false;
+    if (save) {
+      saveEditBuffer(this.editBuffer);
+    } else {
+      onEditChange(getValueString());
+    }
+    onEditFinished();
   }
 
   protected double getFillWidthNormalized() {
@@ -509,8 +523,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           }
         } else if (keyEvent.isEnter()) {
           keyEvent.consume();
-          this.editing = false;
-          saveEditBuffer(this.editBuffer);
+          editFinished(true);
           redraw();
         } else if (keyEvent.isCommand(KeyEvent.VK_X)) {
           if (this.editRangeEnd != this.editRangeStart) {
@@ -619,8 +632,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           }
         } else if (keyCode == KeyEvent.VK_ESCAPE) {
           keyEvent.consume();
-          this.editing = false;
-          onEditChange(getValueString());
+          editFinished(false);
           redraw();
         }
       } else if (this.enabled) {

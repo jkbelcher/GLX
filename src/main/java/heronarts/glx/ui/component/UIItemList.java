@@ -234,6 +234,8 @@ public interface UIItemList {
 
     private boolean isReorderable = false;
 
+    private boolean isDeletable = true;
+
     private boolean showCheckboxes = false;
 
     private boolean renaming = false;
@@ -488,6 +490,10 @@ public interface UIItemList {
       this.isReorderable = isReorderable;
     }
 
+    private void setDeletable(boolean isDeletable) {
+      this.isDeletable = isDeletable;
+    }
+
     private void setFilter(String filter) {
       if (filter != null) {
         filter = filter.toLowerCase();
@@ -522,9 +528,29 @@ public interface UIItemList {
         }
 
         if (changed) {
+          setFilterFocusIndex();
           recomputeContentHeight();
           this.list.redraw();
         }
+      }
+    }
+
+    private void setFilterFocusIndex() {
+      boolean resetFocus = true;
+      if (this.focusIndex >= 0 && this.focusIndex < this.items.size()) {
+        resetFocus = !this.items.get(this.focusIndex).isVisible();
+      }
+      if (resetFocus) {
+        int focusIndex = -1;
+        int i = 0;
+        for (Item item : this.items) {
+          if (!(item instanceof Section) && item.isVisible()) {
+            focusIndex = i;
+            break;
+          }
+          ++i;
+        }
+        setFocusIndex(focusIndex);
       }
     }
 
@@ -925,8 +951,10 @@ public interface UIItemList {
             activate();
           }
         } else if (keyEvent.isDelete()) {
-          consume = true;
-          delete();
+          if (this.isDeletable) {
+            consume = true;
+            delete();
+          }
         } else if (keyEvent.isCommand() && !keyEvent.isShiftDown()) {
           if (keyCode == KeyEvent.VK_D) {
             consume = true;
@@ -1118,6 +1146,12 @@ public interface UIItemList {
     }
 
     @Override
+    public UIItemList setDeletable(boolean deletable) {
+      this.impl.setDeletable(deletable);
+      return this;
+    }
+
+    @Override
     public UIItemList setFilter(String filter) {
       this.impl.setFilter(filter);
       return this;
@@ -1302,6 +1336,12 @@ public interface UIItemList {
     @Override
     public UIItemList setReorderable(boolean reorderable) {
       this.impl.setReorderable(reorderable);
+      return this;
+    }
+
+    @Override
+    public UIItemList setDeletable(boolean deletable) {
+      this.impl.setDeletable(deletable);
       return this;
     }
 
@@ -1512,6 +1552,15 @@ public interface UIItemList {
    * @return this
    */
   public UIItemList setReorderable(boolean reorderable);
+
+  /**
+   * Sets whether items in the list are deletable. If so, then pressing the
+   * delete key will delete the focused item.
+   *
+   * @param deletable Whether items are deletable
+   * @return this
+   */
+  public UIItemList setDeletable(boolean deletable);
 
   /**
    * Filter the items in the list by a String, resulting list will only
