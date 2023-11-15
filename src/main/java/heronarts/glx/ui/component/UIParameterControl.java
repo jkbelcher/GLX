@@ -140,6 +140,10 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
     return this;
   }
 
+  public boolean isShowLabel() {
+    return this.showLabel;
+  }
+
   public UIParameterControl setLabel(String label) {
     if (this.label != label) {
       this.label = label;

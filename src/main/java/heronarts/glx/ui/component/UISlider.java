@@ -83,7 +83,8 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
 
   @Override
   protected void onResize() {
-    this.handleHeight = this.height;
+    this.handleHeight = this.height -
+      (isShowLabel() ? (LABEL_MARGIN + LABEL_HEIGHT) : 0);
   }
 
   public UISlider resetFillColor() {
