@@ -29,6 +29,12 @@ import heronarts.lx.utils.LXUtils;
 
 public abstract class UI2dComponent extends UIObject {
 
+  public interface UIDragReorder {
+    public default void onDragReorder(UI2dContainer container, UI2dComponent child, int dragIndex) {
+      child.setContainerIndex(dragIndex);
+    }
+  }
+
   /**
    * Marker interface for components whose drawing should be scissored
    */

@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import heronarts.glx.event.KeyEvent;
+import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.utils.LXUtils;
 
 public class UI2dContainer extends UI2dComponent implements UIContainer, Iterable<UIObject> {
@@ -35,7 +36,27 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     VERTICAL_GRID,
     HORIZONTAL_GRID,
     VERTICAL_EVEN,
-    HORIZONTAL_EVEN
+    HORIZONTAL_EVEN;
+
+    public boolean isHorizontalList() {
+      switch (this) {
+      case HORIZONTAL:
+      case HORIZONTAL_EVEN:
+        return true;
+      default:
+        return false;
+      }
+    }
+
+    public boolean isVerticalList() {
+      switch (this) {
+      case VERTICAL:
+      case VERTICAL_EVEN:
+        return true;
+      default:
+        return false;
+      }
+    }
   }
 
   public enum ArrowKeyFocus {
@@ -53,6 +74,8 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
   private float childSpacingX = 0, childSpacingY = 0;
 
   private float minHeight = 0, minWidth = 0;
+
+  private boolean dragToReorder = false;
 
   private UI2dContainer contentTarget;
 
@@ -183,6 +206,15 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       this.contentTarget.reflow();
     }
     return this;
+  }
+
+  public UI2dContainer setDragToReorder(boolean dragToReorder) {
+    this.dragToReorder = dragToReorder;
+    return this;
+  }
+
+  public boolean hasDragToReorder() {
+    return this.dragToReorder;
   }
 
   public UI2dContainer setArrowKeyFocus(ArrowKeyFocus keyFocus) {
@@ -492,6 +524,101 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
           keyEvent.consume();
           keyFocus(keyEvent, 1);
         }
+      }
+    }
+  }
+
+  private float drawDragIndicator = -1;
+
+  @Override
+  protected void onDraw(UI ui, VGraphics vg) {
+    super.onDraw(ui, vg);
+    if (this.drawDragIndicator >= 0) {
+      vg.beginPath();
+      vg.fillColor(ui.theme.attentionColor);
+      if (this.contentTarget.layout.isHorizontalList()) {
+        vg.rect(
+          this.drawDragIndicator - .5f,
+          this.topPadding,
+          1,
+          this.contentTarget.height - this.topPadding - this.bottomPadding
+        );
+      } else if (this.contentTarget.layout.isVerticalList()) {
+        vg.rect(
+          this.leftPadding,
+          this.drawDragIndicator - .5f,
+          this.contentTarget.width - this.leftPadding - this.rightPadding,
+          1
+        );
+      }
+      vg.fill();
+    }
+  }
+
+  void dragChild(UIObject drag, float mx, float my, boolean release) {
+    mx += drag.getX();
+    my += drag.getY();
+
+    final boolean isHorizontal = this.contentTarget.layout.isHorizontalList();
+    final boolean isVertical = this.contentTarget.layout.isVerticalList();
+
+    UIObject hover = null;
+    int hoverIndex = -1;
+    int dragIndex = -1;
+
+    int index = 0;
+    for (UIObject child : this.contentTarget) {
+      if (child == drag) {
+        dragIndex = index;
+      } else if (child.isVisible()) {
+        if (isHorizontal && (mx > child.getX())) {
+          hover = child;
+          hoverIndex = index;
+        } else if (isVertical && (my > child.getY())) {
+          hover = child;
+          hoverIndex = index;
+        }
+      }
+      ++index;
+    }
+
+    float dragPos = -1;
+    if ((hover != null) && (hover != drag)) {
+      if (isHorizontal) {
+        if (mx > hover.getX() + .5f * hover.getWidth()) {
+          dragPos = LXUtils.minf(this.contentTarget.width - .5f, hover.getX() + hover.getWidth() + .5f * this.contentTarget.childSpacingX);
+          ++hoverIndex;
+        } else {
+          dragPos = LXUtils.maxf(.5f, hover.getX() - .5f * this.contentTarget.childSpacingX);
+        }
+      } else if (isVertical) {
+        if (my > hover.getY() + .5f * hover.getHeight()) {
+          dragPos = LXUtils.minf(this.contentTarget.height - .5f, hover.getY() + hover.getHeight() + .5f * this.contentTarget.childSpacingY);
+          ++hoverIndex;
+        } else {
+          dragPos = LXUtils.maxf(.5f, hover.getY() - .5f * this.contentTarget.childSpacingY);
+        }
+      }
+    }
+
+    if (hoverIndex > dragIndex) {
+      --hoverIndex;
+    }
+    if (!release && (hoverIndex != dragIndex)) {
+      // Redraw if the drag indicator position has changed
+      if (this.drawDragIndicator != dragPos) {
+        this.drawDragIndicator = dragPos;
+        redraw();
+      }
+    } else {
+      if (release) {
+        if ((hoverIndex >= 0) && (hoverIndex != dragIndex)) {
+          ((UI2dComponent.UIDragReorder) drag).onDragReorder(this, (UI2dComponent) drag, hoverIndex);
+        }
+      }
+      if (this.drawDragIndicator >= 0) {
+        this.drawDragIndicator = -1;
+        redraw();
       }
     }
   }

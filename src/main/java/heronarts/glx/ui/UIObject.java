@@ -557,7 +557,11 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    */
   protected void onUIResize(UI ui) {}
 
+  private UI2dContainer dragging = null;
+
   void mousePressed(MouseEvent mouseEvent, float mx, float my) {
+    this.dragging = null;
+
     if (isMidiMapping()) {
       this.ui.setControlTarget((UIControlTarget) this);
       return;
@@ -617,6 +621,13 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
 
     // If mouse press was consumed by a child, don't handle it ourselves
     if (!mouseEvent.isConsumed()) {
+      if (mouseEvent.isButton(MouseEvent.BUTTON_LEFT) && (this instanceof UI2dComponent.UIDragReorder)) {
+        UI2dContainer container = ((UI2dComponent) this).getContainer();
+        if ((container != null) && container.hasDragToReorder()) {
+          this.dragging = container;
+        }
+      }
+
       if (!hasFocus() && (this instanceof UIMouseFocus)) {
         focus(mouseEvent);
       }
@@ -648,6 +659,11 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
       this.overChild.mouseOut(mouseEvent);
       this.overChild = null;
     }
+
+    if (this.dragging != null) {
+      this.dragging.dragChild(this, mx, my, true);
+      this.dragging = null;
+    }
   }
 
   void mouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
@@ -665,6 +681,9 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     }
     if (!mouseEvent.isConsumed()) {
       onMouseDragged(mouseEvent, mx, my, dx, dy);
+    }
+    if (this.dragging != null) {
+      this.dragging.dragChild(this, mx, my, false);
     }
   }
 
