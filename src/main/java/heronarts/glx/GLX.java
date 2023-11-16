@@ -840,10 +840,11 @@ public class GLX extends LX {
           );
           dialogShowing = false;
           if (path != null) {
-            final int index = path.indexOf('.');
-            if (index < 0) {
+            final int dot = path.lastIndexOf('.');
+            final int separator = path.lastIndexOf(File.separatorChar);
+            if (dot < 0 || dot < separator) {
               path = path + "." + extensions[0];
-            } else if (index == path.length() - 1) {
+            } else if (dot == path.length() - 1) {
               path = path + extensions[0];
             }
             final String finalPath = path;
