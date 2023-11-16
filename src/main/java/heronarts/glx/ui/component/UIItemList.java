@@ -246,7 +246,10 @@ public interface UIItemList {
 
     private UIInputBox.EditState editState = new UIInputBox.EditState();
 
-    private boolean dragging;
+    private boolean scrolling = false;
+
+    private Item dragging = null;
+    private float dragY = -1;
 
     private boolean mouseChevronPress = false;
 
@@ -324,6 +327,7 @@ public interface UIItemList {
       focusIndex = LXUtils.constrain(focusIndex, -1, this.items.size() - 1);
       if (this.focusIndex != focusIndex) {
         this.renaming = false;
+        cancelDragging();
         if ((focusIndex >= 0) && scroll && this.list instanceof ScrollList) {
           ScrollList scrollList = (ScrollList) this.list;
           final float yOffset = getFocusYOffset(focusIndex);
@@ -438,12 +442,14 @@ public interface UIItemList {
         }
       }
       recomputeContentHeight();
+      cancelDragging();
       this.list.redraw();
     }
 
     private void moveItem(Item item, int index) {
       this.items.remove(item);
       this.items.add(index, item);
+      cancelDragging();
       this.list.redraw();
     }
 
@@ -454,6 +460,7 @@ public interface UIItemList {
      * @return this
      */
     private void setItems(List<? extends Item> items) {
+      cancelDragging();
       this.items.clear();
       for (Item item : items) {
         Section section = item.getSection();
@@ -476,6 +483,7 @@ public interface UIItemList {
     }
 
     private void clearItems() {
+      cancelDragging();
       this.items.clear();
       setContentHeight(ROW_MARGIN);
       this.list.redraw();
@@ -804,6 +812,12 @@ public interface UIItemList {
         ++index;
       }
 
+      if ((this.dragging != null) && (this.dragY >= 0)) {
+        vg.fillColor(ui.theme.attentionColor);
+        vg.beginPath();
+        vg.rect(PADDING, LXUtils.constrainf(this.dragY + getScrollY() - .5f, PADDING, getHeight()-PADDING), getRowWidth() - 2*PADDING, 1);
+        vg.fill();
+      }
 
       if (this.controlSurfaceFocusIndex >= 0 && this.controlSurfaceFocusLength > 0) {
         vg.strokeColor(this.controlSurfaceFocusColor);
@@ -824,19 +838,18 @@ public interface UIItemList {
 
     }
 
-    private int getMouseItemIndex(float my) {
-      if ((my % (ROW_SPACING)) < ROW_MARGIN) {
+    private int getMousePressIndex(float my) {
+      if ((my % ROW_SPACING) < ROW_MARGIN) {
         // Don't detect clicks on strip between rows
         return -1;
       }
-
       int visibleIndex = (int) (my / (ROW_SPACING));
-      int counter = 0;
+      int visibleCounter = 0;
       int itemIndex = 0;
       int mouseIndex = -1;
       for (Item item : this.items) {
         if (item.isVisible()) {
-          if (counter++ >= visibleIndex) {
+          if (visibleCounter++ >= visibleIndex) {
             mouseIndex = itemIndex;
             break;
           }
@@ -849,11 +862,13 @@ public interface UIItemList {
     private void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
       this.mouseActivate = -1;
       this.mouseChevronPress = false;
+      cancelDragging();
+
       if (getScrollHeight() > getHeight() && mx >= getRowWidth()) {
-        this.dragging = true;
+        this.scrolling = true;
       } else {
-        this.dragging = false;
-        int index = getMouseItemIndex(my - getScrollY());
+        this.scrolling = false;
+        int index = getMousePressIndex(my - getScrollY());
         if (index >= 0) {
           setFocusIndex(index);
           if (this.showCheckboxes && (mx < (5*PADDING + CHECKBOX_SIZE))) {
@@ -869,6 +884,8 @@ public interface UIItemList {
               if (this.isMomentary) {
                 this.mouseActivate = this.focusIndex;
               }
+            } else if (this.isReorderable) {
+              this.dragging = this.items.get(index);
             }
           }
         }
@@ -876,14 +893,17 @@ public interface UIItemList {
     }
 
     private void onMouseDragged(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
-      if (this.dragging) {
+      if (this.scrolling) {
         mouseEvent.consume();
         setScrollY(getScrollY() - dy * (getScrollHeight() / getHeight()));
+      } else if (this.dragging != null) {
+        mouseEvent.consume();
+        dragItem(mx, my, false);
       }
     }
 
     private void onMouseReleased(MouseEvent mouseEvent, float mx, float my) {
-      this.dragging = false;
+      this.scrolling = false;
       if (this.mouseActivate >= 0 && this.mouseActivate < this.items.size()) {
         Item item = this.items.get(this.mouseActivate);
         item.onDeactivate();
@@ -892,6 +912,77 @@ public interface UIItemList {
         }
       }
       this.mouseActivate = -1;
+      if (this.dragging != null) {
+        dragItem(mx, my, true);
+        cancelDragging();
+        this.list.redraw();
+      }
+    }
+
+    private void cancelDragging() {
+      this.dragging = null;
+      this.dragY = -1;
+    }
+
+    private void dragItem(float mx, float my, boolean release) {
+      float dragY = -1;
+      int targetIndex = -1;
+      boolean before = true;
+
+      if (mx >= 0 && mx < getRowWidth() && my >= 0 && my < getHeight()) {
+        my -= getScrollY();
+
+        int visibleIndex = (int) (my / ROW_SPACING);
+        boolean bottomHalf = (my % ROW_SPACING) > (ROW_MARGIN + ROW_HEIGHT / 2);
+        int visibleCounter = 0;
+
+        int itemIndex = 0;
+        for (Item item : this.items) {
+          if (item.isVisible()) {
+            ++visibleCounter;
+          }
+          if (visibleCounter > visibleIndex) {
+            if (this.dragging == item) {
+              break;
+            }
+            targetIndex = itemIndex + (bottomHalf ? 1 : 0);
+            dragY = 1 + ROW_SPACING * (visibleCounter - (bottomHalf ? 0 : 1));
+            break;
+          } else if (this.dragging == item) {
+            before = false;
+          }
+          ++itemIndex;
+        }
+      }
+
+      if (!before) {
+        --targetIndex;
+      }
+
+      if (targetIndex >= 0) {
+        int dragIndex = this.items.indexOf(this.dragging);
+        if (dragIndex == targetIndex) {
+          targetIndex = -1;
+        }
+      }
+
+      if (!release && (targetIndex >= 0)) {
+        if (this.dragY != dragY) {
+          this.dragY = dragY;
+          this.list.redraw();
+        }
+      } else {
+        if (release && (targetIndex >= 0)) {
+          this.items.remove(this.dragging);
+          this.items.add(targetIndex, this.dragging);
+          this.dragging.onReorder(this.focusIndex = targetIndex);
+        }
+        if (this.dragY != -1) {
+          this.dragY = -1;
+          this.list.redraw();
+        }
+      }
+
     }
 
     private void onBlur() {
