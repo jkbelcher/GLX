@@ -596,6 +596,17 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     final boolean isHorizontal = this.contentTarget.layout.isHorizontalList();
     final boolean isVertical = this.contentTarget.layout.isVerticalList();
 
+    final boolean invalid =
+      (isVertical && (mx < 0 || mx > this.contentTarget.getScrollWidth())) ||
+      (isHorizontal && (my < 0 || my > this.contentTarget.getScrollHeight()));
+    if (invalid) {
+      if (this.drawDragIndicator >= 0) {
+        this.drawDragIndicator = -1;
+        redraw();
+      }
+      return;
+    }
+
     UIObject hover = null;
     int hoverIndex = -1;
     int dragIndex = -1;
@@ -604,7 +615,7 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     for (UIObject child : this.contentTarget) {
       if (child == drag) {
         dragIndex = index;
-      } else if (child.isVisible()) {
+      } else if (child.isVisible() && (child instanceof UI2dComponent.UIDragReorder)) {
         if (isHorizontal && (mx > child.getX())) {
           hover = child;
           hoverIndex = index;

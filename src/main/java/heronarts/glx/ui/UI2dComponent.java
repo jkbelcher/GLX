@@ -29,7 +29,30 @@ import heronarts.lx.utils.LXUtils;
 
 public abstract class UI2dComponent extends UIObject {
 
+  /**
+   * Marker interface for components which can be dragged to reorder
+   * them within their container.
+   */
   public interface UIDragReorder {
+
+    /**
+     * Whether this mouse press position is valid to initiate dragging
+     *
+     * @param mx Mouse x position
+     * @param my Mouse y position
+     * @return Whether to commence dragging from here
+     */
+    public default boolean isValidDragPosition(float mx, float my) {
+      return true;
+    }
+
+    /**
+     * Callback when an attempt is made to reorder this component in its container
+     *
+     * @param container Parent container
+     * @param child Element being reordered
+     * @param dragIndex Targeted index in parent container
+     */
     public default void onDragReorder(UI2dContainer container, UI2dComponent child, int dragIndex) {
       child.setContainerIndex(dragIndex);
     }

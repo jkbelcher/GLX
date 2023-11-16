@@ -621,18 +621,20 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
 
     // If mouse press was consumed by a child, don't handle it ourselves
     if (!mouseEvent.isConsumed()) {
-      if (mouseEvent.isButton(MouseEvent.BUTTON_LEFT) && (this instanceof UI2dComponent.UIDragReorder)) {
-        UI2dContainer container = ((UI2dComponent) this).getContainer();
-        if ((container != null) && container.hasDragToReorder()) {
-          this.dragging = container;
-        }
-      }
-
       if (!hasFocus() && (this instanceof UIMouseFocus)) {
         focus(mouseEvent);
       }
       if (!mouseEvent.isContextMenuConsumed()) {
         onMousePressed(mouseEvent, mx, my);
+      }
+      if (!mouseEvent.isConsumed() && mouseEvent.isButton(MouseEvent.BUTTON_LEFT) && (this instanceof UI2dComponent.UIDragReorder)) {
+        UI2dComponent.UIDragReorder drag = (UI2dComponent.UIDragReorder) this;
+        if (drag.isValidDragPosition(mx, my)) {
+          UI2dContainer container = ((UI2dComponent) this).getContainer();
+          if ((container != null) && container.hasDragToReorder()) {
+            this.dragging = container;
+          }
+        }
       }
     }
 
@@ -681,10 +683,10 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     }
     if (!mouseEvent.isConsumed()) {
       onMouseDragged(mouseEvent, mx, my, dx, dy);
-      if (this.dragging != null) {
-        mouseEvent.consume();
-        this.dragging.dragChild(this, mx, my, false);
-      }
+    }
+    if (this.dragging != null) {
+      mouseEvent.consume();
+      this.dragging.dragChild(this, mx, my, false);
     }
   }
 
