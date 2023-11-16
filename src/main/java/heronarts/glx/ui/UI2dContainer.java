@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import heronarts.glx.GLX;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.utils.LXUtils;
@@ -56,6 +57,10 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       default:
         return false;
       }
+    }
+
+    public boolean canDragReorder() {
+      return isHorizontalList() || isVerticalList();
     }
   }
 
@@ -204,11 +209,18 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     if (this.contentTarget.layout != layout) {
       this.contentTarget.layout = layout;
       this.contentTarget.reflow();
+      if (this.dragToReorder && !layout.canDragReorder()) {
+        GLX.error(new Exception("Container had dragToReorder set but invalid layout later specified: " + this + " " + layout));
+        this.dragToReorder = false;
+      }
     }
     return this;
   }
 
   public UI2dContainer setDragToReorder(boolean dragToReorder) {
+    if (dragToReorder && !this.contentTarget.layout.canDragReorder()) {
+      throw new IllegalStateException("Cannot set dragToReorder on a container with a non-list layout:"  + this);
+    }
     this.dragToReorder = dragToReorder;
     return this;
   }
