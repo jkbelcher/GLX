@@ -403,6 +403,28 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     return this.contentTarget;
   }
 
+  /**
+   * Returns the width of scrolling content. By default this is the same as the width
+   * of the container itself, but if the container scrolls then the scroll width may
+   * be a larger value.
+   *
+   * @return Width of scrollable content
+   */
+  public float getScrollWidth() {
+    return getWidth();
+  }
+
+  /**
+   * Returns the height of scrolling content. By default this is the same as the height
+   * of the container itself, but if the container scrolls then the scroll height may
+   * be a larger value.
+   *
+   * @return Height of scrollable content
+   */
+  public float getScrollHeight() {
+    return getHeight();
+  }
+
   @Override
   public float getContentWidth() {
     return getContentTarget().getWidth();
@@ -598,14 +620,14 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     if ((hover != null) && (hover != drag)) {
       if (isHorizontal) {
         if (mx > hover.getX() + .5f * hover.getWidth()) {
-          dragPos = LXUtils.minf(this.contentTarget.width - .5f, hover.getX() + hover.getWidth() + .5f * this.contentTarget.childSpacingX);
+          dragPos = LXUtils.minf(this.contentTarget.getScrollWidth() - .5f, hover.getX() + hover.getWidth() + .5f * this.contentTarget.childSpacingX);
           ++hoverIndex;
         } else {
           dragPos = LXUtils.maxf(.5f, hover.getX() - .5f * this.contentTarget.childSpacingX);
         }
       } else if (isVertical) {
         if (my > hover.getY() + .5f * hover.getHeight()) {
-          dragPos = LXUtils.minf(this.contentTarget.height - .5f, hover.getY() + hover.getHeight() + .5f * this.contentTarget.childSpacingY);
+          dragPos = LXUtils.minf(this.contentTarget.getScrollHeight() - .5f, hover.getY() + hover.getHeight() + .5f * this.contentTarget.childSpacingY);
           ++hoverIndex;
         } else {
           dragPos = LXUtils.maxf(.5f, hover.getY() - .5f * this.contentTarget.childSpacingY);

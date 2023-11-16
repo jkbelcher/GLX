@@ -681,9 +681,10 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     }
     if (!mouseEvent.isConsumed()) {
       onMouseDragged(mouseEvent, mx, my, dx, dy);
-    }
-    if (this.dragging != null) {
-      this.dragging.dragChild(this, mx, my, false);
+      if (this.dragging != null) {
+        mouseEvent.consume();
+        this.dragging.dragChild(this, mx, my, false);
+      }
     }
   }
 
