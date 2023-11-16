@@ -238,7 +238,7 @@ public interface UIItemList {
 
     private boolean isReorderable = false;
 
-    private boolean isDeletable = true;
+    private boolean isDeletable = false;
 
     private boolean showCheckboxes = false;
 
@@ -1071,6 +1071,7 @@ public interface UIItemList {
       return this;
     }
 
+    @Override
     public float getScrollHeight() {
       return this.scrollHeight;
     }
