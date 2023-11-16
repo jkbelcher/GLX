@@ -180,7 +180,10 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
   @Override
   public LXClipboardItem onCopy() {
     if (this.editing) {
-      return new LXTextValue(getEditRange());
+      String editRange = getEditRange();
+      if (!editRange.isEmpty()) {
+        return new LXTextValue(editRange);
+      }
     }
     if (this.parameter != null) {
       return new LXTextValue(this.parameter);
