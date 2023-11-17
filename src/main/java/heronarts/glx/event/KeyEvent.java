@@ -217,6 +217,10 @@ public class KeyEvent extends Event {
     return isCommand() && (this.keyCode == keyCode);
   }
 
+  public boolean isShiftDown(int keyCode) {
+    return isShiftDown() && (this.keyCode == keyCode);
+  }
+
   public boolean isRepeat() {
     return this.action == Action.REPEAT;
   }
