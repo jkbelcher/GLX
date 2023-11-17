@@ -193,7 +193,9 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
     }
 
     public default UIDoubleBox geometryBox(BoundedParameter p) {
-      return new UIDoubleBox(42, 16, p).setNormalizedMouseEditing(false);
+      return (UIDoubleBox) new UIDoubleBox(42, 16, p)
+        .setNormalizedMouseEditing(false)
+        .setShiftMultiplier(10f);
     }
 
     public default UI2dComponent geometryContainer(UI ui, float contentWidth, UI2dComponent ... components) {
