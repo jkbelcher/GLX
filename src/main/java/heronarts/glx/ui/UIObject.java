@@ -63,8 +63,8 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
 
   UIObject focusedChild = null;
 
-  private UIObject pressedChild = null;
-  private UIObject overChild = null;
+  UIObject pressedChild = null;
+  UIObject overChild = null;
 
   private boolean consumeMousePress = false;
 

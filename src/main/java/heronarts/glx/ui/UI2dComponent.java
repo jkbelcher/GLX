@@ -1059,6 +1059,12 @@ public abstract class UI2dComponent extends UIObject {
     }
     int index = this.parent.mutableChildren.indexOf(this);
     this.parent.mutableChildren.remove(index);
+    if (this.parent.pressedChild == this) {
+      this.parent.pressedChild = null;
+    }
+    if (this.parent.overChild == this) {
+      this.parent.overChild = null;
+    }
     if (this.parent instanceof UI2dContainer) {
       UI2dContainer container = (UI2dContainer) this.parent;
 
