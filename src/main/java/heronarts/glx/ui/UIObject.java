@@ -557,7 +557,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    */
   protected void onUIResize(UI ui) {}
 
-  private UI2dContainer dragging = null;
+  UI2dContainer dragging = null;
 
   void mousePressed(MouseEvent mouseEvent, float mx, float my) {
     this.dragging = null;

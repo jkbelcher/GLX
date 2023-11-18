@@ -1049,6 +1049,10 @@ public abstract class UI2dComponent extends UIObject {
     if (this.parent == null) {
       throw new IllegalStateException("Cannot remove parentless UIObject from container");
     }
+    if (this.dragging != null) {
+      this.dragging.dragCancel();
+      this.dragging = null;
+    }
     boolean hadFocus = hasFocus();
     if (hadFocus) {
       blur();

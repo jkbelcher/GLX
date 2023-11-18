@@ -589,6 +589,13 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     }
   }
 
+  void dragCancel() {
+    if (this.drawDragIndicator >= 0) {
+      this.drawDragIndicator = -1;
+      redraw();
+    }
+  }
+
   void dragChild(UIObject drag, float mx, float my, boolean release) {
     mx += drag.getX();
     my += drag.getY();
@@ -600,10 +607,7 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       (isVertical && (mx < 0 || mx > this.contentTarget.getScrollWidth())) ||
       (isHorizontal && (my < 0 || my > this.contentTarget.getScrollHeight()));
     if (invalid) {
-      if (this.drawDragIndicator >= 0) {
-        this.drawDragIndicator = -1;
-        redraw();
-      }
+      dragCancel();
       return;
     }
 
@@ -661,10 +665,7 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
           ((UI2dComponent.UIDragReorder) drag).onDragReorder(this, (UI2dComponent) drag, hoverIndex);
         }
       }
-      if (this.drawDragIndicator >= 0) {
-        this.drawDragIndicator = -1;
-        redraw();
-      }
+      dragCancel();
     }
   }
 }
