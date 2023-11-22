@@ -231,11 +231,11 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   public final BoundedParameter feather =
     new BoundedParameter("Feather", 0)
     .setUnits(BoundedParameter.Units.PERCENT_NORMALIZED)
-    .setDescription("Feather the point size for dimmer values");
+    .setDescription("Percentage by which to reduce the point size as brightness is lower");
 
   public final DiscreteParameter alphaRef =
     new DiscreteParameter("Alpha Cutoff", 8, 0, 256)
-    .setDescription("Alpha cutoff");
+    .setDescription("At which alpha level to discard the point texture (0 shows everything)");
 
   public final BooleanParameter depthTest =
     new BooleanParameter("Depth Test", true)
