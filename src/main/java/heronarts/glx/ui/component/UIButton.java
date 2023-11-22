@@ -352,6 +352,10 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     setLabel(enumFormatter.toString(p));
   }
 
+  public UIButton(float w, float h) {
+    this(0, 0, w, h);
+  }
+
   public UIButton(float x, float y, float w, float h) {
     super(x, y, w, h);
     setBorderColor(UI.get().theme.controlBorderColor);
