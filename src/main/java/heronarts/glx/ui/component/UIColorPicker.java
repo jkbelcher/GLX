@@ -273,6 +273,11 @@ public class UIColorPicker extends UI2dComponent {
         this.hex = (UITextBox) new UITextBox(56, 16) {
 
           @Override
+          public String getDescription() {
+            return "Displays the color value as a RGB hex string";
+          }
+
+          @Override
           public void onEditFinished() {
             String val = getValue().trim().replace("#", "");
             boolean reset = true;
