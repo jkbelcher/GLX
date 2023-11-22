@@ -49,6 +49,7 @@ import heronarts.lx.model.LXModel;
 import heronarts.lx.model.LXPoint;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.BoundedParameter;
+import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.EnumParameter;
 
 public class UIPointCloud extends UI3dComponent implements LXSerializable {
@@ -83,8 +84,9 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     @Override
     public void setUniforms(View view) {
       bgfx_set_texture(0, this.uniformTexture, textures[ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_NONE);
-      this.dimensionsBuffer.put(0, view.getWidth());
-      this.dimensionsBuffer.put(1, view.getHeight());
+      // this.dimensionsBuffer.put(0, view.getWidth());
+      // this.dimensionsBuffer.put(1, view.getHeight());
+      this.dimensionsBuffer.put(1, feather.getValuef());
       this.dimensionsBuffer.put(2, view.getAspectRatio());
       switch (getContext().projection.getEnum()) {
       case PERSPECTIVE:
@@ -226,6 +228,15 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     new BoundedParameter("Point Size", 3, .1, 100000)
     .setDescription("Size of points rendered in the preview display");
 
+  public final BoundedParameter feather =
+    new BoundedParameter("Feather", 0)
+    .setUnits(BoundedParameter.Units.PERCENT_NORMALIZED)
+    .setDescription("Feather the point size for dimmer values");
+
+  public final DiscreteParameter alphaRef =
+    new DiscreteParameter("Alpha Cutoff", 8, 0, 256)
+    .setDescription("Alpha cutoff");
+
   public final BooleanParameter depthTest =
     new BooleanParameter("Depth Test", true)
     .setDescription("Whether to use depth test in rendering");
@@ -358,15 +369,14 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.colorBuffer.update();
 
     // Submit our drawing program!
-    long state =
+    this.program.submit(
+      view,
       BGFX_STATE_WRITE_RGB |
       BGFX_STATE_WRITE_Z |
       BGFX_STATE_BLEND_ALPHA |
-      BGFX_STATE_ALPHA_REF(32);
-    if (this.depthTest.isOn()) {
-      state |= BGFX_STATE_DEPTH_TEST_LESS;
-    }
-    this.program.submit(view, state);
+      BGFX_STATE_ALPHA_REF(this.alphaRef.getValuei()) |
+      (this.depthTest.isOn() ? BGFX_STATE_DEPTH_TEST_LESS : 0)
+    );
   }
 
   private static final long Z_SORT_TIMEOUT_MS = 50;
@@ -382,12 +392,16 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   }
 
   private static final String KEY_POINT_SIZE = "pointSize";
+  private static final String KEY_ALPHA_REF = "alphaRef";
+  private static final String KEY_FEATHER = "feather";
   private static final String KEY_DEPTH_TEST = "depthTest";
   private static final String KEY_LED_STYLE = "ledStyle";
 
   @Override
   public void save(LX lx, JsonObject object) {
     object.addProperty(KEY_POINT_SIZE, this.pointSize.getValue());
+    object.addProperty(KEY_ALPHA_REF, this.alphaRef.getValuei());
+    object.addProperty(KEY_FEATHER, this.feather.getValue());
     object.addProperty(KEY_DEPTH_TEST, this.depthTest.isOn());
     object.addProperty(KEY_LED_STYLE, this.ledStyle.getValuei());
   }
@@ -400,6 +414,8 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       this.ledStyle.reset();
     } else {
       LXSerializable.Utils.loadDouble(this.pointSize, object, KEY_POINT_SIZE);
+      LXSerializable.Utils.loadInt(this.alphaRef, object, KEY_ALPHA_REF);
+      LXSerializable.Utils.loadDouble(this.feather, object, KEY_FEATHER);
       LXSerializable.Utils.loadBoolean(this.depthTest, object, KEY_DEPTH_TEST);
       LXSerializable.Utils.loadInt(this.ledStyle, object, KEY_LED_STYLE);
     }
