@@ -143,7 +143,7 @@ public class InputDispatch implements LXEngine.Dispatch {
     queueEvent(new MouseEvent(MouseEvent.Action.SCROLL, (float) this.cursorX, (float) this.cursorY, (float) dx, (float) dy, this.modifiers));
   }
 
-  public static final double POLL_TIMEOUT = 1/30.;
+  public static final double POLL_TIMEOUT = 1/60.;
 
   void poll() {
     // It doesn't seem like V-Sync always works, definitely not on a Mac...
