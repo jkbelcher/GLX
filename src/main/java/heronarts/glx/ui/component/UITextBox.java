@@ -48,6 +48,10 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
     this(0, 0, 0, 0);
   }
 
+  public UITextBox(float w, float h) {
+    this(0, 0, w, h);
+  }
+
   public UITextBox(float x, float y, float w, float h) {
     super(x, y, w, h);
     enableImmediateAppend();
@@ -185,11 +189,11 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
         return new LXTextValue(editRange);
       }
     }
-    if (this.parameter != null) {
-      return new LXTextValue(this.parameter);
+    String str = (this.parameter != null) ? this.parameter.getString() : getValue();
+    if (!str.isEmpty()) {
+      return new LXTextValue(str);
     }
     return null;
-
   }
 
   @Override
@@ -200,6 +204,7 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
           editAppend(((LXTextValue) item).getValue());
         } else {
           setValue(((LXTextValue) item).getValue());
+          onEditFinished();
         }
       }
     }

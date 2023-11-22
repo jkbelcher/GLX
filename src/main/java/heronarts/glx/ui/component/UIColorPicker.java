@@ -18,6 +18,7 @@
 
 package heronarts.glx.ui.component;
 
+import heronarts.glx.GLX;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
@@ -241,6 +242,9 @@ public class UIColorPicker extends UI2dComponent {
     private final UIDoubleBox hue;
     private final UIDoubleBox saturation;
     private final UIDoubleBox brightness;
+    private final UITextBox hex;
+    private final LXParameterListener hexListener = p -> { setHexBox(); };
+    private ColorParameter hexColor;
 
     UIColorOverlay(UI ui) {
       this(ui, color instanceof LinkedColorParameter ? 38 : 8);
@@ -256,20 +260,42 @@ public class UIColorPicker extends UI2dComponent {
       this.swatch = new UISwatch();
       this.swatch.addToContainer(this);
 
-      float xp = this.swatch.getX() + this.swatch.getWidth();
-      float yp = 16;
-      this.hue = (UIDoubleBox) new UIDoubleBox(xp, yp, 56, color.hue).addToContainer(this);
-      new UILabel(xp, yp + 16, 56, "Hue").setTextAlignment(VGraphics.Align.CENTER).addToContainer(this);
+      UI2dContainer.newVerticalContainer(56, 4,
+        this.hue = new UIDoubleBox(56, color.hue),
+        new UILabel.Control(ui, 56, 11, "Hue").setTextAlignment(VGraphics.Align.CENTER, VGraphics.Align.TOP),
 
-      yp += 40;
+        this.saturation = new UIDoubleBox(56, color.saturation),
+        new UILabel.Control(ui, 56, 11, "Sat").setTextAlignment(VGraphics.Align.CENTER, VGraphics.Align.TOP),
 
-      this.saturation = (UIDoubleBox) new UIDoubleBox(xp, yp, 56, color.saturation).addToContainer(this);
-      new UILabel(xp, yp + 16, 56, "Sat").setTextAlignment(VGraphics.Align.CENTER).addToContainer(this);
+        this.brightness = new UIDoubleBox(56, color.brightness),
+        new UILabel.Control(ui, 56, 11, "Bright").setTextAlignment(VGraphics.Align.CENTER, VGraphics.Align.TOP),
 
-      yp += 40;
+        this.hex = (UITextBox) new UITextBox(56, 16) {
 
-      this.brightness = (UIDoubleBox) new UIDoubleBox(xp, yp, 56, color.brightness).addToContainer(this);
-      new UILabel(xp, yp + 16, 56, "Bright").setTextAlignment(VGraphics.Align.CENTER).addToContainer(this);
+          @Override
+          public void onEditFinished() {
+            String val = getValue().trim().replace("#", "");
+            boolean reset = true;
+            if (val.length() == 6) {
+              try {
+                color.setColor(LXColor.ALPHA_MASK | Integer.parseInt(val, 16));
+                reset = false;
+              } catch (NumberFormatException nfx) {
+                GLX.error(nfx, "Invalid hex string in color RGB box: " + val);
+              }
+            }
+            if (reset) {
+              setHexBox();
+            }
+          }
+        }
+        .setValidCharacters("#ABCDEFabcdef0123456789")
+        .disableImmediateAppend()
+        .setTextAlignment(VGraphics.Align.CENTER)
+        .setTopMargin(1)
+      )
+      .setPosition(this.swatch.getX() + this.swatch.getWidth(), 11)
+      .addToContainer(this);
 
       if (color instanceof LinkedColorParameter) {
         LinkedColorParameter linkedColor = (LinkedColorParameter) color;
@@ -295,12 +321,24 @@ public class UIColorPicker extends UI2dComponent {
           this.hue.setEnabled(!isLinked);
           this.saturation.setEnabled(!isLinked);
           this.brightness.setEnabled(!isLinked);
+          this.hex.setEnabled(!isLinked);
           indexBox.setEnabled(isLinked);
         }, true);
+      }
+
+      updateColor();
+    }
+
+    private void setHexBox() {
+      if (color != null) {
+        this.hex.setValue(String.format("%06x", color.getColor() & LXColor.RGB_MASK));
       }
     }
 
     private void updateColor() {
+      if (this.hexColor != null) {
+        this.hexColor.removeListener(this.hexListener);
+      }
       if (color == null) {
         this.hue.setParameter(null);
         this.saturation.setParameter(null);
@@ -309,7 +347,16 @@ public class UIColorPicker extends UI2dComponent {
         this.hue.setParameter(color.hue);
         this.saturation.setParameter(color.saturation);
         this.brightness.setParameter(color.brightness);
+        color.addListener(this.hexListener, true);
       }
+    }
+
+    @Override
+    public void dispose() {
+      if (this.hexColor != null) {
+        this.hexColor.removeListener(this.hexListener);
+      }
+      super.dispose();
     }
 
     private class UISwatch extends UI2dComponent implements UIFocus {
