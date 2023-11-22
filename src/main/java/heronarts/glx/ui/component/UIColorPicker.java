@@ -343,6 +343,7 @@ public class UIColorPicker extends UI2dComponent {
     private void updateColor() {
       if (this.hexColor != null) {
         this.hexColor.removeListener(this.hexListener);
+        this.hexColor = null;
       }
       if (color == null) {
         this.hue.setParameter(null);
@@ -352,6 +353,7 @@ public class UIColorPicker extends UI2dComponent {
         this.hue.setParameter(color.hue);
         this.saturation.setParameter(color.saturation);
         this.brightness.setParameter(color.brightness);
+        this.hexColor = color;
         color.addListener(this.hexListener, true);
       }
     }
@@ -360,6 +362,7 @@ public class UIColorPicker extends UI2dComponent {
     public void dispose() {
       if (this.hexColor != null) {
         this.hexColor.removeListener(this.hexListener);
+        this.hexColor = null;
       }
       super.dispose();
     }
