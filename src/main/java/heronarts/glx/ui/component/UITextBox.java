@@ -58,6 +58,15 @@ public class UITextBox extends UIInputBox implements UICopy, UIPaste {
     setMouseEditable(false);
   }
 
+  public UITextBox(float w, float h, StringParameter parameter) {
+    this(0, 0, w, h, parameter);
+  }
+
+  public UITextBox(float x, float y, float w, float h, StringParameter parameter) {
+    this(x, y, w, h);
+    setParameter(parameter);
+  }
+
   @Override
   public LXParameter getParameter() {
     return this.parameter;
