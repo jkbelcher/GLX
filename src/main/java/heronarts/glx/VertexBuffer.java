@@ -56,8 +56,15 @@ public abstract class VertexBuffer {
   }
 
   public static class UnitCubeEdges extends VertexBuffer {
+
+    public static final int NUM_VERTICES = 24;
+
     public UnitCubeEdges(GLX glx) {
-      super(glx, 24, VertexDeclaration.ATTRIB_POSITION);
+      this(glx, NUM_VERTICES);
+    }
+
+    protected UnitCubeEdges(GLX glx, int numVertices) {
+      super(glx, numVertices, VertexDeclaration.ATTRIB_POSITION);
     }
 
     @Override
