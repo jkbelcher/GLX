@@ -27,9 +27,14 @@ void main()
 
   // Apply a reverse-gamma curve to the brightest of the color components
   float maxC = max(max(a_color0.r, a_color0.g), a_color0.b);
-  float adjusted = 1.0f - pow(1.0f - maxC, u_contrast);
+  float adjusted = maxC;
+  float ratio = 1.0f;
+
+  if (maxC > 0.0f) {
+    // Use this ratio on all color components (minimizes hue distortion vs. piecewise-gamma)
+    adjusted = 1.0f - pow(1.0f - maxC, u_contrast);
+    ratio = adjusted / maxC;
+  }
   
-  // Use this ratio on all color components (minimizes hue distortion vs. piecewise-gamma)
-  float ratio = adjusted / maxC;
   v_color0 = vec4(a_color0.rgb * ratio, a_color0.a);
 }
