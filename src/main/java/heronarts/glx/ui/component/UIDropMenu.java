@@ -116,23 +116,23 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
         @Override
         public void onContextAction(UI ui) {
           if (useCommandEngine) {
-            getLX().command.perform(new LXCommand.Parameter.SetValue(parameter, ii));
+            getLX().command.perform(new LXCommand.Parameter.SetIndex(parameter, ii));
           } else {
-            parameter.setValue(ii);
+            parameter.setIndex(ii);
           }
         }
       };
     }
     setOptions(this.parameter.getOptions());
     this.contextMenu.setActions(this.actions);
-    this.contextMenu.setHighlight(this.parameter.getValuei());
+    this.contextMenu.setHighlight(this.parameter.getIndex());
     redraw();
   }
 
   public void onParameterChanged(LXParameter p) {
     if (this.parameter != null) {
       if (p == this.parameter) {
-        this.contextMenu.setHighlight(this.parameter.getValuei());
+        this.contextMenu.setHighlight(this.parameter.getIndex());
         redraw();
       } else if (p == this.parameter.optionsChanged) {
         updateActions();
@@ -181,7 +181,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
 
     String text;
     if (this.options != null) {
-      text = this.options[this.parameter.getValuei()];
+      text = this.options[this.parameter.getIndex()];
     } else {
       text = Integer.toString(this.parameter.getValuei());
     }
@@ -207,7 +207,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   private void setExpanded(boolean expanded) {
     if (this.contextMenu.isVisible() != expanded) {
       if (expanded) {
-        this.contextMenu.setHighlight(this.parameter.getValuei());
+        this.contextMenu.setHighlight(this.parameter.getIndex());
         if (this.direction == Direction.UP) {
           this.contextMenu.setPosition(this, 0, -this.contextMenu.getHeight());
         } else {
