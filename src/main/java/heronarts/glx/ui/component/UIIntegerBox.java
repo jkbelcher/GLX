@@ -85,6 +85,13 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
     return this;
   }
 
+  /**
+   * Sets the range of the input box, inclusive
+   *
+   * @param minValue Minimum value (inclusive)
+   * @param maxValue Maximum value (inclusive)
+   * @return this
+   */
   public UIIntegerBox setRange(int minValue, int maxValue) {
     this.minValue = minValue;
     this.maxValue = maxValue;
