@@ -33,6 +33,7 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
   private int minValue = 0;
   private int maxValue = Integer.MAX_VALUE;
   private int value = 0;
+  private boolean wrappable = true;
   protected DiscreteParameter parameter = null;
 
   private final LXParameterListener parameterListener = (p) -> {
@@ -82,6 +83,18 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
       this.parameter.addListener(this.parameterListener);
     }
     redraw();
+    return this;
+  }
+
+  /**
+   * Sets whether the box is wrappable, only applies when there is not a parameter
+   * set.
+   *
+   * @param wrappable Whether box is wrappable when no parameter set
+   * @return This
+   */
+  public UIIntegerBox setWrappable(boolean wrappable) {
+    this.wrappable = wrappable;
     return this;
   }
 
@@ -146,7 +159,7 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
     }
     final int min = getMinValue();
     final int max = getMaxValue();
-    final boolean wrappable = (this.parameter == null) || this.parameter.isWrappable();
+    final boolean wrappable = (this.parameter == null) ? this.wrappable : this.parameter.isWrappable();
     if (wrappable) {
       final int range = (max - min + 1);
       if (value < min) {
