@@ -89,6 +89,7 @@ public class UIContextMenu extends UI2dContainer {
     }
   }
 
+  @Override
   public float getScrollHeight() {
     return this.scrollHeight;
   }
@@ -158,6 +159,9 @@ public class UIContextMenu extends UI2dContainer {
     }
   }
 
+  private double lastKeyTime = -1;
+  private String searchString = "";
+
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (keyCode == KeyEvent.VK_UP) {
@@ -175,6 +179,22 @@ public class UIContextMenu extends UI2dContainer {
     } else if (keyCode == KeyEvent.VK_ESCAPE) {
       keyEvent.consume();
       getUI().clearContextOverlay(this);
+    } else if (!keyEvent.isCommand() && UITextBox.isValidTextCharacter(keyChar)) {
+      keyEvent.consume();
+      final double keyTime = keyEvent.getTime();
+      if (keyTime - this.lastKeyTime > 1.) {
+        this.searchString = "";
+      }
+      this.lastKeyTime = keyEvent.getTime();
+      this.searchString = this.searchString + keyChar;
+      int i = 0;
+      for (UIContextActions.Action action : this.actions) {
+        if (action.getLabel().regionMatches(true, 0, this.searchString, 0, this.searchString.length())) {
+          setHighlight(i);
+          break;
+        }
+        ++i;
+      }
     }
   }
 
