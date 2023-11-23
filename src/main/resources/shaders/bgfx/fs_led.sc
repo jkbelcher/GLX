@@ -10,10 +10,10 @@ $input v_color0, v_texcoord0
 SAMPLER2D(s_texColor, 0);
 
 void main()
-{
-	gl_FragColor = 
-    vec4(v_color0.b, v_color0.g, v_color0.r, v_color0.a) *
-    texture2D(s_texColor, v_texcoord0);
+{  
+  gl_FragColor = v_color0.bgra * texture2D(s_texColor, v_texcoord0);
+  
+  // Check alpha ref after masking by texture alpha
   if (gl_FragColor.a <= u_alphaRef) {
     discard;
   }

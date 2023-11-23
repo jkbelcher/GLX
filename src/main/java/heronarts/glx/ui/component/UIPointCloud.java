@@ -84,8 +84,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     @Override
     public void setUniforms(View view) {
       bgfx_set_texture(0, this.uniformTexture, textures[ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_NONE);
-      // this.dimensionsBuffer.put(0, view.getWidth());
-      // this.dimensionsBuffer.put(1, view.getHeight());
+      this.dimensionsBuffer.put(0, contrast.getValuef());
       this.dimensionsBuffer.put(1, feather.getValuef());
       this.dimensionsBuffer.put(2, view.getAspectRatio());
       switch (getContext().projection.getEnum()) {
@@ -232,6 +231,12 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     new BoundedParameter("Feather", 0)
     .setUnits(BoundedParameter.Units.PERCENT_NORMALIZED)
     .setDescription("Percentage by which to reduce the point size as brightness is lower");
+
+  public final BoundedParameter contrast =
+    new BoundedParameter("Constrast", 1, 1, 10)
+    .setUnits(BoundedParameter.Units.PERCENT_NORMALIZED)
+    .setExponent(2)
+    .setDescription("Curve to boost contrast of UI simulation (de-gamma)");
 
   public final DiscreteParameter alphaRef =
     new DiscreteParameter("Alpha Cutoff", 8, 0, 256)
@@ -394,6 +399,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   private static final String KEY_POINT_SIZE = "pointSize";
   private static final String KEY_ALPHA_REF = "alphaRef";
   private static final String KEY_FEATHER = "feather";
+  private static final String KEY_CONTRAST = "contrast";
   private static final String KEY_DEPTH_TEST = "depthTest";
   private static final String KEY_LED_STYLE = "ledStyle";
 
@@ -402,6 +408,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     object.addProperty(KEY_POINT_SIZE, this.pointSize.getValue());
     object.addProperty(KEY_ALPHA_REF, this.alphaRef.getValuei());
     object.addProperty(KEY_FEATHER, this.feather.getValue());
+    object.addProperty(KEY_CONTRAST, this.contrast.getValue());
     object.addProperty(KEY_DEPTH_TEST, this.depthTest.isOn());
     object.addProperty(KEY_LED_STYLE, this.ledStyle.getValuei());
   }
@@ -416,6 +423,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       LXSerializable.Utils.loadDouble(this.pointSize, object, KEY_POINT_SIZE);
       LXSerializable.Utils.loadInt(this.alphaRef, object, KEY_ALPHA_REF);
       LXSerializable.Utils.loadDouble(this.feather, object, KEY_FEATHER);
+      LXSerializable.Utils.loadDouble(this.contrast, object, KEY_CONTRAST);
       LXSerializable.Utils.loadBoolean(this.depthTest, object, KEY_DEPTH_TEST);
       LXSerializable.Utils.loadInt(this.ledStyle, object, KEY_LED_STYLE);
     }
