@@ -34,6 +34,8 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
   private float contextMenuWidth = -1;
   private Direction direction = Direction.DOWN;
   private VGraphics.Image icon = null;
+  private float iconOffsetX = 0, iconOffsetY = 0;
+
 
   /**
    * Direction that a context menu opens from a button
@@ -66,6 +68,12 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
 
   public UIContextButton setIcon(VGraphics.Image icon) {
     this.icon = icon;
+    return this;
+  }
+
+  public UIContextButton setIconOffset(float iconOffsetX, float iconOffsetY) {
+    this.iconOffsetX = iconOffsetX;
+    this.iconOffsetY = iconOffsetY;
     return this;
   }
 
@@ -135,7 +143,11 @@ public class UIContextButton extends UI2dComponent implements UIFocus {
       UIColor iconTint = this.mouseDown ? ui.theme.controlActiveTextColor : getFontColor();
       this.icon.setTint(iconTint);
       vg.beginPath();
-      vg.image(this.icon, this.width/2 - this.icon.width/2, this.height/2 - this.icon.height/2);
+      vg.image(
+        this.icon,
+        this.iconOffsetX + this.width/2 - this.icon.width/2,
+        this.iconOffsetY + this.height/2 - this.icon.height/2
+      );
       vg.fill();
       this.icon.noTint();
     } else if ((this.label != null) && (this.label.length() > 0)) {
