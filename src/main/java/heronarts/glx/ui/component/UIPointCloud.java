@@ -24,6 +24,8 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
@@ -51,6 +53,7 @@ import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.BoundedParameter;
 import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.EnumParameter;
+import heronarts.lx.parameter.LXParameter;
 
 public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
@@ -83,16 +86,16 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
     @Override
     public void setUniforms(View view) {
-      bgfx_set_texture(0, this.uniformTexture, textures[ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_NONE);
-      this.dimensionsBuffer.put(0, contrast.getValuef());
-      this.dimensionsBuffer.put(1, feather.getValuef());
+      bgfx_set_texture(0, this.uniformTexture, textures[params.ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_NONE);
+      this.dimensionsBuffer.put(0, global.contrast.getValuef());
+      this.dimensionsBuffer.put(1, params.feather.getValuef());
       this.dimensionsBuffer.put(2, view.getAspectRatio());
       switch (getContext().projection.getEnum()) {
       case PERSPECTIVE:
-        this.dimensionsBuffer.put(3, 2.0f / view.getAspectRatio() * pointSize.getValuef());
+        this.dimensionsBuffer.put(3, 2.0f / view.getAspectRatio() * params.pointSize.getValuef());
         break;
       case ORTHOGRAPHIC:
-        this.dimensionsBuffer.put(3, 2.0f * pointSize.getValuef() / view.getWidth());
+        this.dimensionsBuffer.put(3, 2.0f * params.pointSize.getValuef() / view.getWidth());
         break;
       }
       bgfx_set_uniform(this.uniformDimensions, this.dimensionsBuffer, 1);
@@ -233,10 +236,10 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     .setDescription("Percentage by which to reduce the point size as brightness is lower");
 
   public final BoundedParameter contrast =
-    new BoundedParameter("Constrast", 1, 1, 10)
+    new BoundedParameter("Contrast", 1, 1, 10)
     .setUnits(BoundedParameter.Units.PERCENT_NORMALIZED)
     .setExponent(2)
-    .setDescription("Curve to boost contrast of UI simulation (de-gamma)");
+    .setDescription("Boost contrast of UI simulation, 100% is normal, higher values artificially increase screen brightness");
 
   public final DiscreteParameter alphaRef =
     new DiscreteParameter("Alpha Cutoff", 8, 0, 256)
@@ -249,6 +252,13 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   public final EnumParameter<LedStyle> ledStyle =
     new EnumParameter<LedStyle>("LED Style", LedStyle.LENS1)
     .setDescription("Which LED texture to render");
+
+  public final BooleanParameter useCustomParams =
+    new BooleanParameter("Use Custom Params", false)
+    .setDescription("Use custom parameter settings");
+
+  public final UIPointCloud global;
+  private UIPointCloud params;
 
   private final GLX lx;
 
@@ -267,7 +277,14 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   private boolean auxiliary = false;
 
+  private final Map<String, LXParameter> parameters =
+    new LinkedHashMap<String, LXParameter>();
+
   public UIPointCloud(GLX lx) {
+    this(lx, null);
+  }
+
+  public UIPointCloud(GLX lx, UIPointCloud global) {
     this.lx = lx;
     this.program = new Program(lx);
     int ti = 0;
@@ -277,6 +294,27 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.indexBuffer = null;
     this.colorBuffer = null;
     this.modelBuffer = null;
+    this.global = (global != null) ? global : this;
+
+    addParameter("ledStyle", this.ledStyle);
+    addParameter("pointSize", this.pointSize);
+    addParameter("alphaRef", this.alphaRef);
+    addParameter("feather", this.feather);
+    addParameter("contrast", this.contrast);
+    addParameter("depthTest", this.depthTest);
+    addParameter("useCustomParams", this.useCustomParams);
+
+    addListener(this.useCustomParams, p -> {
+      this.params = this.useCustomParams.isOn() ? this : this.global;
+    }, true);
+  }
+
+  private void addParameter(String path, LXParameter parameter) {
+    this.parameters.put(path, parameter);
+  }
+
+  public boolean isGlobal() {
+    return this == this.global;
   }
 
   public UIPointCloud setAuxiliary(boolean auxiliary) {
@@ -379,7 +417,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       BGFX_STATE_WRITE_RGB |
       BGFX_STATE_WRITE_Z |
       BGFX_STATE_BLEND_ALPHA |
-      BGFX_STATE_ALPHA_REF(this.alphaRef.getValuei()) |
+      BGFX_STATE_ALPHA_REF(this.global.alphaRef.getValuei()) |
       (this.depthTest.isOn() ? BGFX_STATE_DEPTH_TEST_LESS : 0)
     );
   }
@@ -396,36 +434,19 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     }
   }
 
-  private static final String KEY_POINT_SIZE = "pointSize";
-  private static final String KEY_ALPHA_REF = "alphaRef";
-  private static final String KEY_FEATHER = "feather";
-  private static final String KEY_CONTRAST = "contrast";
-  private static final String KEY_DEPTH_TEST = "depthTest";
-  private static final String KEY_LED_STYLE = "ledStyle";
-
   @Override
   public void save(LX lx, JsonObject object) {
-    object.addProperty(KEY_POINT_SIZE, this.pointSize.getValue());
-    object.addProperty(KEY_ALPHA_REF, this.alphaRef.getValuei());
-    object.addProperty(KEY_FEATHER, this.feather.getValue());
-    object.addProperty(KEY_CONTRAST, this.contrast.getValue());
-    object.addProperty(KEY_DEPTH_TEST, this.depthTest.isOn());
-    object.addProperty(KEY_LED_STYLE, this.ledStyle.getValuei());
+    LXSerializable.Utils.saveParameters(object, this.parameters);
   }
 
   @Override
   public void load(LX lx, JsonObject object) {
     if (object.has(LXComponent.KEY_RESET)) {
-      this.pointSize.reset();
-      this.depthTest.reset();
-      this.ledStyle.reset();
+      for (LXParameter p : this.parameters.values()) {
+        p.reset();
+      }
     } else {
-      LXSerializable.Utils.loadDouble(this.pointSize, object, KEY_POINT_SIZE);
-      LXSerializable.Utils.loadInt(this.alphaRef, object, KEY_ALPHA_REF);
-      LXSerializable.Utils.loadDouble(this.feather, object, KEY_FEATHER);
-      LXSerializable.Utils.loadDouble(this.contrast, object, KEY_CONTRAST);
-      LXSerializable.Utils.loadBoolean(this.depthTest, object, KEY_DEPTH_TEST);
-      LXSerializable.Utils.loadInt(this.ledStyle, object, KEY_LED_STYLE);
+      LXSerializable.Utils.loadParameters(object, this.parameters);
     }
   }
 
