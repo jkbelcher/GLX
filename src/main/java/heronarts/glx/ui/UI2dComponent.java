@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import heronarts.glx.event.Event;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.modulation.LXParameterModulation;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.utils.LXUtils;
 
@@ -1029,6 +1030,19 @@ public abstract class UI2dComponent extends UIObject {
   protected boolean isMappable() {
     return this.mappable;
   }
+
+  /**
+   * Returns a valid mappable parameter or null
+   *
+   * @param parameter Parameter to test
+   * @return Parameter if eligible for mapping
+   */
+  public LXNormalizedParameter getMappableParameter(LXNormalizedParameter parameter) {
+    if (isMappable() && (parameter != null) && parameter.isMappable() && (parameter.getParent() != null)) {
+      return parameter;
+    }
+    return null;
+  };
 
   /**
    * Removes this component from the container it is held by

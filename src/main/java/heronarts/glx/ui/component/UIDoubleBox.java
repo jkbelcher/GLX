@@ -282,11 +282,8 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
     return null;
   }
 
-  private BoundedParameter getMappableParameter() {
-    if (isMappable() && this.parameter != null && this.parameter.isMappable() && this.parameter.getParent() != null) {
-      return this.parameter;
-    }
-    return null;
+  private LXNormalizedParameter getMappableParameter() {
+    return getMappableParameter(this.parameter);
   }
 
   @Override

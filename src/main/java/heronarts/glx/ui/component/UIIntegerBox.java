@@ -237,10 +237,7 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
 
   @Override
   public LXParameter getControlTarget() {
-    if (isMappable() && this.parameter != null && this.parameter.isMappable() && this.parameter.getParent() != null) {
-      return this.parameter;
-    }
-    return null;
+    return getMappableParameter(this.parameter);
   }
 
   @Override
