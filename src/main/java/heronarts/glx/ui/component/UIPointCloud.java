@@ -24,9 +24,6 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
@@ -277,8 +274,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   private boolean auxiliary = false;
 
-  private final Map<String, LXParameter> parameters =
-    new LinkedHashMap<String, LXParameter>();
+  private final LXParameter.Collection parameters = new LXParameter.Collection();
 
   public UIPointCloud(GLX lx) {
     this(lx, null);
@@ -296,21 +292,17 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.modelBuffer = null;
     this.global = (global != null) ? global : this;
 
-    addParameter("ledStyle", this.ledStyle);
-    addParameter("pointSize", this.pointSize);
-    addParameter("alphaRef", this.alphaRef);
-    addParameter("feather", this.feather);
-    addParameter("contrast", this.contrast);
-    addParameter("depthTest", this.depthTest);
-    addParameter("useCustomParams", this.useCustomParams);
+    this.parameters.add("ledStyle", this.ledStyle);
+    this.parameters.add("pointSize", this.pointSize);
+    this.parameters.add("alphaRef", this.alphaRef);
+    this.parameters.add("feather", this.feather);
+    this.parameters.add("contrast", this.contrast);
+    this.parameters.add("depthTest", this.depthTest);
+    this.parameters.add("useCustomParams", this.useCustomParams);
 
     addListener(this.useCustomParams, p -> {
       this.params = this.useCustomParams.isOn() ? this : this.global;
     }, true);
-  }
-
-  private void addParameter(String path, LXParameter parameter) {
-    this.parameters.put(path, parameter);
   }
 
   public boolean isGlobal() {
@@ -442,9 +434,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   @Override
   public void load(LX lx, JsonObject object) {
     if (object.has(LXComponent.KEY_RESET)) {
-      for (LXParameter p : this.parameters.values()) {
-        p.reset();
-      }
+      this.parameters.reset();
     } else {
       LXSerializable.Utils.loadParameters(object, this.parameters);
     }
