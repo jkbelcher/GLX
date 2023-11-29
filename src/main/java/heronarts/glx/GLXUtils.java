@@ -90,6 +90,10 @@ public class GLXUtils {
         (int) (y * (this.height - .5f))
       );
     }
+
+    public float getAspectRatio() {
+      return (float) this.width / (float) this.height;
+    }
   }
 
   public static Image loadImage(String path) throws IOException {
