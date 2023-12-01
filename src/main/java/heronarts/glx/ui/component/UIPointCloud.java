@@ -55,15 +55,21 @@ import heronarts.lx.parameter.LXParameter;
 public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   private class Program extends ShaderProgram {
-    private short uniformTexture;
+    private short uniformTextureBase;
+    private short uniformTextureSparkle;
     private short uniformDimensions;
+    private short uniformSparkle;
     private final FloatBuffer dimensionsBuffer;
+    private final FloatBuffer sparkleBuffer;
 
     Program(GLX lx) {
       super(lx, "vs_led", "fs_led");
-      this.uniformTexture = bgfx_create_uniform("s_texColor", BGFX_UNIFORM_TYPE_SAMPLER, 1);
+      this.uniformTextureBase = bgfx_create_uniform("s_texColor", BGFX_UNIFORM_TYPE_SAMPLER, 1);
+      this.uniformTextureSparkle = bgfx_create_uniform("s_texSparkle", BGFX_UNIFORM_TYPE_SAMPLER, 1);
       this.uniformDimensions = bgfx_create_uniform("u_dimensions", BGFX_UNIFORM_TYPE_VEC4, 1);
+      this.uniformSparkle = bgfx_create_uniform("u_sparkle", BGFX_UNIFORM_TYPE_VEC4, 1);
       this.dimensionsBuffer = MemoryUtil.memAllocFloat(4);
+      this.sparkleBuffer = MemoryUtil.memAllocFloat(4);
     }
 
     @Override
@@ -75,15 +81,19 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
     @Override
     public void dispose() {
-      bgfx_destroy_uniform(this.uniformTexture);
+      bgfx_destroy_uniform(this.uniformTextureBase);
+      bgfx_destroy_uniform(this.uniformTextureSparkle);
       bgfx_destroy_uniform(this.uniformDimensions);
+      bgfx_destroy_uniform(this.uniformSparkle);
       MemoryUtil.memFree(this.dimensionsBuffer);
+      MemoryUtil.memFree(this.sparkleBuffer);
       super.dispose();
     }
 
     @Override
     public void setUniforms(View view) {
-      bgfx_set_texture(0, this.uniformTexture, textures[params.ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_NONE);
+      bgfx_set_texture(0, this.uniformTextureBase, textures[params.ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_NONE);
+      bgfx_set_texture(1, this.uniformTextureSparkle, sparkles[params.ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_U_BORDER | BGFX_SAMPLER_V_BORDER);
       this.dimensionsBuffer.put(0, global.contrast.getValuef());
       this.dimensionsBuffer.put(1, params.feather.getValuef());
       this.dimensionsBuffer.put(2, view.getAspectRatio());
@@ -95,7 +105,13 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
         this.dimensionsBuffer.put(3, 2.0f * params.pointSize.getValuef() / view.getWidth());
         break;
       }
+      this.sparkleBuffer.put(0, params.sparkleAmount.getValuef());
+      this.sparkleBuffer.put(1, params.sparkleCurve.getValuef());
+      this.sparkleBuffer.put(2, (float) Math.toRadians(params.sparkleRotate.getValue()));
+      this.sparkleBuffer.put(3, (lx.engine.nowMillis % 30000) * LX.TWO_PIf / 30000f);
+
       bgfx_set_uniform(this.uniformDimensions, this.dimensionsBuffer, 1);
+      bgfx_set_uniform(this.uniformSparkle, this.sparkleBuffer, 1);
     }
   }
 
@@ -203,18 +219,20 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   public enum LedStyle {
 
-    LENS1("Lens 1", "led.ktx"),
-    LENS2("Lens 2", "led2.ktx"),
-    LENS3("Lens 3", "led3.ktx"),
-    CIRCLE("Circle", "led4.ktx"),
-    SQUARE("Square", "led5.ktx");
+    LENS1("Lens 1", "led1.ktx", "sparkle1.ktx"),
+    LENS2("Lens 2", "led2.ktx", "sparkle2.ktx"),
+    LENS3("Lens 3", "led3.ktx", "sparkle3.ktx"),
+    CIRCLE("Circle", "led4.ktx", "sparkle4.ktx"),
+    SQUARE("Square", "led5.ktx", "sparkle4.ktx");
 
     public final String label;
     public final String texture;
+    public final String sparkle;
 
-    private LedStyle(String label, String texture) {
+    private LedStyle(String label, String texture, String sparkle) {
       this.label = label;
       this.texture = texture;
+      this.sparkle = sparkle;
     }
 
     @Override
@@ -228,9 +246,23 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     .setDescription("Size of points rendered in the preview display");
 
   public final BoundedParameter feather =
-    new BoundedParameter("Feather", 0)
+    new BoundedParameter("Feather", .5)
     .setUnits(BoundedParameter.Units.PERCENT_NORMALIZED)
     .setDescription("Percentage by which to reduce the point size as brightness is lower");
+
+  public final BoundedParameter sparkleAmount =
+    new BoundedParameter("Sparkle", 1)
+    .setUnits(BoundedParameter.Units.PERCENT_NORMALIZED)
+    .setDescription("Percentage of sparkle to add as the colors are brighter");
+
+  public final BoundedParameter sparkleCurve =
+    new BoundedParameter("Sparkle Curve", 2, 0, 4)
+    .setDescription("Exponential curve to sparkle introduction");
+
+  public final BoundedParameter sparkleRotate =
+    new BoundedParameter("Sparkle Rotate", 45, 0, 360)
+    .setUnits(BoundedParameter.Units.DEGREES)
+    .setDescription("Amount sparkle rotates as it brightens");
 
   public final BoundedParameter contrast =
     new BoundedParameter("Contrast", 1, 1, 10)
@@ -261,6 +293,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   private final Program program;
   private final Texture[] textures = new Texture[LedStyle.values().length];
+  private final Texture[] sparkles = new Texture[LedStyle.values().length];
 
   private ModelBuffer modelBuffer;
   private DynamicVertexBuffer colorBuffer;
@@ -285,7 +318,9 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.program = new Program(lx);
     int ti = 0;
     for (LedStyle ledStyle : LedStyle.values()) {
-      this.textures[ti++] = new Texture(ledStyle.texture);
+      this.textures[ti] = new Texture(ledStyle.texture);
+      this.sparkles[ti] = new Texture(ledStyle.sparkle);
+      ++ti;
     };
     this.indexBuffer = null;
     this.colorBuffer = null;
@@ -296,6 +331,9 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.parameters.add("pointSize", this.pointSize);
     this.parameters.add("alphaRef", this.alphaRef);
     this.parameters.add("feather", this.feather);
+    this.parameters.add("sparkle", this.sparkleAmount);
+    this.parameters.add("sparkleCurve", this.sparkleCurve);
+    this.parameters.add("sparkleRotate", this.sparkleRotate);
     this.parameters.add("contrast", this.contrast);
     this.parameters.add("depthTest", this.depthTest);
     this.parameters.add("useCustomParams", this.useCustomParams);
@@ -318,6 +356,9 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   public void dispose() {
     for (Texture texture : this.textures) {
       texture.dispose();
+    }
+    for (Texture sparkle : this.sparkles) {
+      sparkle.dispose();
     }
     if (this.indexBuffer != null) {
       this.indexBuffer.dispose();
