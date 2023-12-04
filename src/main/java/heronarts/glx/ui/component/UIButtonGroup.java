@@ -87,7 +87,7 @@ public class UIButtonGroup extends UI2dContainer implements UIControlTarget, UIC
     // Initialize and follow button state
     addListener(parameter, p -> {
       this.internalStateUpdate = true;
-      final int activeIndex = parameter.getIndex();
+      final int activeIndex = parameter.getBaseIndex();
       for (int i = 0; i < this.buttons.length; ++i) {
         // NOTE: if hideFirst was true index 0 will be null
         if (this.buttons[i] != null) {

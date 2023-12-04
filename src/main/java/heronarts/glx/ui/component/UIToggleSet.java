@@ -118,7 +118,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
           }
         }
         setOptions(options);
-        setSelectedIndex(this.parameter.getValuei() - this.parameter.getMinValue(), false);
+        setSelectedIndex(this.parameter.getBaseIndex(), false);
       }
     }
     return this;
@@ -126,7 +126,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
 
   public void onParameterChanged(LXParameter parameter) {
     if (parameter == this.parameter) {
-      setSelectedIndex(this.parameter.getValuei() - this.parameter.getMinValue(), false);
+      setSelectedIndex(this.parameter.getBaseIndex(), false);
     }
   }
 

@@ -24,13 +24,15 @@ import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UIContextActions;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
+import heronarts.glx.ui.UIModulationTarget;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.command.LXCommand;
+import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
 
-public class UIDropMenu extends UIParameterComponent implements UIFocus, UIControlTarget, LXParameterListener {
+public class UIDropMenu extends UIParameterComponent implements UIFocus, UIControlTarget, UIModulationTarget, LXParameterListener {
 
   private DiscreteParameter parameter = null;
 
@@ -125,14 +127,14 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     }
     setOptions(this.parameter.getOptions());
     this.contextMenu.setActions(this.actions);
-    this.contextMenu.setHighlight(this.parameter.getIndex());
+    this.contextMenu.setHighlight(this.parameter.getBaseIndex());
     redraw();
   }
 
   public void onParameterChanged(LXParameter p) {
     if (this.parameter != null) {
       if (p == this.parameter) {
-        this.contextMenu.setHighlight(this.parameter.getIndex());
+        this.contextMenu.setHighlight(this.parameter.getBaseIndex());
         redraw();
       } else if (p == this.parameter.optionsChanged) {
         updateActions();
@@ -181,9 +183,9 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
 
     String text;
     if (this.options != null) {
-      text = this.options[this.parameter.getIndex()];
+      text = this.options[this.parameter.getBaseIndex()];
     } else {
-      text = Integer.toString(this.parameter.getValuei());
+      text = Integer.toString(this.parameter.getBaseValuei());
     }
 
     vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
@@ -207,7 +209,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   private void setExpanded(boolean expanded) {
     if (this.contextMenu.isVisible() != expanded) {
       if (expanded) {
-        this.contextMenu.setHighlight(this.parameter.getIndex());
+        this.contextMenu.setHighlight(this.parameter.getBaseIndex());
         if (this.direction == Direction.UP) {
           this.contextMenu.setPosition(this, 0, -this.contextMenu.getHeight());
         } else {
@@ -257,6 +259,14 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   @Override
   public LXParameter getControlTarget() {
     return getMappableParameter(this.parameter);
+  }
+
+  @Override
+  public LXCompoundModulation.Target getModulationTarget() {
+    if (this.parameter instanceof LXCompoundModulation.Target) {
+      return (LXCompoundModulation.Target) getMappableParameter(this.parameter);
+    }
+    return null;
   }
 
   @Override

@@ -22,13 +22,15 @@ import heronarts.glx.event.Event;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UIControlTarget;
+import heronarts.glx.ui.UIModulationTarget;
 import heronarts.lx.command.LXCommand;
+import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.utils.LXUtils;
 
-public class UIIntegerBox extends UINumberBox implements UIControlTarget {
+public class UIIntegerBox extends UINumberBox implements UIControlTarget, UIModulationTarget {
 
   private int minValue = 0;
   private int maxValue = Integer.MAX_VALUE;
@@ -36,8 +38,8 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
   private boolean wrappable = true;
   protected DiscreteParameter parameter = null;
 
-  private final LXParameterListener parameterListener = (p) -> {
-    setValue(this.parameter.getValuei(), false);
+  private final LXParameterListener parameterListener = p -> {
+    setValue(this.parameter.getBaseValuei(), false);
   };
 
   public UIIntegerBox() {
@@ -79,7 +81,7 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
     if (parameter != null) {
       this.minValue = parameter.getMinValue();
       this.maxValue = parameter.getMaxValue();
-      this.value = parameter.getValuei();
+      this.value = parameter.getBaseValuei();
       this.parameter.addListener(this.parameterListener);
     }
     redraw();
@@ -238,6 +240,14 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget {
   @Override
   public LXParameter getControlTarget() {
     return getMappableParameter(this.parameter);
+  }
+
+  @Override
+  public LXCompoundModulation.Target getModulationTarget() {
+    if (this.parameter instanceof LXCompoundModulation.Target) {
+      return (LXCompoundModulation.Target) getMappableParameter(this.parameter);
+    }
+    return null;
   }
 
   @Override

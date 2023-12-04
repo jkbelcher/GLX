@@ -26,8 +26,8 @@ import heronarts.glx.ui.component.UIContextMenu;
 import heronarts.lx.LXLoopTask;
 import heronarts.lx.clipboard.LXClipboardItem;
 import heronarts.lx.command.LXCommand;
+import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.BooleanParameter;
-import heronarts.lx.parameter.CompoundParameter;
 import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
@@ -508,7 +508,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
    */
   boolean isModulationTargetMapping() {
     if (this.ui.modulationTargetMapping && (this instanceof UIModulationTarget)) {
-      CompoundParameter target = ((UIModulationTarget) this).getModulationTarget();
+      LXCompoundModulation.Target target = ((UIModulationTarget) this).getModulationTarget();
       return (target != null) && this.ui.modulationEngine.isValidTarget(target);
     }
     return false;
@@ -576,7 +576,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
       return;
     } else if (isModulationTargetMapping() && !isModulationSource()) {
       LXNormalizedParameter source = this.ui.getModulationSource().getModulationSource();
-      CompoundParameter target = ((UIModulationTarget)this).getModulationTarget();
+      LXCompoundModulation.Target target = ((UIModulationTarget) this).getModulationTarget();
       if (source != null && target != null) {
         getLX().command.perform(new LXCommand.Modulation.AddModulation(this.ui.modulationEngine, source, target));
       }

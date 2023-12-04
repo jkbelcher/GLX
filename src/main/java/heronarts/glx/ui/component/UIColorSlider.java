@@ -27,7 +27,6 @@ import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.color.ColorParameter;
-import heronarts.lx.parameter.CompoundParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.utils.LXUtils;
@@ -77,9 +76,7 @@ public abstract class UIColorSlider extends UI2dComponent implements UIFocus, UI
   }
 
   private double getBaseNormalized() {
-    return (this.parameter instanceof CompoundParameter) ?
-      ((CompoundParameter) this.parameter).getBaseNormalized() :
-      this.parameter.getNormalized();
+    return this.parameter.getBaseNormalized();
   }
 
   protected void drawValue(UI ui, VGraphics vg) {

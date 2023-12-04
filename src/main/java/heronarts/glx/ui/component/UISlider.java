@@ -18,6 +18,9 @@
 
 package heronarts.glx.ui.component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UIColor;
@@ -25,7 +28,6 @@ import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.modulation.LXCompoundModulation;
-import heronarts.lx.parameter.CompoundParameter;
 import heronarts.lx.parameter.LXListenableNormalizedParameter;
 import heronarts.lx.utils.LXUtils;
 
@@ -108,6 +110,8 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
     return this;
   }
 
+  private final List<LXCompoundModulation> uiModulations = new ArrayList<LXCompoundModulation>();
+
   @Override
   @SuppressWarnings("fallthrough")
   protected void onDraw(UI ui, VGraphics vg) {
@@ -115,7 +119,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
     // base is the unmodulated, base value of that parameter.
     // If unmodulated, these will be equal
     double value = getCompoundNormalized();
-    double base = getNormalized();
+    double base = getBaseNormalized();
     boolean modulated = (base != value);
     int baseHandleEdge;
     float grooveDim;
@@ -133,10 +137,15 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
     int baseHandleCenter = baseHandleEdge + 1 + HANDLE_SIZE/2;
 
     // Modulations!
-    if (this.parameter instanceof CompoundParameter) {
-      CompoundParameter compound = (CompoundParameter) this.parameter;
-      for (int i = 0; i < compound.modulations.size() && i < 3; ++i) {
-        LXCompoundModulation modulation = compound.modulations.get(i);
+    if (this.parameter instanceof LXCompoundModulation.Target) {
+      LXCompoundModulation.Target compound = (LXCompoundModulation.Target) this.parameter;
+      // Note: the UI thread is separate from the engine thread, modulations could in theory change
+      // *while* we are rendering here. So we lean on the fact that the parameters use a
+      // CopyOnWriteArrayList and shuffle everything into our own ui-thread-local copy here
+      this.uiModulations.clear();
+      this.uiModulations.addAll(compound.getModulations());
+      for (int i = 0; i < this.uiModulations.size() && i < 3; ++i) {
+        LXCompoundModulation modulation = this.uiModulations.get(i);
         int modColor = ui.theme.controlDisabledColor.get();
         int modColorInv = modColor;
         if (isEnabled() && modulation.enabled.isOn()) {
@@ -384,14 +393,17 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
   }
 
   private LXCompoundModulation getModulation(boolean secondary) {
-    if (this.parameter != null && this.parameter instanceof CompoundParameter) {
-      CompoundParameter compound = (CompoundParameter) this.parameter;
-      int size = compound.modulations.size();
+    if (this.parameter != null && this.parameter instanceof LXCompoundModulation.Target) {
+      LXCompoundModulation.Target compound = (LXCompoundModulation.Target) this.parameter;
+      // NOTE: this event-processing happens on the engine thread, the modulations won't change
+      // underneath us, we can access them directly
+      final List<LXCompoundModulation> modulations = compound.getModulations();
+      int size = modulations.size();
       if (size > 0) {
         if (secondary && (size > 1)) {
-          return compound.modulations.get(1);
+          return modulations.get(1);
         } else {
-          return compound.modulations.get(0);
+          return modulations.get(0);
         }
       }
     }
@@ -432,7 +444,7 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
         if (mouseEvent.isShiftDown()) {
           delta /= 10;
         }
-        setNormalized(LXUtils.constrain(getNormalized() + delta, 0, 1));
+        setNormalized(LXUtils.constrain(getBaseNormalized() + delta, 0, 1));
       }
     }
   }
