@@ -29,6 +29,7 @@ import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.DiscreteParameter;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
 
@@ -257,7 +258,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   }
 
   @Override
-  public LXParameter getControlTarget() {
+  public LXNormalizedParameter getControlTarget() {
     return getMappableParameter(this.parameter);
   }
 

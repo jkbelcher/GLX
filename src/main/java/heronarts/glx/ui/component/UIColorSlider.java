@@ -28,7 +28,6 @@ import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.color.ColorParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
-import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.utils.LXUtils;
 
 public abstract class UIColorSlider extends UI2dComponent implements UIFocus, UIControlTarget {
@@ -126,7 +125,7 @@ public abstract class UIColorSlider extends UI2dComponent implements UIFocus, UI
   }
 
   @Override
-  public LXParameter getControlTarget() {
+  public LXNormalizedParameter getControlTarget() {
     return this.parameter;
   }
 

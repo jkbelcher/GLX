@@ -35,7 +35,7 @@ import heronarts.lx.command.LXCommand;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.EnumParameter;
 import heronarts.lx.parameter.LXListenableNormalizedParameter;
-import heronarts.lx.parameter.LXParameter;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameterListener;
 
 public class UIButton extends UIParameterComponent implements UIControlTarget, UITriggerSource, UITriggerTarget, UIFocus {
@@ -270,8 +270,8 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   }
 
-  private LXParameter controlSource = null;
-  private LXParameter controlTarget = null;
+  private LXNormalizedParameter controlSource = null;
+  private LXNormalizedParameter controlTarget = null;
 
   protected boolean active = false;
   protected boolean isMomentary = false;
@@ -793,7 +793,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
    * @param controlSource Control source
    * @return this
    */
-  public UIButton setControlSource(LXParameter controlSource) {
+  public UIButton setControlSource(LXNormalizedParameter controlSource) {
     this.controlSource = controlSource;
     return this;
   }
@@ -807,13 +807,13 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
    * @param controlTarget Control target
    * @return this
    */
-  public UIButton setControlTarget(LXParameter controlTarget) {
+  public UIButton setControlTarget(LXNormalizedParameter controlTarget) {
     this.controlTarget = controlTarget;
     return this;
   }
 
   @Override
-  public LXParameter getControlTarget() {
+  public LXNormalizedParameter getControlTarget() {
     if (this.controlTarget != null) {
       // If one is explicitly set, doesn't have to match the rest
       return this.controlTarget;

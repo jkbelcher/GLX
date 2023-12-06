@@ -28,7 +28,7 @@ import heronarts.lx.LX;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.osc.LXOscEngine;
 import heronarts.lx.parameter.DiscreteParameter;
-import heronarts.lx.parameter.LXParameter;
+import heronarts.lx.parameter.LXNormalizedParameter;
 
 public class UIButtonGroup extends UI2dContainer implements UIControlTarget, UIContextActions {
 
@@ -104,7 +104,7 @@ public class UIButtonGroup extends UI2dContainer implements UIControlTarget, UIC
   }
 
   @Override
-  public LXParameter getControlTarget() {
+  public LXNormalizedParameter getControlTarget() {
     return getMappableParameter(this.parameter);
   }
 

@@ -258,7 +258,7 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
   }
 
   @Override
-  public LXParameter getControlTarget() {
+  public LXNormalizedParameter getControlTarget() {
     return getMappableParameter();
   }
 

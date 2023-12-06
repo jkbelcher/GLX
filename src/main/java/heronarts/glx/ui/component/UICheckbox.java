@@ -14,7 +14,7 @@ import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.LXListenableNormalizedParameter;
-import heronarts.lx.parameter.LXParameter;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameterListener;
 
 public class UICheckbox extends UIParameterComponent implements UIControlTarget, UITriggerSource, UITriggerTarget, UIFocus {
@@ -208,7 +208,7 @@ public class UICheckbox extends UIParameterComponent implements UIControlTarget,
 
 
   @Override
-  public LXParameter getControlTarget() {
+  public LXNormalizedParameter getControlTarget() {
     if (isMappable()) {
       if (this.parameter != null) {
         if (this.parameter.getParent() != null) {

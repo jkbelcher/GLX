@@ -430,7 +430,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   }
 
   @Override
-  public LXParameter getControlTarget() {
+  public LXNormalizedParameter getControlTarget() {
     return getMappableParameter();
   }
 
