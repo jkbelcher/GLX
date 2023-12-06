@@ -128,7 +128,9 @@ public class UITheme {
 
       "midiMapping", "ff0000",
       "modulationSourceMapping", "00ff00",
-      "modulationTargetMapping", "00cccc"
+      "modulationTargetMapping", "00cccc",
+
+      "projectFileIcon", "999999"
     ),
 
     LIGHT("Light",
@@ -205,7 +207,9 @@ public class UITheme {
 
       "midiMapping", "ff0000",
       "modulationSourceMapping", "00ff00",
-      "modulationTargetMapping", "00cccc"
+      "modulationTargetMapping", "00cccc",
+
+      "projectFileIcon", "444444"
     );
 
     public final String name;
@@ -308,6 +312,8 @@ public class UITheme {
   public final Color midiMappingColor = new Color("midiMapping");
   public final Color modulationSourceMappingColor = new Color("modulationSourceMapping");
   public final Color modulationTargetMappingColor = new Color("modulationTargetMapping");
+
+  public final Color projectFileIconColor = new Color("projectFileIcon");
 
   public final VGraphics.Image iconNote;
   public final VGraphics.Image iconTempo;
