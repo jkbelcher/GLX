@@ -27,7 +27,6 @@ import heronarts.lx.command.LXCommand;
 import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
-import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.utils.LXUtils;
 
@@ -70,11 +69,12 @@ public class UIIntegerBox extends UINumberBox implements UIControlTarget, UIModu
   }
 
   @Override
-  public LXParameter getParameter() {
+  public DiscreteParameter getParameter() {
     return this.parameter;
   }
 
   public UIIntegerBox setParameter(final DiscreteParameter parameter) {
+    super.setModulationTarget(parameter);
     if (this.parameter != null) {
       this.parameter.removeListener(this.parameterListener);
     }

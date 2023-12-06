@@ -83,6 +83,7 @@ public class UIDoubleBox extends UINumberBox implements UIControlTarget, UIModul
   }
 
   public UIDoubleBox setParameter(final BoundedParameter parameter) {
+    super.setModulationTarget(parameter);
     if (this.parameter != null) {
       this.parameter.removeListener(this.parameterListener);
     }
