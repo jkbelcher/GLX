@@ -167,7 +167,7 @@ public class InputDispatch implements LXEngine.Dispatch {
         case MOVE:
         case DRAG:
           return new MouseEvent(
-            mouseEvent.time,
+            mouseEvent,
             mouseEvent.action,
             mouseEvent.x,
             mouseEvent.y,
