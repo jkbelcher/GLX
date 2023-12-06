@@ -23,6 +23,7 @@ import java.util.List;
 
 import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
+import heronarts.lx.LX;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.glx.ui.UI;
@@ -113,33 +114,36 @@ public class UICompoundParameterControl extends UIParameterControl {
     }
   }
 
+  public static void addModulationContextActions(LX lx, List<UIContextActions.Action> actions, LXCompoundModulation.Target target) {
+    final List<? extends LXCompoundModulation> modulations = target.getModulations();
+    if (!modulations.isEmpty()) {
+      actions.add(new UIContextActions.Action("Remove Modulation") {
+        @Override
+        public void onContextAction(UI ui) {
+          ui.lx.command.perform(new LXCommand.Modulation.RemoveModulations(target));
+        }
+      });
+      if (!lx.engine.performanceMode.isOn()) {
+        for (LXCompoundModulation modulation : modulations) {
+          if (modulation.scope == lx.engine.modulation) {
+            actions.add(new UIContextActions.Action("Show Modulation") {
+              @Override
+              public void onContextAction(UI ui) {
+                ui.setHighlightModulationTarget(target);
+              }
+            });
+            break;
+          }
+        }
+      }
+    }
+  }
+
   @Override
   public List<UIContextActions.Action> getContextActions() {
     List<UIContextActions.Action> actions = super.getContextActions();
     if (this.parameter instanceof LXCompoundModulation.Target) {
-      final LXCompoundModulation.Target compoundParameter = (LXCompoundModulation.Target) this.parameter;
-      final List<? extends LXCompoundModulation> modulations = compoundParameter.getModulations();
-      if (!modulations.isEmpty()) {
-        actions.add(new UIContextActions.Action("Remove Modulation") {
-          @Override
-          public void onContextAction(UI ui) {
-            ui.lx.command.perform(new LXCommand.Modulation.RemoveModulations(compoundParameter));
-          }
-        });
-        if (!getLX().engine.performanceMode.isOn()) {
-          for (LXCompoundModulation modulation : modulations) {
-            if (modulation.scope == getLX().engine.modulation) {
-              actions.add(new UIContextActions.Action("Show Modulation") {
-                @Override
-                public void onContextAction(UI ui) {
-                  ui.setHighlightModulationTarget(parameter);
-                }
-              });
-              break;
-            }
-          }
-        }
-      }
+      addModulationContextActions(getLX(), actions, (LXCompoundModulation.Target) this.parameter);
     }
     return actions;
   }

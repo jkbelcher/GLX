@@ -22,6 +22,7 @@ import java.util.List;
 
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UIContextActions;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.color.DiscreteColorParameter;
 import heronarts.lx.command.LXCommand;
@@ -160,6 +161,15 @@ public abstract class UINumberBox extends UIInputBox {
         parameter.reset();
       }
     }
+  }
+
+  @Override
+  public List<UIContextActions.Action> getContextActions() {
+    final List<UIContextActions.Action> actions = super.getContextActions();
+    if ((actions != null) && (this.modulationTarget != null)) {
+      UICompoundParameterControl.addModulationContextActions(getLX(), actions, this.modulationTarget);
+    }
+    return actions;
   }
 
   @Override
