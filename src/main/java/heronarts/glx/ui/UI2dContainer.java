@@ -70,6 +70,24 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     HORIZONTAL
   };
 
+  public enum Position {
+    TOP,
+    TOP_LEFT,
+    TOP_CENTER,
+    TOP_RIGHT,
+    MIDDLE,
+    MIDDLE_LEFT,
+    MIDDLE_CENTER,
+    MIDDLE_RIGHT,
+    BOTTOM,
+    BOTTOM_LEFT,
+    BOTTOM_CENTER,
+    BOTTOM_RIGHT,
+    LEFT,
+    CENTER,
+    RIGHT
+  };
+
   private Layout layout = Layout.NONE;
 
   ArrowKeyFocus arrowKeyFocus = ArrowKeyFocus.NONE;
@@ -157,6 +175,22 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       this.contentTarget.reflow();
     }
     return this;
+  }
+
+  public float getTopPadding() {
+    return this.topPadding;
+  }
+
+  public float getRightPadding() {
+    return this.rightPadding;
+  }
+
+  public float getBottomPadding() {
+    return this.bottomPadding;
+  }
+
+  public float getLeftPadding() {
+    return this.leftPadding;
   }
 
   /**
@@ -361,6 +395,20 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
             }
           }
         }
+      }
+    } else if (this.layout == Layout.NONE) {
+      boolean changed = false;
+      for (UIObject child : this) {
+        if (child.isVisible()) {
+          UI2dComponent component = (UI2dComponent) child;
+          if (component.containerPosition != null) {
+            boolean childChanged = component._setContainerPosition(this, component.containerPosition, false);
+            changed = changed || childChanged;
+          }
+        }
+      }
+      if (changed) {
+        redraw();
       }
     }
     onReflow();

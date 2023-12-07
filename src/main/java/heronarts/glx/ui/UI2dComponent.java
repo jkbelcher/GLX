@@ -121,6 +121,8 @@ public abstract class UI2dComponent extends UIObject {
     marginBottom = 0,
     marginLeft = 0;
 
+  UI2dContainer.Position containerPosition = null;
+
   float scrollX = 0;
 
   float scrollY = 0;
@@ -1187,7 +1189,7 @@ public abstract class UI2dComponent extends UIObject {
    * is currently holding it.
    *
    * @param container Container to place in
-   * @param redraw Whether to redraw
+   * @param redraw Whether to reflow and redraw the parent container
    * @return this
    */
   public final UI2dComponent addToContainer(UIContainer container, boolean redraw) {
@@ -1202,7 +1204,7 @@ public abstract class UI2dComponent extends UIObject {
    * @param index At which index to place this object in parent container
    * @return this
    */
-  public UI2dComponent addToContainer(UIContainer container, int index) {
+  public final UI2dComponent addToContainer(UIContainer container, int index) {
     return addToContainer(container, index, true);
   }
 
@@ -1216,29 +1218,216 @@ public abstract class UI2dComponent extends UIObject {
    * @param redraw Whether to reflow and redraw the parent container
    * @return this
    */
-  public UI2dComponent addToContainer(UIContainer container, int index, boolean redraw) {
+  public final UI2dComponent addToContainer(UIContainer container, int index, boolean redraw) {
+    return _addToContainer(container, index, this.containerPosition, redraw);
+  }
+
+  /**
+   * Adds this component to a container, also removing it from any other container that
+   * is currently holding it.
+   *
+   * @param container Container to place in
+   * @param position Placement in this container
+   * @return this
+   */
+  public final UI2dComponent addToContainer(UI2dContainer container, UI2dContainer.Position position) {
+    return addToContainer(container, -1, position);
+  }
+
+  /**
+   * Adds this component to a container at a specified index, also removing it from any
+   * other container that is currently holding it.
+   *
+   * @param container Container to place in
+   * @param index At which index to place this object in parent container
+   * @param position Position in the container to place this object
+   * @return this
+   */
+  public final UI2dComponent addToContainer(UI2dContainer container, int index, UI2dContainer.Position position) {
+    return _addToContainer(container, index, position, true);
+  }
+
+  /**
+   * Adds this component to a container, also removing it from any other container that
+   * is currently holding it.
+   *
+   * @param container Container to place in
+   * @param position Placement in this container
+   * @param redraw Whether to reflow and redraw the parent container
+   * @return this
+   */
+  public final UI2dComponent addToContainer(UI2dContainer container, UI2dContainer.Position position, boolean redraw) {
+    return _addToContainer(container, -1, position, redraw);
+  }
+
+  /**
+   * Adds this component to a container at a specified index, also removing it from any
+   * other container that is currently holding it. Reflow behavior is controlled by a
+   * flag.
+   *
+   * @param container Container to place in
+   * @param index At which index to place this object in parent container
+   * @param position Position in the container at which to place the object, or null
+   * @param redraw Whether to reflow and redraw the parent container
+   * @return this
+   */
+  public final UI2dComponent addToContainer(UI2dContainer container, int index, UI2dContainer.Position position, boolean redraw) {
+    return _addToContainer(container, index, position, redraw);
+  }
+
+  /**
+   * Adds this component to a container at a specified index, also removing it from any
+   * other container that is currently holding it. Reflow behavior is controlled by a
+   * flag.
+   *
+   * @param container Container to place in
+   * @param index At which index to place this object in parent container
+   * @param position Position in the container at which to place the object, or null
+   * @param redraw Whether to reflow and redraw the parent container
+   * @return this
+   */
+  private UI2dComponent _addToContainer(UIContainer container, int index, UI2dContainer.Position position, boolean redraw) {
+    assertValidContainer(container);
     if (this.parent != null) {
       removeFromContainer();
     }
-    UIObject containerObject = container.getContentTarget();
-    if (containerObject == this) {
+    final UIObject contentTarget = container.getContentTarget();
+    final UI2dContainer container2d = (contentTarget instanceof UI2dContainer) ? (UI2dContainer) contentTarget : null;
+
+    if (contentTarget == this) {
       throw new IllegalArgumentException("Cannot add an object to itself");
     }
-    if (index < 0) {
-      containerObject.mutableChildren.add(this);
-    } else {
-      containerObject.mutableChildren.add(index, this);
+    if ((position != null) && (container2d != null)) {
+      this.containerPosition = position;
+      _setContainerPosition(container2d, position, false);
     }
-    this.parent = containerObject;
-    setUI(containerObject.ui);
+    if (index < 0) {
+      contentTarget.mutableChildren.add(this);
+    } else {
+      contentTarget.mutableChildren.add(index, this);
+    }
+    this.parent = contentTarget;
+    setUI(contentTarget.ui);
     if (redraw) {
-      if (this.parent instanceof UI2dContainer) {
-        ((UI2dContainer) this.parent).reflow();
+      if (container2d != null) {
+        container2d.reflow();
       }
       redraw();
     }
 
     return this;
+  }
+
+  /**
+   * Subclasses may override and throw an exception if they don't want to be added to this container type
+   *
+   * @param container Container
+   */
+  protected void assertValidContainer(UIContainer container) {}
+
+  /**
+   * Sets the position of this object in its container
+   *
+   * @param containerPosition Position relative to container
+   * @return this
+   */
+  public UI2dComponent setContainerPosition(UI2dContainer.Position containerPosition) {
+    this.containerPosition = containerPosition;
+    if ((containerPosition != null) && (this.parent instanceof UI2dContainer)) {
+      _setContainerPosition((UI2dContainer) this.parent, this.containerPosition, true);
+    }
+    return this;
+  }
+
+  boolean _setContainerPosition(UI2dContainer target, UI2dContainer.Position position, boolean redraw) {
+    if (position == null) {
+      return false;
+    }
+
+    boolean setX = false, setY = false;
+    float x = -1, y = -1;
+
+    // Determine X positioning
+    switch (position) {
+    case LEFT:
+    case TOP_LEFT:
+    case MIDDLE_LEFT:
+    case BOTTOM_LEFT:
+      setX = true;
+      x = target.getLeftPadding() + this.marginLeft;
+      break;
+
+    case CENTER:
+    case TOP_CENTER:
+    case MIDDLE_CENTER:
+    case BOTTOM_CENTER:
+      setX = true;
+      x = .5f * (target.getWidth() + target.getLeftPadding() - target.getRightPadding() - this.width);
+      break;
+
+    case RIGHT:
+    case TOP_RIGHT:
+    case MIDDLE_RIGHT:
+    case BOTTOM_RIGHT:
+      setX = true;
+      x = target.getWidth() - target.getRightPadding() - this.width - this.marginRight;
+      break;
+
+    default:
+      break;
+    }
+
+    // Determine Y positioning
+    switch (position) {
+    case TOP:
+    case TOP_LEFT:
+    case TOP_CENTER:
+    case TOP_RIGHT:
+      setY = true;
+      y = target.getTopPadding() + this.marginTop;
+      break;
+
+    case MIDDLE:
+    case MIDDLE_LEFT:
+    case MIDDLE_CENTER:
+    case MIDDLE_RIGHT:
+      setY = true;
+      y = .5f * (target.getHeight() + target.getTopPadding() - target.getBottomPadding() - this.height);
+      break;
+
+    case BOTTOM:
+    case BOTTOM_LEFT:
+    case BOTTOM_RIGHT:
+    case BOTTOM_CENTER:
+      setY = true;
+      y = target.getHeight() - target.getBottomPadding() - this.height - this.marginBottom;
+      break;
+
+    default:
+      break;
+    }
+
+    boolean changed = false;
+    if (setX && (this.x != x)) {
+      changed = true;
+      this.x = x;
+    }
+    if (setY && (this.y != y)) {
+      changed = true;
+      this.y = y;
+    }
+
+    // Position has been updated!
+    if (changed && redraw) {
+      // We redraw from our container instead of just
+      // ourselves because the background needs to be
+      // refreshed. If we only redrew ourself, there
+      // could be remnants of our old position in the
+      // buffer
+      redrawContainer();
+    }
+
+    return changed;
   }
 
   /**
