@@ -48,13 +48,14 @@ public class UITheme {
   }
 
   public void setTheme(Theme theme) {
+    this.knobDetentSize = theme.knobDetentSize;
     for (Color color : this.colors) {
       color.set(theme.colors.get(color.label));
     }
   }
 
   public enum Theme {
-    DEFAULT("Default",
+    DEFAULT("Default", 4,
       "label", "cccccc",
 
       "deviceBackground", "404040",
@@ -81,10 +82,12 @@ public class UITheme {
       "controlBorder", "292929",
       "controlDetent", "333333",
       "controlHandle", "5f5f5f",
-      "controlDisabled", "303030",
       "controlText", "cccccc",
       "controlActiveText", "ffffff",
+      "controlDisabled", "303030",
       "controlDisabledText", "707070",
+      "controlDisabledFill", "696969",
+      "controlDisabledValue", "909090",
 
       "editTextBackground", "000000",
       "editText", "ffffff",
@@ -92,7 +95,8 @@ public class UITheme {
       "primary", "669966",
       "secondary", "666699",
       "focus", "669966",
-      "attention", "ff3333",
+      "attention", "ee0000",
+      "restrictions", "292929",
       "cue", "666699",
       "aux", "996666",
       "busA", "669966",
@@ -133,7 +137,7 @@ public class UITheme {
       "projectFileIcon", "999999"
     ),
 
-    LIGHT("Light",
+    LIGHT("Light", 8,
       "label", "191919",
 
       "deviceBackground", "808080",
@@ -158,12 +162,14 @@ public class UITheme {
       "controlBackground", "b7b7b7",
       "controlFill", "393939",
       "controlBorder", "444444",
-      "controlDetent", "555555",
+      "controlDetent", "808080",
       "controlHandle", "9f9f9f",
-      "controlDisabled", "909090",
       "controlText", "191919",
       "controlActiveText", "000000",
+      "controlDisabled", "909090",
       "controlDisabledText", "303030",
+      "controlDisabledFill", "a0a0a0",
+      "controlDisabledValue", "c9c9c9",
 
       "editTextBackground", "d9d9d9",
       "editText", "000000",
@@ -171,7 +177,8 @@ public class UITheme {
       "primary", "80bf80",
       "secondary", "8080bf",
       "focus", "c9c9c9",
-      "attention", "cc0000",
+      "attention", "ee0000",
+      "restrictions", "292929",
       "cue", "8080bf",
       "aux", "bf8080",
       "busA", "80bf80",
@@ -193,7 +200,7 @@ public class UITheme {
       "listSectionArrow", "666666",
       "listSectionText", "333333",
 
-      "meterBackground", "191919",
+      "meterBackground", "292929",
 
       "iconDisabled", "505050",
       "iconInactive", "404040",
@@ -214,9 +221,11 @@ public class UITheme {
 
     public final String name;
     public final Map<String, Integer> colors = new HashMap<String, Integer>();
+    public final int knobDetentSize;
 
-    private Theme(String name, String ... colors) {
+    private Theme(String name, int knobDetentSize, String ... colors) {
       this.name = name;
+      this.knobDetentSize = knobDetentSize;
       for (int i = 0; i < colors.length; i +=2) {
         String field = colors[i];
         String hex = colors[i+1];
@@ -237,6 +246,8 @@ public class UITheme {
   private final VGraphics.Font deviceFont;
   private final VGraphics.Font labelFont;
   private final VGraphics.Font controlFont;
+
+  private int knobDetentSize;
 
   public final Color labelColor = new Color("label");
 
@@ -264,10 +275,12 @@ public class UITheme {
   public final Color controlBorderColor = new Color("controlBorder");
   public final Color controlHandleColor = new Color("controlHandle");
   public final Color controlDetentColor = new Color("controlDetent");
-  public final Color controlDisabledColor = new Color("controlDisabled");
   public final Color controlTextColor = new Color("controlText");
   public final Color controlActiveTextColor = new Color("controlActiveText");
+  public final Color controlDisabledColor = new Color("controlDisabled");
   public final Color controlDisabledTextColor = new Color("controlDisabledText");
+  public final Color controlDisabledFillColor = new Color("controlDisabledFill");
+  public final Color controlDisabledValueColor = new Color("controlDisabledValue");
 
   public final Color editTextBackgroundColor = new Color("editTextBackground");
   public final Color editTextColor = new Color("editText");
@@ -276,6 +289,7 @@ public class UITheme {
   public final Color secondaryColor = new Color("secondary");
   public final Color focusColor = new Color("focus");
   public final Color attentionColor = new Color("attention");
+  public final Color restrictionsColor = new Color("restrictions");
   public final Color cueColor = new Color("cue");
   public final Color auxColor = new Color("aux");
   public final Color busAColor = new Color("busA");
@@ -356,6 +370,8 @@ public class UITheme {
     this.labelFont.fontSize(10);
     LX.initProfiler.log("GLX: UI: Theme: labelFont");
 
+    this.knobDetentSize = 4;
+
     this.iconNote = loadIcon(vg, "icon-note@2x.png");
     this.iconTempo = loadIcon(vg, "icon-tempo@2x.png");
     this.iconControl = loadIcon(vg, "icon-control@2x.png");
@@ -404,6 +420,10 @@ public class UITheme {
     VGraphics.Image icon = vg.loadIcon(filename);
     this.icons.add(icon);
     return icon;
+  }
+
+  public int getKnobDetentSize() {
+    return this.knobDetentSize;
   }
 
   /**

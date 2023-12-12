@@ -210,19 +210,21 @@ public class UISlider extends UICompoundParameterControl implements UIFocus {
       }
     }
 
+    final boolean editable = isEnabled() && isEditable();
+
     int baseColor;
     int valueColor;
-    if (isEnabled()) {
+    if (editable) {
       baseColor = this.hasFillColor ? this.fillColor.get() : ui.theme.primaryColor.get();
       valueColor = getModulatedValueColor(baseColor);
     } else {
-      int disabled = ui.theme.controlDisabledColor.get();
+      int disabled = ui.theme.controlDisabledValueColor.get();
       baseColor = disabled;
       valueColor = disabled;
     }
 
     vg.strokeWidth(1);
-    vg.fillColor(ui.theme.controlFillColor);
+    vg.fillColor(editable ? ui.theme.controlFillColor : ui.theme.controlDisabledFillColor);
 
     switch (this.direction) {
     case HORIZONTAL:

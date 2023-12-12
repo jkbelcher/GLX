@@ -64,7 +64,7 @@ public class UIViewSelector extends UIDropMenu {
 
     ui.theme.iconView.setTint(
       (view == null) ?
-        ui.theme.controlBackgroundColor.get() :
+        ui.theme.controlFillColor.get() :
         (this.deviceMode ? maskColor : ui.theme.primaryColor.get())
     );
     vg.beginPath();

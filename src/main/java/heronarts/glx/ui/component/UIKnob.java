@@ -117,7 +117,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
 
         // Light ring of value
         DiscreteColorParameter modulationColor = modulation.color;
-        int modColor = ui.theme.controlDisabledColor.get();
+        int modColor = ui.theme.controlDisabledFillColor.get();
         int modColorInv = modColor;
         if (isEnabled() && modulation.enabled.isOn()) {
           modColor = modulationColor.getColor();
@@ -175,18 +175,20 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
       }
     }
 
+    final boolean editable = isEnabled() && isEditable();
+
     // Outer fill
-    vg.fillColor(ui.theme.controlFillColor);
+    vg.fillColor(editable ? ui.theme.controlFillColor : ui.theme.controlDisabledFillColor);
     vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, ARC_START, ARC_END);
 
     // Compute colors for base/value fills
     int baseColor;
     int valueColor;
-    if (isEnabled() && isEditable()) {
+    if (editable) {
       baseColor = ui.theme.primaryColor.get();
       valueColor = getModulatedValueColor(baseColor);
     } else {
-      int disabled = ui.theme.controlDisabledColor.get();
+      int disabled = ui.theme.controlDisabledValueColor.get();
       baseColor = disabled;
       valueColor = disabled;
     }
@@ -211,10 +213,13 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     }
 
     // Center dot
-    vg.fillColor(ui.theme.controlDetentColor);
-    vg.beginPath();
-    vg.circle(ARC_CENTER_X, ARC_CENTER_Y, 4);
-    vg.fill();
+    float detent = LXUtils.minf(arcSize - 4, ui.theme.getKnobDetentSize());
+    if (detent > 0) {
+      vg.fillColor(ui.theme.controlDetentColor);
+      vg.beginPath();
+      vg.circle(ARC_CENTER_X, ARC_CENTER_Y, detent);
+      vg.fill();
+    }
 
     super.onDraw(ui, vg);
   }
