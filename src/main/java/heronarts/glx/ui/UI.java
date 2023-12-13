@@ -642,8 +642,9 @@ public class UI {
         .setBreakLines(true)
         .setPadding(8)
         .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
-        .setBorderColor(this.theme.attentionColor)
         .setBackgroundColor(this.theme.listBackgroundColor)
+        .setBorderColor(this.theme.attentionColor)
+        .setBorderWeight(2)
         .setBorderRounding(4)
         .setFontColor(this.theme.attentionColor)
       );
