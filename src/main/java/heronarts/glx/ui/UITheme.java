@@ -70,6 +70,7 @@ public class UITheme {
       "paneSelectorInactive", "333333",
 
       "toolbarBackground", "242424",
+      "toolbarSectionBackground", "404040",
       "helpBackground", "242424",
       "helpText", "c0c0c0",
 
@@ -152,7 +153,8 @@ public class UITheme {
       "paneSelectorActive", "8f8f8f",
       "paneSelectorInactive", "7f7f7f",
 
-      "toolbarBackground", "797979",
+      "toolbarBackground", "7f7f7f",
+      "toolbarSectionBackground", "7f7f7f",
       "helpBackground", "808080",
       "helpText", "111111",
 
@@ -265,6 +267,7 @@ public class UITheme {
   public final Color paneSelectorInactiveColor = new Color("paneSelectorInactive");
 
   public final Color toolbarBackgroundColor = new Color("toolbarBackground");
+  public final Color toolbarSectionBackgroundColor = new Color("toolbarSectionBackground");
   public final Color helpBackgroundColor = new Color("helpBackground");
   public final Color helpTextColor = new Color("helpText");
 
