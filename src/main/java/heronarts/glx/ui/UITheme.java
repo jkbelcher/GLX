@@ -119,6 +119,7 @@ public class UITheme {
       "listSectionText", "aaaaaa",
 
       "meterBackground", "191919",
+      "messageBoxBackground", "222222",
 
       "iconDisabled", "505050",
       "iconInactive", "999999",
@@ -140,22 +141,22 @@ public class UITheme {
     LIGHT("Light", 8,
       "label", "191919",
 
-      "deviceBackground", "808080",
-      "deviceFocusedBackground", "888888",
-      "deviceSelection", "80bf80",
+      "deviceBackground", "888888",
+      "deviceFocusedBackground", "8f8f8f",
+      "deviceSelection", "8cd867",
       "deviceSelectionText", "111111",
 
       "paneBackground", "707070",
-      "paneInset", "555555",
+      "paneInset", "595959",
       "paneScrollBar", "494949",
-      "paneSelectorActive", "888888",
-      "paneSelectorInactive", "797979",
+      "paneSelectorActive", "8f8f8f",
+      "paneSelectorInactive", "7f7f7f",
 
-      "toolbarBackground", "808080",
+      "toolbarBackground", "797979",
       "helpBackground", "808080",
       "helpText", "111111",
 
-      "sectionExpanderBackground", "606060",
+      "sectionExpanderBackground", "444444",
       "sceneStripBackground", "707070",
       "clipButtonBackground", "505050",
 
@@ -174,17 +175,17 @@ public class UITheme {
       "editTextBackground", "d9d9d9",
       "editText", "000000",
 
-      "primary", "80bf80",
-      "secondary", "8080bf",
+      "primary", "8cd867",
+      "secondary", "7ddbf3",
       "focus", "c9c9c9",
-      "attention", "ee0000",
+      "attention", "ff3333",
       "restrictions", "292929",
-      "cue", "8080bf",
-      "aux", "bf8080",
-      "busA", "80bf80",
-      "busB", "bf964f",
+      "cue", "7ddbf3",
+      "aux", "f67247",
+      "busA", "8cd867",
+      "busB", "d88c67",
       "surface", "8080bf",
-      "recording", "bf0053",
+      "recording", "ec624a",
       "cursor", "555555",
       "selection", "cccccc",
       "error", "cc0000",
@@ -201,6 +202,7 @@ public class UITheme {
       "listSectionText", "333333",
 
       "meterBackground", "292929",
+      "messageBoxBackground", "7f7f7f",
 
       "iconDisabled", "505050",
       "iconInactive", "404040",
@@ -312,6 +314,8 @@ public class UITheme {
   public final Color listSectionTextColor = new Color("listSectionText");
 
   public final Color meterBackgroundColor = new Color("meterBackground");
+
+  public final Color messageBoxBackgroundColor = new Color("messageBoxBackground");
 
   public final Color iconDisabledColor = new Color("iconDisabled");
   public final Color iconInactiveColor = new Color("iconInactive");
