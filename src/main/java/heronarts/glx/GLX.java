@@ -822,39 +822,38 @@ public class GLX extends LX {
     if (this.dialogShowing) {
       return;
     }
-    new Thread() {
-      @Override
-      public void run() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(extensions.length);
-          for (String extension : extensions) {
-            aFilterPatterns.put(stack.UTF8("*." + extension));
+    new Thread(() -> {
+      try (MemoryStack stack = MemoryStack.stackPush()) {
+        PointerBuffer aFilterPatterns = stack.mallocPointer(extensions.length);
+        for (String extension : extensions) {
+          aFilterPatterns.put(stack.UTF8("*." + extension));
+        }
+        aFilterPatterns.flip();
+        dialogShowing = true;
+        String path = tinyfd_saveFileDialog(
+          dialogTitle,
+          defaultPath,
+          aFilterPatterns,
+          fileType + " (*." + String.join("/", extensions) + ")"
+        );
+        dialogShowing = false;
+        if (path != null) {
+          final int dot = path.lastIndexOf('.');
+          final int separator = path.lastIndexOf(File.separatorChar);
+          if (dot < 0 || dot < separator) {
+            path = path + "." + extensions[0];
+          } else if (dot == path.length() - 1) {
+            path = path + extensions[0];
           }
-          aFilterPatterns.flip();
-          dialogShowing = true;
-          String path = tinyfd_saveFileDialog(
-            dialogTitle,
-            defaultPath,
-            aFilterPatterns,
-            fileType + " (*." + String.join("/", extensions) + ")"
-          );
-          dialogShowing = false;
-          if (path != null) {
-            final int dot = path.lastIndexOf('.');
-            final int separator = path.lastIndexOf(File.separatorChar);
-            if (dot < 0 || dot < separator) {
-              path = path + "." + extensions[0];
-            } else if (dot == path.length() - 1) {
-              path = path + extensions[0];
-            }
-            final String finalPath = path;
-            engine.addTask(() -> {
-              success.fileDialogCallback(finalPath);
-            });
-          }
+          final String finalPath = path;
+          engine.addTask(() -> {
+            success.fileDialogCallback(finalPath);
+          });
+        } else {
+          pushError("Invalid file name or no file selected, the file was not saved.");
         }
       }
-    }.start();
+    }, "Save File Dialog").start();
   }
 
   /**
@@ -870,32 +869,29 @@ public class GLX extends LX {
     if (this.dialogShowing) {
       return;
     }
-    new Thread() {
-      @Override
-      public void run() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-          PointerBuffer aFilterPatterns = stack.mallocPointer(extensions.length);
-          for (String extension : extensions) {
-            aFilterPatterns.put(stack.UTF8("*." + extension));
-          }
-          aFilterPatterns.flip();
-          dialogShowing = true;
-          String path = tinyfd_openFileDialog(
-            dialogTitle,
-            defaultPath,
-            aFilterPatterns,
-            fileType + " (*." + String.join("/", extensions) + ")",
-            false
-          );
-          dialogShowing = false;
-          if (path != null) {
-            engine.addTask(() -> {
-              success.fileDialogCallback(path);
-            });
-          }
+    new Thread(() -> {
+      try (MemoryStack stack = MemoryStack.stackPush()) {
+        PointerBuffer aFilterPatterns = stack.mallocPointer(extensions.length);
+        for (String extension : extensions) {
+          aFilterPatterns.put(stack.UTF8("*." + extension));
+        }
+        aFilterPatterns.flip();
+        dialogShowing = true;
+        String path = tinyfd_openFileDialog(
+          dialogTitle,
+          defaultPath,
+          aFilterPatterns,
+          fileType + " (*." + String.join("/", extensions) + ")",
+          false
+        );
+        dialogShowing = false;
+        if (path != null) {
+          engine.addTask(() -> {
+            success.fileDialogCallback(path);
+          });
         }
       }
-    }.start();
+    }, "Open File Dialog").start();
   }
 
   @Override
