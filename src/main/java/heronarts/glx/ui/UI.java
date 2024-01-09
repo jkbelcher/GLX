@@ -21,6 +21,7 @@ package heronarts.glx.ui;
 import heronarts.glx.GLX;
 import heronarts.glx.View;
 import heronarts.glx.event.Event;
+import heronarts.glx.event.GamepadEvent;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.component.UIContextMenu;
@@ -195,6 +196,27 @@ public class UI {
     protected void onKeyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
       if (topLevelKeyEventHandler != null) {
         topLevelKeyEventHandler.onKeyReleased(keyEvent, keyChar, keyCode);
+      }
+    }
+
+    @Override
+    protected void onGamepadButtonPressed(GamepadEvent gamepadEvent) {
+      if (topLevelKeyEventHandler != null) {
+        topLevelKeyEventHandler.onGamepadButtonPressed(gamepadEvent);
+      }
+    }
+
+    @Override
+    protected void onGamepadButtonReleased(GamepadEvent gamepadEvent) {
+      if (topLevelKeyEventHandler != null) {
+        topLevelKeyEventHandler.onGamepadButtonReleased(gamepadEvent);
+      }
+    }
+
+    @Override
+    protected void onGamepadAxisChanged(GamepadEvent gamepadEvent) {
+      if (topLevelKeyEventHandler != null) {
+        topLevelKeyEventHandler.onGamepadAxisChanged(gamepadEvent);
       }
     }
 
@@ -1102,6 +1124,20 @@ public class UI {
         }
         break;
       }
+    }
+  }
+
+  public void gamepadEvent(GamepadEvent gamepadEvent) {
+    switch (gamepadEvent.getAction()) {
+    case BUTTON_PRESS:
+      this.root.onGamepadButtonPressed(gamepadEvent);
+      break;
+    case BUTTON_RELEASE:
+      this.root.onGamepadButtonReleased(gamepadEvent);
+      break;
+    case AXIS_CHANGE:
+      this.root.onGamepadAxisChanged(gamepadEvent);
+      break;
     }
   }
 
