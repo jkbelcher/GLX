@@ -162,6 +162,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     protected void drawBorder(UI ui, VGraphics vg) {}
 
     @Override
+    @SuppressWarnings("fallthrough")
     protected void onDraw(UI ui, VGraphics vg) {
       vg.beginPath();
       vg.fillColor(ui.theme.sectionExpanderBackgroundColor);
@@ -171,7 +172,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       switch (this.direction) {
       case TOP_RIGHT:
         isOn = !isOn;
-      //$FALL-THROUGH$
+        // Intentional fall-through
       case BOTTOM_LEFT:
         if (isOn) {
           drawBottomLeft(ui, vg);
@@ -181,7 +182,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
         break;
       case TOP_LEFT:
         isOn = !isOn;
-      //$FALL-THROUGH$
+        // Intentional fall-through
       case BOTTOM_RIGHT:
         if (isOn) {
           drawBottomRight(ui, vg);
