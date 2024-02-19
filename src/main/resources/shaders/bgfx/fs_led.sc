@@ -16,9 +16,9 @@ void main()
   sparkleSample.a *= v_texcoord1.z;
   vec4 sparkleColor = vec4(sparkleSample.a * sparkleSample.bgr, sparkleSample.a);  
   
-  gl_FragColor = v_color0.bgra * min(vec4(1.0f),
-    texture2D(s_texColor, v_texcoord0) +
-    sparkleColor
+  gl_FragColor = v_color0.bgra * min(
+  	vec4(1.0f, 1.0f, 1.0f, 1.0f),
+    texture2D(s_texColor, v_texcoord0) + sparkleColor
   );
   
   // Check alpha ref after masking by texture alpha
