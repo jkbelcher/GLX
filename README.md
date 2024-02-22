@@ -10,7 +10,7 @@ GLX embeds the [LX](https://github.com/heronarts/LX/) framework in a cross-platf
 
 ### Contact and Collaboration ###
 
-Building a big cool project? I'm probably interested in hearing about it! Want to solicit some help, request new framework features, or just ask a random question? Drop me a line: mark@heronarts.com
+Building a big cool project? I'm probably interested in hearing about it! Want to solicit some help, request new framework features, or just ask a random question? Drop me a line at mark@chromatik.co or [join the Discord](https://chromatik.co/discord).
 
 ---
 
