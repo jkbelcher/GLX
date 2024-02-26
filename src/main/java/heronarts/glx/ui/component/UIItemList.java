@@ -1013,7 +1013,7 @@ public interface UIItemList {
             if (keyEvent.isShiftDown() || keyEvent.isCommand()) {
               this.editState.deleteAll();
             } else {
-              this.editState.delete();
+              this.editState.delete(keyCode == KeyEvent.VK_DELETE);
             }
             this.list.redraw();
           }

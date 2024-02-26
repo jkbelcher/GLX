@@ -97,7 +97,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       setCursor(0);
     }
 
-    public void delete() {
+    public void delete(boolean forwards) {
       if (this.rangeEnd != this.rangeStart) {
         // Range deletion, save the end point
         final int rangeEnd = this.rangeEnd;
@@ -107,11 +107,14 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           this.buffer.substring(0, this.rangeStart) +
           this.buffer.substring(rangeEnd);
       } else {
-        // Single char deletion, move the cursor back one, delete from there
-        setCursor(this.cursor - 1);
-        this.buffer =
-          this.buffer.substring(0, this.cursor) +
-          this.buffer.substring(this.cursor + 1);
+        // Reset the cursor, moving it back one if this is backspace
+        // NB: the setCursor() call also updates range vars
+        setCursor(forwards ? this.cursor : this.cursor - 1);
+        if (this.cursor < this.buffer.length()) {
+          this.buffer =
+            this.buffer.substring(0, this.cursor) +
+            this.buffer.substring(this.cursor + 1);
+        }
       }
     }
 
@@ -670,7 +673,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
               this.editState.deleteAll();
               onEditChange(this.editState.buffer);
             } else {
-              this.editState.delete();
+              this.editState.delete(keyCode == KeyEvent.VK_DELETE);
               onEditChange(this.editState.buffer);
             }
             redraw();
