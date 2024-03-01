@@ -38,6 +38,7 @@ public class UIIndicator extends UI2dComponent implements UITriggerSource {
 
   private boolean triggerable = false;
   private boolean clickable = true;
+  private boolean singleClickable = false;
 
   private Color indicatorBackgroundColor;
   private final UI ui;
@@ -97,6 +98,14 @@ public class UIIndicator extends UI2dComponent implements UITriggerSource {
     return this;
   }
 
+  public UIIndicator setSingleClickable(boolean singleClickable) {
+    this.singleClickable = singleClickable;
+    if (singleClickable) {
+      setClickable(singleClickable);
+    }
+    return this;
+  }
+
   public UIIndicator setIndicatorTime(boolean timerMode) {
     if (timerMode) {
       setIndicatorTime(DEFAULT_TIMER_MS);
@@ -112,12 +121,16 @@ public class UIIndicator extends UI2dComponent implements UITriggerSource {
     return this;
   }
 
+  private boolean isValidClick(MouseEvent mouseEvent) {
+    return this.singleClickable || mouseEvent.isCommand();
+  }
+
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     if (!this.clickable) {
       return;
     }
-    if (mouseEvent.isCommand()) {
+    if (isValidClick(mouseEvent)) {
       mouseEvent.consume();
       this.bool.setValue(true);
     }
@@ -128,7 +141,7 @@ public class UIIndicator extends UI2dComponent implements UITriggerSource {
     if (!this.clickable) {
       return;
     }
-    if (mouseEvent.isCommand() && !(this.bool instanceof TriggerParameter)) {
+    if (!(this.bool instanceof TriggerParameter) && isValidClick(mouseEvent)) {
       mouseEvent.consume();
       this.bool.setValue(false);
     }
