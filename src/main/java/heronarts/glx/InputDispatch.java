@@ -118,7 +118,7 @@ public class InputDispatch implements LXEngine.Dispatch {
 
     // Detect double-presses
     if (action == GLFW_PRESS) {
-      if ((this.previousMousePress != null) && this.previousMousePress.isRepeat(mouseEvent)) {
+      if ((this.previousMousePress != null) && !this.previousMousePress.isConsumed() && this.previousMousePress.isRepeat(mouseEvent)) {
         mouseEvent.setCount(this.previousMousePress.getCount() + 1);
       }
       this.previousMousePress = mouseEvent;

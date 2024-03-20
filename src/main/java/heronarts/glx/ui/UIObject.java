@@ -562,10 +562,13 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
   void mousePressed(MouseEvent mouseEvent, float mx, float my) {
     this.dragging = null;
 
+    boolean isMappingEvent = false;
+
     if (isMidiMapping()) {
+      isMappingEvent = true;
       this.ui.setControlTarget((UIControlTarget) this);
-      return;
     } else if (isModulationSourceMapping()) {
+      isMappingEvent = true;
       if (this instanceof UIModulationSource) {
         this.ui.mapModulationSource((UIModulationSource) this);
       } else if (this instanceof UITriggerSource) {
@@ -573,25 +576,30 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
       } else {
         throw new IllegalStateException("isModulationSourceMapping() was true but the element is not a modulation or trigger source: " + this);
       }
-      return;
     } else if (isModulationTargetMapping() && !isModulationSource()) {
+      isMappingEvent = true;
       LXNormalizedParameter source = this.ui.getModulationSource().getModulationSource();
       LXCompoundModulation.Target target = ((UIModulationTarget) this).getModulationTarget();
       if (source != null && target != null) {
         getLX().command.perform(new LXCommand.Modulation.AddModulation(this.ui.modulationEngine, source, target));
       }
       this.ui.mapModulationOff();
-      return;
     } else if (isTriggerSourceMapping()) {
+      isMappingEvent = true;
       this.ui.mapTriggerSource((UITriggerSource) this);
-      return;
     } else if (isTriggerTargetMapping() && !isTriggerSource()) {
+      isMappingEvent = true;
       BooleanParameter source = this.ui.getTriggerSource().getTriggerSource();
       BooleanParameter target = ((UITriggerTarget)this).getTriggerTarget();
       if (source != null && target != null) {
         getLX().command.perform(new LXCommand.Modulation.AddTrigger(this.ui.modulationEngine, source, target));
       }
       this.ui.mapModulationOff();
+    }
+
+    // Eat the mouse press and bail out
+    if (isMappingEvent) {
+      mouseEvent.consume();
       return;
     }
 
