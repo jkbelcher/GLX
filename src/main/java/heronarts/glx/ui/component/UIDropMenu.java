@@ -21,6 +21,7 @@ package heronarts.glx.ui.component;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UIContextActions;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
@@ -195,10 +196,16 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
     vg.text(4 + this.textOffsetX, this.height / 2 + 1 + this.textOffsetY, clipTextToWidth(vg, text, this.width - 12));
 
+    drawTriangle(ui, this, vg, this.textOffsetY);
+  }
+
+  public static void drawTriangle(UI ui, UI2dComponent component, VGraphics vg, float textOffsetY) {
+    final float width = component.getWidth();
+    final float height = component.getHeight();
     vg.beginPath();
-    vg.moveTo(this.width-4, this.height / 2 + this.textOffsetY - 2);
-    vg.lineTo(this.width-10, this.height / 2 + this.textOffsetY - 2);
-    vg.lineTo(this.width-7, this.height / 2 + this.textOffsetY + 2);
+    vg.moveTo(width-4, height / 2 + textOffsetY - 2);
+    vg.lineTo(width-10, height / 2 + textOffsetY - 2);
+    vg.lineTo(width-7, height / 2 + textOffsetY + 2);
     vg.closePath();
     vg.fill();
   }
