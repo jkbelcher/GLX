@@ -700,10 +700,20 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
         }
       } else if (isVertical) {
         if (my > hover.getY() + .5f * hover.getHeight()) {
-          dragPos = LXUtils.minf(this.contentTarget.getScrollHeight() - .5f, hover.getY() + hover.getHeight() + .5f * this.contentTarget.childSpacingY);
+          float dragMargin = this.contentTarget.childSpacingY + hover.marginBottom;
+          final UI2dComponent next = hover.getNextSibling(true);
+          if (next != null) {
+            dragMargin += next.marginTop;
+          }
+          dragPos = LXUtils.minf(this.contentTarget.getScrollHeight() - .5f, hover.getY() + hover.getHeight() + .5f * dragMargin);
           ++hoverIndex;
         } else {
-          dragPos = LXUtils.maxf(.5f, hover.getY() - .5f * this.contentTarget.childSpacingY);
+          float dragMargin = this.contentTarget.childSpacingY + hover.marginTop;
+          final UI2dComponent prev = hover.getPrevSibling(true);
+          if (prev != null) {
+            dragMargin += prev.marginBottom;
+          }
+          dragPos = LXUtils.maxf(.5f, hover.getY() - .5f * dragMargin);
         }
       }
     }
