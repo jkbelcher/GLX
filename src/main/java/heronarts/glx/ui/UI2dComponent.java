@@ -1128,6 +1128,16 @@ public abstract class UI2dComponent extends UIObject {
    * @return The previous UI object in the hierarchy adjacent to this one
    */
   public UI2dComponent getPrevSibling() {
+    return getPrevSibling(false);
+  }
+
+  /**
+   * Returns the adjacent object in the hierarchy
+   *
+   * @param visible Whether to filter on visible siblings only
+   * @return The previous UI object in the hierarchy adjacent to this one
+   */
+  public UI2dComponent getPrevSibling(boolean visible) {
     UI2dContainer container = getContainer();
     UI2dComponent prev = null;
     if (container != null) {
@@ -1135,7 +1145,9 @@ public abstract class UI2dComponent extends UIObject {
         if (child == this) {
           return prev;
         }
-        prev = (UI2dComponent) child;
+        if (!visible || child.isVisible()) {
+          prev = (UI2dComponent) child;
+        }
       }
     }
     return null;
@@ -1147,11 +1159,21 @@ public abstract class UI2dComponent extends UIObject {
    * @return The next UI object in the hierarchy adjacent to this one
    */
   public UI2dComponent getNextSibling() {
+    return getNextSibling(false);
+  }
+
+  /**
+   * Returns the adjacent object in the hierarchy
+   *
+   * @param visible Whether to filter on visible siblings only
+   * @return The next UI object in the hierarchy adjacent to this one
+   */
+  public UI2dComponent getNextSibling(boolean visible) {
     UI2dContainer container = getContainer();
     if (container != null) {
       boolean next = false;
       for (UIObject child : container) {
-        if (next) {
+        if (next && (!visible || child.isVisible())) {
           return (UI2dComponent) child;
         } else if (child == this) {
           next = true;

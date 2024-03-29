@@ -295,8 +295,9 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
-          component.setY(y + component.marginTop);
-          y += component.marginTop + component.getHeight() + component.marginBottom + this.childSpacingY;
+          y += component.marginTop;
+          component.setY(y);
+          y += component.getHeight() + component.marginBottom + this.childSpacingY;
         }
       }
       y += this.bottomPadding;
@@ -306,8 +307,9 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
-          component.setX(x + component.marginLeft);
-          x += component.marginLeft + component.getWidth() + component.marginRight + this.childSpacingX;
+          x += component.marginLeft;
+          component.setX(x);
+          x += component.getWidth() + component.marginRight + this.childSpacingX;
         }
       }
       x += this.rightPadding;
@@ -659,7 +661,7 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       return;
     }
 
-    UIObject hover = null;
+    UI2dComponent hover = null;
     int hoverIndex = -1;
     int dragIndex = -1;
 
@@ -668,11 +670,9 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       if (child == drag) {
         dragIndex = index;
       } else if (child.isVisible() && (child instanceof UI2dComponent.UIDragReorder)) {
-        if (isHorizontal && (mx > child.getX())) {
-          hover = child;
-          hoverIndex = index;
-        } else if (isVertical && (my > child.getY())) {
-          hover = child;
+        if ((isHorizontal && (mx > child.getX())) ||
+            (isVertical && (my > child.getY()))) {
+          hover = (UI2dComponent) child;
           hoverIndex = index;
         }
       }
@@ -683,10 +683,20 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     if ((hover != null) && (hover != drag)) {
       if (isHorizontal) {
         if (mx > hover.getX() + .5f * hover.getWidth()) {
-          dragPos = LXUtils.minf(this.contentTarget.getScrollWidth() - .5f, hover.getX() + hover.getWidth() + .5f * this.contentTarget.childSpacingX);
+          float dragMargin = this.contentTarget.childSpacingX + hover.marginRight;
+          final UI2dComponent next = hover.getNextSibling(true);
+          if (next != null) {
+            dragMargin += next.marginLeft;
+          }
+          dragPos = LXUtils.minf(this.contentTarget.getScrollWidth() - .5f, hover.getX() + hover.getWidth() + .5f * dragMargin);
           ++hoverIndex;
         } else {
-          dragPos = LXUtils.maxf(.5f, hover.getX() - .5f * this.contentTarget.childSpacingX);
+          float dragMargin = (this.contentTarget.childSpacingX + hover.marginLeft);
+          final UI2dComponent prev = hover.getPrevSibling(true);
+          if (prev != null) {
+            dragMargin += prev.marginRight;
+          }
+          dragPos = LXUtils.maxf(.5f, hover.getX() - .5f * dragMargin);
         }
       } else if (isVertical) {
         if (my > hover.getY() + .5f * hover.getHeight()) {
