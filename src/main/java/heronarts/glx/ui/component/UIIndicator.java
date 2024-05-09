@@ -31,7 +31,7 @@ public class UIIndicator extends UI2dComponent implements UITriggerSource {
   private final BooleanParameter bool;
   private double timeout = 0;
 
-  private static final int DEFAULT_TIMER_MS = 200;
+  public static final int DEFAULT_TIMER_MS = 200;
 
   public boolean timerMode = false;
   public double indicatorTimeMs = -1;

@@ -26,6 +26,7 @@ import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
+import heronarts.lx.parameter.TriggerParameter;
 import heronarts.glx.event.Event;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
@@ -307,10 +308,14 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       vg.fill();
 
     } else {
-      String labelText = (this.showValue || (this.editTimeRemaining > 0)) ? getValueString() : getLabelString();
+      final boolean showValue = (this.showValue || (this.editTimeRemaining > 0)) && !isTriggerParameter();
+      String labelText = showValue ? getValueString() : getLabelString();
       drawParameterLabel(ui, vg, this, labelText);
-
     }
+  }
+
+  protected boolean isTriggerParameter() {
+    return this.parameter instanceof TriggerParameter;
   }
 
   private double getIncrement(Event inputEvent) {

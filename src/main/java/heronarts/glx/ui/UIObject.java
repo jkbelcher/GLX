@@ -254,6 +254,17 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
   }
 
   /**
+   * Whether this object is visible in the overall hierarchy
+   *
+   * @param recurse Check parent visibility as well
+   * @return Whether object is visible
+   */
+  public boolean isVisible(boolean recurse) {
+    return isVisible() &&
+      (!recurse || (this.parent == null) || this.parent.isVisible(true));
+  }
+
+  /**
    * Whether this object is visible.
    *
    * @return True if this object is being displayed
