@@ -71,6 +71,7 @@ public class UITheme {
 
       "toolbarBackground", "242424",
       "toolbarSectionBackground", "404040",
+      "toolbarActivator", "888888",
       "helpBackground", "242424",
       "helpText", "c0c0c0",
 
@@ -155,6 +156,7 @@ public class UITheme {
 
       "toolbarBackground", "7f7f7f",
       "toolbarSectionBackground", "7f7f7f",
+      "toolbarActivator", "505050",
       "helpBackground", "808080",
       "helpText", "111111",
 
@@ -268,6 +270,7 @@ public class UITheme {
 
   public final Color toolbarBackgroundColor = new Color("toolbarBackground");
   public final Color toolbarSectionBackgroundColor = new Color("toolbarSectionBackground");
+  public final Color toolbarActivatorColor = new Color("toolbarActivator");
   public final Color helpBackgroundColor = new Color("helpBackground");
   public final Color helpTextColor = new Color("helpText");
 
