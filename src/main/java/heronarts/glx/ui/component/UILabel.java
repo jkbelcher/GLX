@@ -18,9 +18,17 @@
 
 package heronarts.glx.ui.component;
 
+import java.util.Arrays;
+import java.util.List;
+
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UI2dComponent;
+import heronarts.glx.ui.UIContextActions;
+import heronarts.glx.ui.UICopy;
+import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
+import heronarts.lx.clipboard.LXClipboardItem;
+import heronarts.lx.clipboard.LXTextValue;
 
 /**
  * A simple text label object. Draws a string aligned top-left to its x-y
@@ -36,6 +44,36 @@ public class UILabel extends UI2dComponent {
   private int bottomPadding = 0;
   private boolean breakLines = false;
   private boolean autoHeight = false;
+
+  public static class Copyable extends UILabel implements UIFocus, UICopy, UIContextActions {
+    public Copyable(float w, float h, String label) {
+      this(0, 0, w, h, label);
+    }
+
+    public Copyable(float x, float y, float w, float h, String label) {
+      super(x, y, w, h);
+      setLabel(label);
+    }
+
+    @Override
+    public LXClipboardItem onCopy() {
+      return new LXTextValue(getLabel());
+    }
+
+    private final List<Action> actions = Arrays.asList(new Action[] {
+      new Action("Copy Value") {
+        @Override
+        public void onContextAction(UI ui) {
+          ui.lx.clipboard.setItem(onCopy());
+        }
+      }
+    });
+
+    @Override
+    public List<Action> getContextActions() {
+      return this.actions;
+    }
+  }
 
   /**
    * Label text

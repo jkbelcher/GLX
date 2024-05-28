@@ -50,12 +50,169 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
 
   protected volatile boolean editing = false;
 
-  private String editBuffer = "";
-  private int editCursor = -1;
-  private int editRangeStart = -1;
-  private int editRangeEnd = -1;
+  public static class EditState {
+    public String buffer = "";
+    public int cursor = -1;
+    public int rangeStart = -1;
+    public int rangeEnd = -1;
+    public double cursorBasis = 1;
 
-  private double editCursorBasis = 1;
+    public void animateCursor(double deltaMs) {
+      this.cursorBasis = (this.cursorBasis + deltaMs * .002f) % 1.;
+    };
+
+    public void init(String value) {
+      this.buffer = value;
+      setCursor(value.length());
+    }
+
+    public String cut() {
+      if (this.rangeEnd != this.rangeStart) {
+
+        // Cut the text, put it on the clipboard
+        final String cut = this.buffer.substring(this.rangeStart, this.rangeEnd);
+
+        // Range deletion, save the end point
+        final int rangeEnd = this.rangeEnd;
+
+        // Move the cursor to front of deletion range
+        setCursor(this.rangeStart);
+        this.buffer =
+          this.buffer.substring(0, this.rangeStart) +
+          this.buffer.substring(rangeEnd);
+
+        return cut;
+      }
+
+      return null;
+    }
+
+    public void selectAll() {
+      this.rangeStart = 0;
+      this.cursor = this.rangeEnd = this.buffer.length();
+    }
+
+    public void deleteAll() {
+      this.buffer = "";
+      setCursor(0);
+    }
+
+    public void delete(boolean forwards) {
+      if (this.rangeEnd != this.rangeStart) {
+        // Range deletion, save the end point
+        final int rangeEnd = this.rangeEnd;
+        // Move the cursor to front of deletion range
+        setCursor(this.rangeStart);
+        this.buffer =
+          this.buffer.substring(0, this.rangeStart) +
+          this.buffer.substring(rangeEnd);
+      } else {
+        // Reset the cursor, moving it back one if this is backspace
+        // NB: the setCursor() call also updates range vars
+        setCursor(forwards ? this.cursor : this.cursor - 1);
+        if (this.cursor < this.buffer.length()) {
+          this.buffer =
+            this.buffer.substring(0, this.cursor) +
+            this.buffer.substring(this.cursor + 1);
+        }
+      }
+    }
+
+    public void setRange(int cursor) {
+      cursor = LXUtils.constrain(cursor, 0, this.buffer.length());
+      if (this.rangeStart == this.rangeEnd) {
+        // No range selected, now we're starting a range
+        if (cursor > this.rangeStart) {
+          this.cursor = this.rangeEnd = cursor;
+        } else {
+          this.cursor = this.rangeStart = cursor;
+        }
+      } else if (this.cursor == this.rangeStart) {
+        if (cursor < this.rangeEnd) {
+          this.cursor = this.rangeStart = cursor;
+        } else {
+          this.cursor = this.rangeEnd = cursor;
+        }
+      } else {
+        if (cursor > this.rangeStart) {
+          this.cursor = this.rangeEnd = cursor;
+        } else {
+          this.cursor = this.rangeStart = cursor;
+        }
+      }
+      if (this.rangeStart > this.rangeEnd) {
+        throw new IllegalStateException("Cannot have editRangeStart(" + rangeStart + ") > editRangeEnd(" + rangeEnd + ")");
+      }
+    }
+
+    public void setCursor(int cursor) {
+      this.rangeStart = this.rangeEnd = this.cursor = LXUtils.constrain(cursor, 0, this.buffer.length());
+    }
+
+    public void append(char append) {
+      this.buffer =
+        this.buffer.substring(0, this.rangeStart) +
+        append +
+        this.buffer.substring(this.rangeEnd);
+      setCursor(this.rangeStart + 1);
+    }
+
+    public void append(String append) {
+      this.buffer =
+        this.buffer.substring(0, this.rangeStart) +
+        append +
+        this.buffer.substring(this.rangeEnd);
+      setCursor(this.rangeStart + append.length());
+    }
+
+    public String getRange() {
+      if (this.rangeStart != this.rangeEnd) {
+        return this.buffer.substring(this.rangeStart, this.rangeEnd);
+      }
+      return this.buffer;
+    }
+
+    public void cursorLeft(KeyEvent keyEvent) {
+      int cursor = this.cursor - 1;
+      if ((this.rangeStart != this.rangeEnd) && !keyEvent.isShiftDown()) {
+        cursor = this.rangeStart;
+      }
+      if (keyEvent.isCommand()) {
+        cursor = 0;
+      } else if (keyEvent.isAltDown()) {
+        while (cursor > 0 && Character.isLetterOrDigit(this.buffer.charAt(cursor - 1))) {
+          --cursor;
+        }
+      }
+      if (keyEvent.isShiftDown()) {
+        setRange(cursor);
+      } else {
+        setCursor(cursor);
+      }
+    }
+
+    public void cursorRight(KeyEvent keyEvent) {
+      int cursor = this.cursor + 1;
+      if ((this.rangeStart != this.rangeEnd) && !keyEvent.isShiftDown()) {
+        cursor = this.rangeEnd;
+      }
+      if (keyEvent.isCommand()) {
+        cursor = this.buffer.length();
+      } else if (keyEvent.isAltDown()) {
+        while (cursor < this.buffer.length() && Character.isLetterOrDigit(this.buffer.charAt(cursor))) {
+          ++cursor;
+        }
+      }
+      if (keyEvent.isShiftDown()) {
+        setRange(cursor);
+      } else {
+        setCursor(cursor);
+      }
+    }
+
+  }
+
+  private final EditState editState = new EditState();
 
   protected boolean hasFill = false;
   protected int fillColor = 0;
@@ -85,7 +242,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     // Animate cursor while editing
     addLoopTask(deltaMs -> {
       if (this.editing) {
-        this.editCursorBasis = (this.editCursorBasis + deltaMs * .002f) % 1.;
+        this.editState.animateCursor(deltaMs);
         redraw();
       }
     });
@@ -170,14 +327,11 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   protected abstract void saveEditBuffer(String editBuffer);
 
   protected String getEditBuffer() {
-    return this.editBuffer;
+    return this.editState.buffer;
   }
 
   protected String getEditRange() {
-    if (this.editRangeStart != this.editRangeEnd) {
-      return this.editBuffer.substring(this.editRangeStart, this.editRangeEnd);
-    }
-    return this.editBuffer;
+    return this.editState.getRange();
   }
 
   /**
@@ -186,6 +340,11 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
    * @param editBuffer New value being actively edited
    */
   protected /* abstract */ void onEditChange(String editBuffer) {}
+
+  /**
+   * Subclasses may override to handle when an edit is finished
+   */
+  protected /* abstract */ void onEditFinished() {}
 
   public boolean isEditable() {
     return this.editable;
@@ -231,62 +390,22 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       throw new IllegalStateException("May not edit a non-editable UIInputBox");
     }
     if (this.enabled && !this.editing) {
-      this.editBuffer = editBufferValue;
-      editCursor(editBufferValue.length());
+      this.editState.init(editBufferValue);
       this.editing = true;
     }
     redraw();
   }
 
   private void editAppend(char append) {
-    this.editBuffer =
-      this.editBuffer.substring(0, this.editRangeStart) +
-      append +
-      this.editBuffer.substring(this.editRangeEnd);
-    editCursor(this.editRangeStart + 1);
-    onEditChange(this.editBuffer);
+    this.editState.append(append);
+    onEditChange(this.editState.buffer);
     redraw();
   }
 
   protected void editAppend(String append) {
-    this.editBuffer =
-      this.editBuffer.substring(0, this.editRangeStart) +
-      append +
-      this.editBuffer.substring(this.editRangeEnd);
-    editCursor(this.editRangeStart + append.length());
-    onEditChange(this.editBuffer);
+    this.editState.append(append);
+    onEditChange(this.editState.buffer);
     redraw();
-  }
-
-  private void editRange(int cursor) {
-    cursor = LXUtils.constrain(cursor, 0, this.editBuffer.length());
-    if (this.editRangeStart == this.editRangeEnd) {
-      // No range selected, now we're starting a range
-      if (cursor > this.editRangeStart) {
-        this.editCursor = this.editRangeEnd = cursor;
-      } else {
-        this.editCursor = this.editRangeStart = cursor;
-      }
-    } else if (this.editCursor == this.editRangeStart) {
-      if (cursor < this.editRangeEnd) {
-        this.editCursor = this.editRangeStart = cursor;
-      } else {
-        this.editCursor = this.editRangeEnd = cursor;
-      }
-    } else {
-      if (cursor > this.editRangeStart) {
-        this.editCursor = this.editRangeEnd = cursor;
-      } else {
-        this.editCursor = this.editRangeStart = cursor;
-      }
-    }
-    if (this.editRangeStart > this.editRangeEnd) {
-      throw new IllegalStateException("Cannot have editRangeStart(" + editRangeStart + ") > editRangeEnd(" + editRangeEnd + ")");
-    }
-  }
-
-  private void editCursor(int cursor) {
-    this.editRangeStart = this.editRangeEnd = this.editCursor = LXUtils.constrain(cursor, 0, this.editBuffer.length());
   }
 
   protected String getInitialEditBufferValue() {
@@ -297,10 +416,19 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
   protected void onBlur() {
     super.onBlur();
     if (this.editing) {
-      this.editing = false;
-      saveEditBuffer(this.editBuffer);
+      editFinished(true);
       redraw();
     }
+  }
+
+  private void editFinished(boolean save) {
+    this.editing = false;
+    if (save) {
+      saveEditBuffer(this.editState.buffer);
+    } else {
+      onEditChange(getValueString());
+    }
+    onEditFinished();
   }
 
   protected double getFillWidthNormalized() {
@@ -358,20 +486,37 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
 
     // Get the display string, clip it to width
     final float availableWidth = this.width - TEXT_MARGIN - 1;
-    final String rawString = this.editing ? this.editBuffer : getValueString();
-    final int rawLength = rawString.length();
-    String clippedString = null;
-    if (rawString != null) {
-      clippedString = clipTextToWidth(vg, rawString, availableWidth);
-    }
+    final String rawString = this.editing ? this.editState.buffer : getValueString();
+
+    onDrawText(ui, vg, this.editState, rawString, this.editing, this.textAlignHorizontal, 0, 0, this.width, this.height, availableWidth);
+  }
+
+  /**
+   * Horrendous helper method to render an editable text field
+   *
+   * @param ui UI context
+   * @param vg VGraphics object
+   * @param editState The editing state
+   * @param rawString Raw string to render
+   * @param cursor Whether to draw cursor
+   * @param textAlignHorizontal
+   * @param x X offset
+   * @param y Y offset
+   * @param width Available width from x
+   * @param height Available height from y
+   * @param availableWidth
+   */
+  public static void onDrawText(UI ui, VGraphics vg, EditState editState, String rawString, boolean cursor, VGraphics.Align textAlignHorizontal, float x, float y, float width, float height, float availableWidth) {
+    final int rawLength = (rawString != null) ? rawString.length() : 0;
+    String clippedString = (rawString != null) ? clipTextToWidth(vg, rawString, availableWidth) : null;
 
     // Clamp these values upfront, since they're updated by the LX engine thread
     // and we are here on the UI thread, they could be out of bounds.
-    int editCursor = LXUtils.constrain(this.editCursor, 0, rawLength);
-    int editRangeStart = LXUtils.constrain(this.editRangeStart, 0, rawLength);
-    int editRangeEnd = LXUtils.constrain(this.editRangeEnd, 0, rawLength);
+    int editCursor = LXUtils.constrain(editState.cursor, 0, rawLength);
+    int editRangeStart = LXUtils.constrain(editState.rangeStart, 0, rawLength);
+    int editRangeEnd = LXUtils.constrain(editState.rangeEnd, 0, rawLength);
 
-    if (this.editing) {
+    if (cursor) {
       // The string is too big and we can't see where we're editing...
       final int editMax = LXUtils.max(editCursor, editRangeEnd);
       if (editMax > clippedString.length()) {
@@ -416,20 +561,20 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
 
     // Draw the display string
     if (clippedString != null) {
-      if (this.textAlignHorizontal == VGraphics.Align.LEFT) {
+      if (textAlignHorizontal == VGraphics.Align.LEFT) {
         vg.beginPath();
         vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
-        vg.text(TEXT_MARGIN, this.height / 2 + 1, clippedString);
+        vg.text(x + TEXT_MARGIN, y + height / 2 + 1, clippedString);
         vg.fill();
       } else {
         vg.beginPath();
         vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
-        vg.text(this.width / 2, this.height / 2 + 1, clippedString);
+        vg.text(x + width / 2, y + height / 2 + 1, clippedString);
         vg.fill();
       }
     }
 
-    if (this.editing) {
+    if (cursor) {
       // Clamp the cursor values to available bounds, it's possible that we have a redraw
       // after editBuffer has been updated but the cursor is not yet updated
       final int length = clippedString.length();
@@ -438,7 +583,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       editRangeEnd = LXUtils.constrain(editRangeEnd, 0, length);
 
       float fullWidth = 0;
-      if (this.textAlignHorizontal != VGraphics.Align.LEFT) {
+      if (textAlignHorizontal != VGraphics.Align.LEFT) {
         fullWidth = vg.textWidth(clippedString);
       }
 
@@ -446,17 +591,17 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
         final float rangeStartWidth = (editRangeStart == 0) ? 0 : vg.textWidth(clippedString.substring(0, editRangeStart));
         final float rangeEndWidth = (editRangeEnd == 0) ? 0 : vg.textWidth(clippedString.substring(0, editRangeEnd));
         float rangeStartX = 0, rangeEndX = 0;
-        if (this.textAlignHorizontal == VGraphics.Align.LEFT) {
+        if (textAlignHorizontal == VGraphics.Align.LEFT) {
           rangeStartX = TEXT_MARGIN + rangeStartWidth;
           rangeEndX = TEXT_MARGIN + rangeEndWidth;
         } else {
-          rangeStartX = (this.width - fullWidth) / 2f + rangeStartWidth;
-          rangeEndX = (this.width - fullWidth) / 2f + rangeEndWidth;
+          rangeStartX = (width - fullWidth) / 2f + rangeStartWidth;
+          rangeEndX = (width - fullWidth) / 2f + rangeEndWidth;
         }
 
         vg.beginPath();
         vg.fillColor(ui.theme.editTextColor.mask(0x55));
-        vg.rect(rangeStartX, 1, rangeEndX - rangeStartX, this.height - 2);
+        vg.rect(x + rangeStartX, y + 1, rangeEndX - rangeStartX, height - 2);
         vg.fill();
       }
 
@@ -464,15 +609,15 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
       if ((clippedString != null) && (editCursor > 0)) {
         cursorWidth = vg.textWidth(clippedString.substring(0, editCursor));
       }
-      if (this.textAlignHorizontal == VGraphics.Align.LEFT) {
+      if (textAlignHorizontal == VGraphics.Align.LEFT) {
         cursorX = TEXT_MARGIN + cursorWidth;
       } else {
-        cursorX = (this.width - fullWidth) / 2f + cursorWidth;
+        cursorX = (width - fullWidth) / 2f + cursorWidth;
       }
 
       vg.beginPath();
-      vg.strokeColor(ui.theme.editTextColor.mask((int) LXUtils.lerp(255, 100, this.editCursorBasis)));
-      vg.line(cursorX, 1, cursorX, this.height-1);
+      vg.strokeColor(ui.theme.editTextColor.mask((int) LXUtils.lerp(255, 100, editState.cursorBasis)));
+      vg.line(x + cursorX, y + 1, x + cursorX, y + height-1);
       vg.stroke();
     }
   }
@@ -504,123 +649,62 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           if (!keyEvent.isCommand()) {
             keyEvent.consume();
             editAppend(keyChar);
-            onEditChange(this.editBuffer);
-            redraw();
           }
         } else if (keyEvent.isEnter()) {
           keyEvent.consume();
-          this.editing = false;
-          saveEditBuffer(this.editBuffer);
+          editFinished(true);
           redraw();
         } else if (keyEvent.isCommand(KeyEvent.VK_X)) {
-          if (this.editRangeEnd != this.editRangeStart) {
+          final String cut = this.editState.cut();
+          if (cut != null) {
             keyEvent.consume();
-
-            // Cut the text, put it on the clipboard
-            final String cut = this.editBuffer.substring(this.editRangeStart, this.editRangeEnd);
             getLX().clipboard.setItem(new LXTextValue(cut));
-
-            // Range deletion, save the end point
-            final int rangeEnd = this.editRangeEnd;
-            // Move the cursor to front of deletion range
-            editCursor(this.editRangeStart);
-            this.editBuffer =
-              this.editBuffer.substring(0, this.editRangeStart) +
-              this.editBuffer.substring(rangeEnd);
-
-            onEditChange(this.editBuffer);
+            onEditChange(this.editState.buffer);
             redraw();
           }
         } else if (keyEvent.isCommand(KeyEvent.VK_A)) {
           keyEvent.consume();
-          this.editRangeStart = 0;
-          this.editCursor = editRangeEnd = this.editBuffer.length();
+          this.editState.selectAll();
           redraw();
         } else if (keyEvent.isDelete()) {
           keyEvent.consume();
-          if (this.editBuffer.length() > 0) {
+          if (this.editState.buffer.length() > 0) {
             if (keyEvent.isShiftDown() || keyEvent.isControlDown() || keyEvent.isMetaDown()) {
-              this.editBuffer = "";
-              editCursor(0);
-              onEditChange(this.editBuffer);
+              this.editState.deleteAll();
+              onEditChange(this.editState.buffer);
             } else {
-              if (this.editRangeEnd != this.editRangeStart) {
-                // Range deletion, save the end point
-                final int rangeEnd = this.editRangeEnd;
-                // Move the cursor to front of deletion range
-                editCursor(this.editRangeStart);
-                this.editBuffer =
-                  this.editBuffer.substring(0, this.editRangeStart) +
-                  this.editBuffer.substring(rangeEnd);
-              } else {
-                // Single char deletion, move the cursor back one, delete from there
-                editCursor(this.editCursor - 1);
-                this.editBuffer =
-                  this.editBuffer.substring(0, this.editCursor) +
-                  this.editBuffer.substring(this.editCursor + 1);
-              }
-              onEditChange(this.editBuffer);
+              this.editState.delete(keyCode == KeyEvent.VK_DELETE);
+              onEditChange(this.editState.buffer);
             }
             redraw();
           }
         } else if (keyCode == KeyEvent.VK_LEFT) {
           keyEvent.consume();
-          int cursor = this.editCursor - 1;
-          if ((this.editRangeStart != this.editRangeEnd) && !keyEvent.isShiftDown()) {
-            cursor = this.editRangeStart;
-          }
-          if (keyEvent.isCommand()) {
-            cursor = 0;
-          } else if (keyEvent.isAltDown()) {
-            while (cursor > 0 && Character.isLetterOrDigit(this.editBuffer.charAt(cursor - 1))) {
-              --cursor;
-            }
-          }
-          if (keyEvent.isShiftDown()) {
-            editRange(cursor);
-          } else {
-            editCursor(cursor);
-          }
+          this.editState.cursorLeft(keyEvent);
           redraw();
         } else if (keyCode == KeyEvent.VK_RIGHT) {
           keyEvent.consume();
-          int cursor = this.editCursor + 1;
-          if ((this.editRangeStart != this.editRangeEnd) && !keyEvent.isShiftDown()) {
-            cursor = this.editRangeEnd;
-          }
-          if (keyEvent.isCommand()) {
-            cursor = this.editBuffer.length();
-          } else if (keyEvent.isAltDown()) {
-            while (cursor < this.editBuffer.length() && Character.isLetterOrDigit(this.editBuffer.charAt(cursor))) {
-              ++cursor;
-            }
-          }
-          if (keyEvent.isShiftDown()) {
-            editRange(cursor);
-          } else {
-            editCursor(cursor);
-          }
+          this.editState.cursorRight(keyEvent);
           redraw();
         } else if (keyCode == KeyEvent.VK_UP) {
           if (keyEvent.isShiftDown()) {
             keyEvent.consume();
-            editRange(0);
+            this.editState.setRange(0);
           } else if (keyEvent.isCommand()) {
             keyEvent.consume();
-            editCursor(0);
+            this.editState.setCursor(0);
           }
         } else if (keyCode == KeyEvent.VK_DOWN) {
           if (keyEvent.isShiftDown()) {
             keyEvent.consume();
-            editRange(this.editBuffer.length());
+            this.editState.setRange(this.editState.buffer.length());
           } else if (keyEvent.isCommand()) {
             keyEvent.consume();
-            editCursor(this.editBuffer.length());
+            this.editState.setCursor(this.editState.buffer.length());
           }
         } else if (keyCode == KeyEvent.VK_ESCAPE) {
           keyEvent.consume();
-          this.editing = false;
-          onEditChange(getValueString());
+          editFinished(false);
           redraw();
         }
       } else if (this.enabled) {
@@ -632,7 +716,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
           } else {
             edit(Character.toString(keyChar));
           }
-          onEditChange(this.editBuffer);
+          onEditChange(this.editState.buffer);
         } else if (this.immediateEdit && keyEvent.isDelete()) {
           String editBuffer = getInitialEditBufferValue();
           if (!editBuffer.isEmpty()) {
@@ -642,7 +726,7 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
             } else {
               edit(editBuffer.substring(0, editBuffer.length() - 1));
             }
-            onEditChange(this.editBuffer);
+            onEditChange(this.editState.buffer);
           }
         } else if (keyEvent.isEnter()) {
           if (this.returnKeyEdit) {

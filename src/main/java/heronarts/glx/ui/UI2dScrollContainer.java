@@ -133,6 +133,10 @@ public class UI2dScrollContainer extends UI2dContainer implements UI2dScrollInte
     return this;
   }
 
+  /**
+   * Gets the total height of scrollable content, which could be larger than the size
+   * of the container itself if vertical scrolling is occurring.
+   */
   @Override
   public float getScrollHeight() {
     return this.scrollHeight;
@@ -147,6 +151,10 @@ public class UI2dScrollContainer extends UI2dContainer implements UI2dScrollInte
     return this;
   }
 
+  /**
+   * Gets the total width of scrollable content, which could be larger than the size
+   * of the container itself if horizontal scrolling is occurring.
+   */
   @Override
   public float getScrollWidth() {
     return this.scrollWidth;

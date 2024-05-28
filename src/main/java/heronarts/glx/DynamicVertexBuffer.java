@@ -29,7 +29,7 @@ public class DynamicVertexBuffer {
   private final VertexDeclaration vertexDeclaration;
   private final ByteBuffer vertexData;
 
-  private final short vbh;
+  private final short vertexBufferHandle;
   private final int numVertices;
 
   public DynamicVertexBuffer(GLX glx, int numVertices) {
@@ -39,12 +39,12 @@ public class DynamicVertexBuffer {
   public DynamicVertexBuffer(GLX glx, int numVertices, int attributes) {
     this.vertexDeclaration = new VertexDeclaration(glx, attributes);
     this.vertexData = MemoryUtil.memAlloc(this.vertexDeclaration.getStride() * numVertices);
-    this.vbh = bgfx_create_dynamic_vertex_buffer(numVertices, this.vertexDeclaration.getHandle(), BGFX_BUFFER_NONE);
+    this.vertexBufferHandle = bgfx_create_dynamic_vertex_buffer(numVertices, this.vertexDeclaration.getHandle(), BGFX_BUFFER_NONE);
     this.numVertices = numVertices;
   }
 
   public short getHandle() {
-    return this.vbh;
+    return this.vertexBufferHandle;
   }
 
   public int getNumVertices() {
@@ -56,11 +56,11 @@ public class DynamicVertexBuffer {
   }
 
   public void update() {
-    bgfx_update_dynamic_vertex_buffer(this.vbh, 0, bgfx_make_ref(this.vertexData));
+    bgfx_update_dynamic_vertex_buffer(this.vertexBufferHandle, 0, bgfx_make_ref(this.vertexData));
   }
 
   public void dispose() {
-    bgfx_destroy_dynamic_vertex_buffer(this.vbh);
+    bgfx_destroy_dynamic_vertex_buffer(this.vertexBufferHandle);
     MemoryUtil.memFree(this.vertexData);
     this.vertexDeclaration.dispose();
   }

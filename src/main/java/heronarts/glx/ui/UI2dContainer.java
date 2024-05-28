@@ -23,7 +23,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import heronarts.glx.GLX;
 import heronarts.glx.event.KeyEvent;
+import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.utils.LXUtils;
 
 public class UI2dContainer extends UI2dComponent implements UIContainer, Iterable<UIObject> {
@@ -35,13 +37,55 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     VERTICAL_GRID,
     HORIZONTAL_GRID,
     VERTICAL_EVEN,
-    HORIZONTAL_EVEN
+    HORIZONTAL_EVEN;
+
+    public boolean isHorizontalList() {
+      switch (this) {
+      case HORIZONTAL:
+      case HORIZONTAL_EVEN:
+        return true;
+      default:
+        return false;
+      }
+    }
+
+    public boolean isVerticalList() {
+      switch (this) {
+      case VERTICAL:
+      case VERTICAL_EVEN:
+        return true;
+      default:
+        return false;
+      }
+    }
+
+    public boolean canDragReorder() {
+      return isHorizontalList() || isVerticalList();
+    }
   }
 
   public enum ArrowKeyFocus {
     NONE,
     VERTICAL,
     HORIZONTAL
+  };
+
+  public enum Position {
+    TOP,
+    TOP_LEFT,
+    TOP_CENTER,
+    TOP_RIGHT,
+    MIDDLE,
+    MIDDLE_LEFT,
+    MIDDLE_CENTER,
+    MIDDLE_RIGHT,
+    BOTTOM,
+    BOTTOM_LEFT,
+    BOTTOM_CENTER,
+    BOTTOM_RIGHT,
+    LEFT,
+    CENTER,
+    RIGHT
   };
 
   private Layout layout = Layout.NONE;
@@ -53,6 +97,8 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
   private float childSpacingX = 0, childSpacingY = 0;
 
   private float minHeight = 0, minWidth = 0;
+
+  private boolean dragToReorder = false;
 
   private UI2dContainer contentTarget;
 
@@ -131,6 +177,22 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     return this;
   }
 
+  public float getTopPadding() {
+    return this.topPadding;
+  }
+
+  public float getRightPadding() {
+    return this.rightPadding;
+  }
+
+  public float getBottomPadding() {
+    return this.bottomPadding;
+  }
+
+  public float getLeftPadding() {
+    return this.leftPadding;
+  }
+
   /**
    * Deprecated. Use {@link #setChildSpacing(float)} instead
    *
@@ -181,8 +243,24 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     if (this.contentTarget.layout != layout) {
       this.contentTarget.layout = layout;
       this.contentTarget.reflow();
+      if (this.dragToReorder && !layout.canDragReorder()) {
+        GLX.error(new Exception("Container had dragToReorder set but invalid layout later specified: " + this + " " + layout));
+        this.dragToReorder = false;
+      }
     }
     return this;
+  }
+
+  public UI2dContainer setDragToReorder(boolean dragToReorder) {
+    if (dragToReorder && !this.contentTarget.layout.canDragReorder()) {
+      throw new IllegalStateException("Cannot set dragToReorder on a container with a non-list layout:"  + this);
+    }
+    this.dragToReorder = dragToReorder;
+    return this;
+  }
+
+  public boolean hasDragToReorder() {
+    return this.dragToReorder;
   }
 
   public UI2dContainer setArrowKeyFocus(ArrowKeyFocus keyFocus) {
@@ -217,8 +295,9 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
-          component.setY(y + component.marginTop);
-          y += component.marginTop + component.getHeight() + component.marginBottom + this.childSpacingY;
+          y += component.marginTop;
+          component.setY(y);
+          y += component.getHeight() + component.marginBottom + this.childSpacingY;
         }
       }
       y += this.bottomPadding;
@@ -228,8 +307,9 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
       for (UIObject child : this) {
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
-          component.setX(x + component.marginLeft);
-          x += component.marginLeft + component.getWidth() + component.marginRight + this.childSpacingX;
+          x += component.marginLeft;
+          component.setX(x);
+          x += component.getWidth() + component.marginRight + this.childSpacingX;
         }
       }
       x += this.rightPadding;
@@ -318,6 +398,20 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
           }
         }
       }
+    } else if (this.layout == Layout.NONE) {
+      boolean changed = false;
+      for (UIObject child : this) {
+        if (child.isVisible()) {
+          UI2dComponent component = (UI2dComponent) child;
+          if (component.containerPosition != null) {
+            boolean childChanged = component._setContainerPosition(this, component.containerPosition, false);
+            changed = changed || childChanged;
+          }
+        }
+      }
+      if (changed) {
+        redraw();
+      }
     }
     onReflow();
     this.inReflow = false;
@@ -357,6 +451,28 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
   @Override
   public UI2dContainer getContentTarget() {
     return this.contentTarget;
+  }
+
+  /**
+   * Returns the width of scrolling content. By default this is the same as the width
+   * of the container itself, but if the container scrolls then the scroll width may
+   * be a larger value.
+   *
+   * @return Width of scrollable content
+   */
+  public float getScrollWidth() {
+    return getWidth();
+  }
+
+  /**
+   * Returns the height of scrolling content. By default this is the same as the height
+   * of the container itself, but if the container scrolls then the scroll height may
+   * be a larger value.
+   *
+   * @return Height of scrollable content
+   */
+  public float getScrollHeight() {
+    return getHeight();
   }
 
   @Override
@@ -493,6 +609,131 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
           keyFocus(keyEvent, 1);
         }
       }
+    }
+  }
+
+  private float drawDragIndicator = -1;
+
+  @Override
+  protected void onDraw(UI ui, VGraphics vg) {
+    super.onDraw(ui, vg);
+    if (this.drawDragIndicator >= 0) {
+      vg.beginPath();
+      vg.fillColor(ui.theme.attentionColor);
+      if (this.contentTarget.layout.isHorizontalList()) {
+        vg.rect(
+          this.drawDragIndicator - .5f,
+          this.topPadding,
+          1,
+          this.contentTarget.height - this.topPadding - this.bottomPadding
+        );
+      } else if (this.contentTarget.layout.isVerticalList()) {
+        vg.rect(
+          this.leftPadding,
+          this.drawDragIndicator - .5f,
+          this.contentTarget.width - this.leftPadding - this.rightPadding,
+          1
+        );
+      }
+      vg.fill();
+    }
+  }
+
+  void dragCancel() {
+    if (this.drawDragIndicator >= 0) {
+      this.drawDragIndicator = -1;
+      redraw();
+    }
+  }
+
+  void dragChild(UIObject drag, float mx, float my, boolean release) {
+    mx += drag.getX();
+    my += drag.getY();
+
+    final boolean isHorizontal = this.contentTarget.layout.isHorizontalList();
+    final boolean isVertical = this.contentTarget.layout.isVerticalList();
+
+    final boolean invalid =
+      (isVertical && (mx < 0 || mx > this.contentTarget.getScrollWidth())) ||
+      (isHorizontal && (my < 0 || my > this.contentTarget.getScrollHeight()));
+    if (invalid) {
+      dragCancel();
+      return;
+    }
+
+    UI2dComponent hover = null;
+    int hoverIndex = -1;
+    int dragIndex = -1;
+
+    int index = 0;
+    for (UIObject child : this.contentTarget) {
+      if (child == drag) {
+        dragIndex = index;
+      } else if (child.isVisible() && (child instanceof UI2dComponent.UIDragReorder)) {
+        if ((isHorizontal && (mx > child.getX())) ||
+            (isVertical && (my > child.getY()))) {
+          hover = (UI2dComponent) child;
+          hoverIndex = index;
+        }
+      }
+      ++index;
+    }
+
+    float dragPos = -1;
+    if ((hover != null) && (hover != drag)) {
+      if (isHorizontal) {
+        if (mx > hover.getX() + .5f * hover.getWidth()) {
+          float dragMargin = this.contentTarget.childSpacingX + hover.marginRight;
+          final UI2dComponent next = hover.getNextSibling(true);
+          if (next != null) {
+            dragMargin += next.marginLeft;
+          }
+          dragPos = LXUtils.minf(this.contentTarget.getScrollWidth() - .5f, hover.getX() + hover.getWidth() + .5f * dragMargin);
+          ++hoverIndex;
+        } else {
+          float dragMargin = (this.contentTarget.childSpacingX + hover.marginLeft);
+          final UI2dComponent prev = hover.getPrevSibling(true);
+          if (prev != null) {
+            dragMargin += prev.marginRight;
+          }
+          dragPos = LXUtils.maxf(.5f, hover.getX() - .5f * dragMargin);
+        }
+      } else if (isVertical) {
+        if (my > hover.getY() + .5f * hover.getHeight()) {
+          float dragMargin = this.contentTarget.childSpacingY + hover.marginBottom;
+          final UI2dComponent next = hover.getNextSibling(true);
+          if (next != null) {
+            dragMargin += next.marginTop;
+          }
+          dragPos = LXUtils.minf(this.contentTarget.getScrollHeight() - .5f, hover.getY() + hover.getHeight() + .5f * dragMargin);
+          ++hoverIndex;
+        } else {
+          float dragMargin = this.contentTarget.childSpacingY + hover.marginTop;
+          final UI2dComponent prev = hover.getPrevSibling(true);
+          if (prev != null) {
+            dragMargin += prev.marginBottom;
+          }
+          dragPos = LXUtils.maxf(.5f, hover.getY() - .5f * dragMargin);
+        }
+      }
+    }
+
+    if (hoverIndex > dragIndex) {
+      --hoverIndex;
+    }
+    if (!release && (hoverIndex != dragIndex)) {
+      // Redraw if the drag indicator position has changed
+      if (this.drawDragIndicator != dragPos) {
+        this.drawDragIndicator = dragPos;
+        redraw();
+      }
+    } else {
+      if (release) {
+        if ((hoverIndex >= 0) && (hoverIndex != dragIndex)) {
+          ((UI2dComponent.UIDragReorder) drag).onDragReorder(this, (UI2dComponent) drag, hoverIndex);
+        }
+      }
+      dragCancel();
     }
   }
 }

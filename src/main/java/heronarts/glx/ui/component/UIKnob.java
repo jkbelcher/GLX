@@ -18,6 +18,9 @@
 
 package heronarts.glx.ui.component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UIFocus;
@@ -27,7 +30,6 @@ import heronarts.lx.color.DiscreteColorParameter;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.modulation.LXCompoundModulation;
-import heronarts.lx.parameter.CompoundParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.utils.LXUtils;
@@ -69,13 +71,15 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     this.keyEditable = true;
   }
 
+  private final List<LXCompoundModulation> uiModulations = new ArrayList<LXCompoundModulation>();
+
   @Override
   protected void onDraw(UI ui, VGraphics vg) {
     // value refers to the current, possibly-modulated value of the control's parameter.
     // base is the unmodulated, base value of that parameter.
     // If unmodulated, these will be equal
     float value = (float) getCompoundNormalized();
-    float base = (float) getNormalized();
+    float base = (float) getBaseNormalized();
     float valueEnd = ARC_START + value * ARC_RANGE;
     float baseEnd = ARC_START + base * ARC_RANGE;
     float valueStart;
@@ -87,10 +91,15 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     float arcSize = KNOB_SIZE / 2;
 
     // Modulations!
-    if (this.parameter instanceof CompoundParameter) {
-      CompoundParameter compound = (CompoundParameter) this.parameter;
-      for (int i = compound.modulations.size()-1; i >= 0; --i) {
-        LXCompoundModulation modulation = compound.modulations.get(i);
+    if (this.parameter instanceof LXCompoundModulation.Target) {
+      final LXCompoundModulation.Target compound = (LXCompoundModulation.Target) this.parameter;
+      // Note: the UI thread is separate from the engine thread, modulations could in theory change
+      // *while* we are rendering here. So we lean on the fact that the parameters use a
+      // CopyOnWriteArrayList and shuffle everything into our own ui-thread-local copy here
+      this.uiModulations.clear();
+      this.uiModulations.addAll(compound.getModulations());
+      for (int i = this.uiModulations.size() - 1; i >= 0; --i) {
+        LXCompoundModulation modulation = this.uiModulations.get(i);
         registerModulation(modulation);
 
         float modStart, modEnd;
@@ -108,7 +117,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
 
         // Light ring of value
         DiscreteColorParameter modulationColor = modulation.color;
-        int modColor = ui.theme.controlDisabledColor.get();
+        int modColor = ui.theme.controlDisabledFillColor.get();
         int modColorInv = modColor;
         if (isEnabled() && modulation.enabled.isOn()) {
           modColor = modulationColor.getColor();
@@ -166,18 +175,20 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
       }
     }
 
+    final boolean editable = isEnabled() && isEditable();
+
     // Outer fill
-    vg.fillColor(ui.theme.controlFillColor);
+    vg.fillColor(editable ? ui.theme.controlFillColor : ui.theme.controlDisabledFillColor);
     vg.beginPathMoveToArcFill(ARC_CENTER_X, ARC_CENTER_Y, arcSize, ARC_START, ARC_END);
 
     // Compute colors for base/value fills
     int baseColor;
     int valueColor;
-    if (isEnabled() && isEditable()) {
+    if (editable) {
       baseColor = ui.theme.primaryColor.get();
       valueColor = getModulatedValueColor(baseColor);
     } else {
-      int disabled = ui.theme.controlDisabledColor.get();
+      int disabled = ui.theme.controlDisabledValueColor.get();
       baseColor = disabled;
       valueColor = disabled;
     }
@@ -202,10 +213,13 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     }
 
     // Center dot
-    vg.fillColor(ui.theme.controlDetentColor);
-    vg.beginPath();
-    vg.circle(ARC_CENTER_X, ARC_CENTER_Y, 4);
-    vg.fill();
+    float detent = LXUtils.minf(arcSize - 4, ui.theme.getKnobDetentSize());
+    if (detent > 0) {
+      vg.fillColor(ui.theme.controlDetentColor);
+      vg.beginPath();
+      vg.circle(ARC_CENTER_X, ARC_CENTER_Y, detent);
+      vg.fill();
+    }
 
     super.onDraw(ui, vg);
   }
@@ -236,7 +250,7 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
   protected void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
     super.onMousePressed(mouseEvent, mx, my);
 
-    this.dragValue = getNormalized();
+    this.dragValue = getBaseNormalized();
     if (isEditable() && (this.parameter != null) && (mouseEvent.isDoubleClick())) {
       LXCompoundModulation modulation = getModulation(mouseEvent.isShiftDown());
       if (modulation != null && (mouseEvent.isControlDown() || mouseEvent.isMetaDown())) {
@@ -256,14 +270,17 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
   }
 
   private LXCompoundModulation getModulation(boolean secondary) {
-    if (this.parameter != null && this.parameter instanceof CompoundParameter) {
-      CompoundParameter compound = (CompoundParameter) this.parameter;
-      int size = compound.modulations.size();
+    if (this.parameter instanceof LXCompoundModulation.Target) {
+      LXCompoundModulation.Target compound = (LXCompoundModulation.Target) this.parameter;
+      // NOTE: this event-processing happens on the engine thread, the modulations won't change
+      // underneath us, we can access them directly
+      final List<LXCompoundModulation> modulations = compound.getModulations();
+      int size = modulations.size();
       if (size > 0) {
         if (secondary && (size > 1)) {
-          return compound.modulations.get(size-2);
+          return modulations.get(size-2);
         } else {
-          return compound.modulations.get(size-1);
+          return modulations.get(size-1);
         }
       }
     }
@@ -279,7 +296,11 @@ public class UIKnob extends UICompoundParameterControl implements UIFocus {
     float delta = dy / 100.f;
     LXCompoundModulation modulation = getModulation(mouseEvent.isShiftDown());
     if (modulation != null && (mouseEvent.isMetaDown() || mouseEvent.isControlDown())) {
-      modulation.range.setValue(modulation.range.getValue() - delta);
+      if (this.useCommandEngine) {
+        setModulationRangeCommand(modulation.range, modulation.range.getValue() - delta);
+      } else {
+        modulation.range.setValue(modulation.range.getValue() - delta);
+      }
     } else {
       if (mouseEvent.isShiftDown()) {
         delta /= 10;

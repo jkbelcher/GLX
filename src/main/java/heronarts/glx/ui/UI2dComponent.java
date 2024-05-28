@@ -24,10 +24,40 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import heronarts.glx.event.Event;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.modulation.LXParameterModulation;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.utils.LXUtils;
 
 public abstract class UI2dComponent extends UIObject {
+
+  /**
+   * Marker interface for components which can be dragged to reorder
+   * them within their container.
+   */
+  public interface UIDragReorder {
+
+    /**
+     * Whether this mouse press position is valid to initiate dragging
+     *
+     * @param mx Mouse x position
+     * @param my Mouse y position
+     * @return Whether to commence dragging from here
+     */
+    public default boolean isValidDragPosition(float mx, float my) {
+      return true;
+    }
+
+    /**
+     * Callback when an attempt is made to reorder this component in its container
+     *
+     * @param container Parent container
+     * @param child Element being reordered
+     * @param dragIndex Targeted index in parent container
+     */
+    public default void onDragReorder(UI2dContainer container, UI2dComponent child, int dragIndex) {
+      child.setContainerIndex(dragIndex);
+    }
+  }
 
   /**
    * Marker interface for components whose drawing should be scissored
@@ -90,6 +120,8 @@ public abstract class UI2dComponent extends UIObject {
     marginRight = 0,
     marginBottom = 0,
     marginLeft = 0;
+
+  UI2dContainer.Position containerPosition = null;
 
   float scrollX = 0;
 
@@ -934,8 +966,8 @@ public abstract class UI2dComponent extends UIObject {
   /**
    * Sets the text alignment of this component
    *
-   * @param horizontalAlignment From VGrahpics.Align
-   * @param verticalAlignment From VGrahpics.Align
+   * @param horizontalAlignment From VGraphics.Align
+   * @param verticalAlignment From VGraphics.Align
    * @return this
    */
   public UI2dComponent setTextAlignment(VGraphics.Align horizontalAlignment, VGraphics.Align verticalAlignment) {
@@ -956,7 +988,7 @@ public abstract class UI2dComponent extends UIObject {
   /**
    * Clip a text to fit in the given width
    *
-   * @param vg PGraphics
+   * @param vg VGraphics
    * @param str String
    * @param width Width to fit in
    * @return Clipped version of the string that will fit in the bounds
@@ -968,7 +1000,7 @@ public abstract class UI2dComponent extends UIObject {
   /**
    * Clip a text to fit in the given width
    *
-   * @param vg PGraphics
+   * @param vg VGraphics
    * @param str String
    * @param width Width to fit in
    * @param fromEnd True clips from end, false clips from the start
@@ -1002,7 +1034,20 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   /**
-   * Removes this components from the container is is held by
+   * Returns a valid mappable parameter or null
+   *
+   * @param parameter Parameter to test
+   * @return Parameter if eligible for mapping
+   */
+  public LXNormalizedParameter getMappableParameter(LXNormalizedParameter parameter) {
+    if (isMappable() && (parameter != null) && parameter.isMappable() && (parameter.getParent() != null)) {
+      return parameter;
+    }
+    return null;
+  };
+
+  /**
+   * Removes this component from the container it is held by
    *
    * @return this
    */
@@ -1011,7 +1056,7 @@ public abstract class UI2dComponent extends UIObject {
   }
 
   /**
-   * Removes this components from the container is is held by
+   * Removes this component from the container it is held by
    *
    * @param redraw Whether to reflow and redraw the container
    * @return this
@@ -1020,12 +1065,22 @@ public abstract class UI2dComponent extends UIObject {
     if (this.parent == null) {
       throw new IllegalStateException("Cannot remove parentless UIObject from container");
     }
+    if (this.dragging != null) {
+      this.dragging.dragCancel();
+      this.dragging = null;
+    }
     boolean hadFocus = hasFocus();
     if (hadFocus) {
       blur();
     }
     int index = this.parent.mutableChildren.indexOf(this);
     this.parent.mutableChildren.remove(index);
+    if (this.parent.pressedChild == this) {
+      this.parent.pressedChild = null;
+    }
+    if (this.parent.overChild == this) {
+      this.parent.overChild = null;
+    }
     if (this.parent instanceof UI2dContainer) {
       UI2dContainer container = (UI2dContainer) this.parent;
 
@@ -1073,6 +1128,16 @@ public abstract class UI2dComponent extends UIObject {
    * @return The previous UI object in the hierarchy adjacent to this one
    */
   public UI2dComponent getPrevSibling() {
+    return getPrevSibling(false);
+  }
+
+  /**
+   * Returns the adjacent object in the hierarchy
+   *
+   * @param visible Whether to filter on visible siblings only
+   * @return The previous UI object in the hierarchy adjacent to this one
+   */
+  public UI2dComponent getPrevSibling(boolean visible) {
     UI2dContainer container = getContainer();
     UI2dComponent prev = null;
     if (container != null) {
@@ -1080,7 +1145,9 @@ public abstract class UI2dComponent extends UIObject {
         if (child == this) {
           return prev;
         }
-        prev = (UI2dComponent) child;
+        if (!visible || child.isVisible()) {
+          prev = (UI2dComponent) child;
+        }
       }
     }
     return null;
@@ -1092,11 +1159,21 @@ public abstract class UI2dComponent extends UIObject {
    * @return The next UI object in the hierarchy adjacent to this one
    */
   public UI2dComponent getNextSibling() {
+    return getNextSibling(false);
+  }
+
+  /**
+   * Returns the adjacent object in the hierarchy
+   *
+   * @param visible Whether to filter on visible siblings only
+   * @return The next UI object in the hierarchy adjacent to this one
+   */
+  public UI2dComponent getNextSibling(boolean visible) {
     UI2dContainer container = getContainer();
     if (container != null) {
       boolean next = false;
       for (UIObject child : container) {
-        if (next) {
+        if (next && (!visible || child.isVisible())) {
           return (UI2dComponent) child;
         } else if (child == this) {
           next = true;
@@ -1134,7 +1211,7 @@ public abstract class UI2dComponent extends UIObject {
    * is currently holding it.
    *
    * @param container Container to place in
-   * @param redraw Whether to redraw
+   * @param redraw Whether to reflow and redraw the parent container
    * @return this
    */
   public final UI2dComponent addToContainer(UIContainer container, boolean redraw) {
@@ -1149,7 +1226,7 @@ public abstract class UI2dComponent extends UIObject {
    * @param index At which index to place this object in parent container
    * @return this
    */
-  public UI2dComponent addToContainer(UIContainer container, int index) {
+  public final UI2dComponent addToContainer(UIContainer container, int index) {
     return addToContainer(container, index, true);
   }
 
@@ -1163,29 +1240,216 @@ public abstract class UI2dComponent extends UIObject {
    * @param redraw Whether to reflow and redraw the parent container
    * @return this
    */
-  public UI2dComponent addToContainer(UIContainer container, int index, boolean redraw) {
+  public final UI2dComponent addToContainer(UIContainer container, int index, boolean redraw) {
+    return _addToContainer(container, index, this.containerPosition, redraw);
+  }
+
+  /**
+   * Adds this component to a container, also removing it from any other container that
+   * is currently holding it.
+   *
+   * @param container Container to place in
+   * @param position Placement in this container
+   * @return this
+   */
+  public final UI2dComponent addToContainer(UI2dContainer container, UI2dContainer.Position position) {
+    return addToContainer(container, -1, position);
+  }
+
+  /**
+   * Adds this component to a container at a specified index, also removing it from any
+   * other container that is currently holding it.
+   *
+   * @param container Container to place in
+   * @param index At which index to place this object in parent container
+   * @param position Position in the container to place this object
+   * @return this
+   */
+  public final UI2dComponent addToContainer(UI2dContainer container, int index, UI2dContainer.Position position) {
+    return _addToContainer(container, index, position, true);
+  }
+
+  /**
+   * Adds this component to a container, also removing it from any other container that
+   * is currently holding it.
+   *
+   * @param container Container to place in
+   * @param position Placement in this container
+   * @param redraw Whether to reflow and redraw the parent container
+   * @return this
+   */
+  public final UI2dComponent addToContainer(UI2dContainer container, UI2dContainer.Position position, boolean redraw) {
+    return _addToContainer(container, -1, position, redraw);
+  }
+
+  /**
+   * Adds this component to a container at a specified index, also removing it from any
+   * other container that is currently holding it. Reflow behavior is controlled by a
+   * flag.
+   *
+   * @param container Container to place in
+   * @param index At which index to place this object in parent container
+   * @param position Position in the container at which to place the object, or null
+   * @param redraw Whether to reflow and redraw the parent container
+   * @return this
+   */
+  public final UI2dComponent addToContainer(UI2dContainer container, int index, UI2dContainer.Position position, boolean redraw) {
+    return _addToContainer(container, index, position, redraw);
+  }
+
+  /**
+   * Adds this component to a container at a specified index, also removing it from any
+   * other container that is currently holding it. Reflow behavior is controlled by a
+   * flag.
+   *
+   * @param container Container to place in
+   * @param index At which index to place this object in parent container
+   * @param position Position in the container at which to place the object, or null
+   * @param redraw Whether to reflow and redraw the parent container
+   * @return this
+   */
+  private UI2dComponent _addToContainer(UIContainer container, int index, UI2dContainer.Position position, boolean redraw) {
+    assertValidContainer(container);
     if (this.parent != null) {
       removeFromContainer();
     }
-    UIObject containerObject = container.getContentTarget();
-    if (containerObject == this) {
+    final UIObject contentTarget = container.getContentTarget();
+    final UI2dContainer container2d = (contentTarget instanceof UI2dContainer) ? (UI2dContainer) contentTarget : null;
+
+    if (contentTarget == this) {
       throw new IllegalArgumentException("Cannot add an object to itself");
     }
-    if (index < 0) {
-      containerObject.mutableChildren.add(this);
-    } else {
-      containerObject.mutableChildren.add(index, this);
+    if ((position != null) && (container2d != null)) {
+      this.containerPosition = position;
+      _setContainerPosition(container2d, position, false);
     }
-    this.parent = containerObject;
-    setUI(containerObject.ui);
+    if (index < 0) {
+      contentTarget.mutableChildren.add(this);
+    } else {
+      contentTarget.mutableChildren.add(index, this);
+    }
+    this.parent = contentTarget;
+    setUI(contentTarget.ui);
     if (redraw) {
-      if (this.parent instanceof UI2dContainer) {
-        ((UI2dContainer) this.parent).reflow();
+      if (container2d != null) {
+        container2d.reflow();
       }
       redraw();
     }
 
     return this;
+  }
+
+  /**
+   * Subclasses may override and throw an exception if they don't want to be added to this container type
+   *
+   * @param container Container
+   */
+  protected void assertValidContainer(UIContainer container) {}
+
+  /**
+   * Sets the position of this object in its container
+   *
+   * @param containerPosition Position relative to container
+   * @return this
+   */
+  public UI2dComponent setContainerPosition(UI2dContainer.Position containerPosition) {
+    this.containerPosition = containerPosition;
+    if ((containerPosition != null) && (this.parent instanceof UI2dContainer)) {
+      _setContainerPosition((UI2dContainer) this.parent, this.containerPosition, true);
+    }
+    return this;
+  }
+
+  boolean _setContainerPosition(UI2dContainer target, UI2dContainer.Position position, boolean redraw) {
+    if (position == null) {
+      return false;
+    }
+
+    boolean setX = false, setY = false;
+    float x = -1, y = -1;
+
+    // Determine X positioning
+    switch (position) {
+    case LEFT:
+    case TOP_LEFT:
+    case MIDDLE_LEFT:
+    case BOTTOM_LEFT:
+      setX = true;
+      x = target.getLeftPadding() + this.marginLeft;
+      break;
+
+    case CENTER:
+    case TOP_CENTER:
+    case MIDDLE_CENTER:
+    case BOTTOM_CENTER:
+      setX = true;
+      x = .5f * (target.getWidth() + target.getLeftPadding() - target.getRightPadding() - this.width);
+      break;
+
+    case RIGHT:
+    case TOP_RIGHT:
+    case MIDDLE_RIGHT:
+    case BOTTOM_RIGHT:
+      setX = true;
+      x = target.getWidth() - target.getRightPadding() - this.width - this.marginRight;
+      break;
+
+    default:
+      break;
+    }
+
+    // Determine Y positioning
+    switch (position) {
+    case TOP:
+    case TOP_LEFT:
+    case TOP_CENTER:
+    case TOP_RIGHT:
+      setY = true;
+      y = target.getTopPadding() + this.marginTop;
+      break;
+
+    case MIDDLE:
+    case MIDDLE_LEFT:
+    case MIDDLE_CENTER:
+    case MIDDLE_RIGHT:
+      setY = true;
+      y = .5f * (target.getHeight() + target.getTopPadding() - target.getBottomPadding() - this.height);
+      break;
+
+    case BOTTOM:
+    case BOTTOM_LEFT:
+    case BOTTOM_RIGHT:
+    case BOTTOM_CENTER:
+      setY = true;
+      y = target.getHeight() - target.getBottomPadding() - this.height - this.marginBottom;
+      break;
+
+    default:
+      break;
+    }
+
+    boolean changed = false;
+    if (setX && (this.x != x)) {
+      changed = true;
+      this.x = x;
+    }
+    if (setY && (this.y != y)) {
+      changed = true;
+      this.y = y;
+    }
+
+    // Position has been updated!
+    if (changed && redraw) {
+      // We redraw from our container instead of just
+      // ourselves because the background needs to be
+      // refreshed. If we only redrew ourself, there
+      // could be remnants of our old position in the
+      // buffer
+      redrawContainer();
+    }
+
+    return changed;
   }
 
   /**
@@ -1443,18 +1707,7 @@ public abstract class UI2dComponent extends UIObject {
       // If we don't have our own background, or our borders are rounded,
       // then we need to walk up the UI tree to figure out how to paint
       // in the background.
-      UIObject component = this.parent;
-      while ((component != null) && (component instanceof UI2dComponent)) {
-        UI2dComponent component2d = (UI2dComponent) component;
-        if (component2d.hasBackground || (component2d.hasFocus && component2d.hasFocusBackground)) {
-          vg.beginPath();
-          vg.rect(0, 0, this.width, this.height);
-          vg.fillColor((component2d.hasFocus && component2d.hasFocusBackground) ? component2d.focusBackgroundColor : component2d.backgroundColor);
-          vg.fill();
-          break;
-        }
-        component = component.parent;
-      }
+      drawParentBackground(ui, vg);
     }
 
     if (ownBackground) {
@@ -1463,7 +1716,21 @@ public abstract class UI2dComponent extends UIObject {
       vg.fillColor((this.hasFocus && this.hasFocusBackground) ? this.focusBackgroundColor : this.backgroundColor);
       vg.fill();
     }
+  }
 
+  protected void drawParentBackground(UI ui, VGraphics vg) {
+    UIObject component = this.parent;
+    while ((component != null) && (component instanceof UI2dComponent)) {
+      UI2dComponent component2d = (UI2dComponent) component;
+      if (component2d.hasBackground || (component2d.hasFocus && component2d.hasFocusBackground)) {
+        vg.beginPath();
+        vg.rect(0, 0, this.width, this.height);
+        vg.fillColor((component2d.hasFocus && component2d.hasFocusBackground) ? component2d.focusBackgroundColor : component2d.backgroundColor);
+        vg.fill();
+        break;
+      }
+      component = component.parent;
+    }
   }
 
   protected void drawBorder(UI ui, VGraphics vg) {

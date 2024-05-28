@@ -19,6 +19,7 @@
 package heronarts.glx.ui.component;
 
 import heronarts.glx.event.KeyEvent;
+import heronarts.lx.parameter.CompoundEnumParameter;
 import heronarts.lx.parameter.EnumParameter;
 
 public class UIEnumBox extends UIIntegerBox {
@@ -31,8 +32,12 @@ public class UIEnumBox extends UIIntegerBox {
     this(0, 0, w, DEFAULT_HEIGHT, parameter);
   }
 
+  public UIEnumBox(float w, CompoundEnumParameter<?> parameter) {
+    this(0, 0, w, DEFAULT_HEIGHT, parameter);
+  }
+
   public UIEnumBox(float x, float y, float w, float h) {
-    this(x, y, w, h, null);
+    this(x, y, w, h, (EnumParameter<?>) null);
   }
 
   public UIEnumBox(float x, float y, float w, float h, EnumParameter<?> parameter) {
@@ -43,10 +48,18 @@ public class UIEnumBox extends UIIntegerBox {
     }
   }
 
+  public UIEnumBox(float x, float y, float w, float h, CompoundEnumParameter<?> parameter) {
+    super(x, y, w, h);
+    disableImmediateEdit();
+    if (parameter != null) {
+      setParameter(parameter);
+    }
+  }
+
   @Override
   public String getValueString() {
     if (this.parameter != null) {
-      return this.parameter.getOption();
+      return this.parameter.getBaseOption();
     }
     return super.getValueString();
   }

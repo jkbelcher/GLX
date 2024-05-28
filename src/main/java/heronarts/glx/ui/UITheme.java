@@ -48,13 +48,14 @@ public class UITheme {
   }
 
   public void setTheme(Theme theme) {
+    this.knobDetentSize = theme.knobDetentSize;
     for (Color color : this.colors) {
       color.set(theme.colors.get(color.label));
     }
   }
 
   public enum Theme {
-    DEFAULT("Default",
+    DEFAULT("Default", 4,
       "label", "cccccc",
 
       "deviceBackground", "404040",
@@ -69,6 +70,8 @@ public class UITheme {
       "paneSelectorInactive", "333333",
 
       "toolbarBackground", "242424",
+      "toolbarSectionBackground", "404040",
+      "toolbarActivator", "888888",
       "helpBackground", "242424",
       "helpText", "c0c0c0",
 
@@ -81,10 +84,12 @@ public class UITheme {
       "controlBorder", "292929",
       "controlDetent", "333333",
       "controlHandle", "5f5f5f",
-      "controlDisabled", "303030",
       "controlText", "cccccc",
       "controlActiveText", "ffffff",
+      "controlDisabled", "303030",
       "controlDisabledText", "707070",
+      "controlDisabledFill", "696969",
+      "controlDisabledValue", "909090",
 
       "editTextBackground", "000000",
       "editText", "ffffff",
@@ -92,12 +97,13 @@ public class UITheme {
       "primary", "669966",
       "secondary", "666699",
       "focus", "669966",
-      "attention", "ff3333",
+      "attention", "ee0000",
+      "restrictions", "292929",
       "cue", "666699",
       "aux", "996666",
       "busA", "669966",
       "busB", "a66812",
-      "surface", "666699",
+      "surface", "e5b242",
       "recording", "a00044",
       "cursor", "555555",
       "selection", "333333",
@@ -115,6 +121,7 @@ public class UITheme {
       "listSectionText", "aaaaaa",
 
       "meterBackground", "191919",
+      "messageBoxBackground", "222222",
 
       "iconDisabled", "505050",
       "iconInactive", "999999",
@@ -128,54 +135,61 @@ public class UITheme {
 
       "midiMapping", "ff0000",
       "modulationSourceMapping", "00ff00",
-      "modulationTargetMapping", "00cccc"
+      "modulationTargetMapping", "00cccc",
+
+      "projectFileIcon", "999999"
     ),
 
-    LIGHT("Light",
+    LIGHT("Light", 8,
       "label", "191919",
 
-      "deviceBackground", "808080",
-      "deviceFocusedBackground", "888888",
-      "deviceSelection", "80bf80",
+      "deviceBackground", "888888",
+      "deviceFocusedBackground", "8f8f8f",
+      "deviceSelection", "8cd867",
       "deviceSelectionText", "111111",
 
       "paneBackground", "707070",
-      "paneInset", "555555",
+      "paneInset", "595959",
       "paneScrollBar", "494949",
-      "paneSelectorActive", "888888",
-      "paneSelectorInactive", "797979",
+      "paneSelectorActive", "8f8f8f",
+      "paneSelectorInactive", "7f7f7f",
 
-      "toolbarBackground", "808080",
+      "toolbarBackground", "7f7f7f",
+      "toolbarSectionBackground", "7f7f7f",
+      "toolbarActivator", "505050",
       "helpBackground", "808080",
       "helpText", "111111",
 
-      "sectionExpanderBackground", "606060",
+      "sectionExpanderBackground", "444444",
       "sceneStripBackground", "707070",
       "clipButtonBackground", "505050",
 
       "controlBackground", "b7b7b7",
       "controlFill", "393939",
       "controlBorder", "444444",
-      "controlDetent", "555555",
+      "controlDetent", "808080",
       "controlHandle", "9f9f9f",
-      "controlDisabled", "909090",
       "controlText", "191919",
       "controlActiveText", "000000",
+      "controlDisabled", "909090",
       "controlDisabledText", "303030",
+      "controlDisabledFill", "a0a0a0",
+      "controlDisabledValue", "c9c9c9",
 
       "editTextBackground", "d9d9d9",
       "editText", "000000",
 
-      "primary", "80bf80",
-      "secondary", "8080bf",
+      "primary", "8cd867",
+      "secondary", "7ddbf3",
       "focus", "c9c9c9",
-      "attention", "cc0000",
-      "cue", "8080bf",
-      "aux", "bf8080",
-      "busA", "80bf80",
-      "busB", "bf964f",
-      "surface", "8080bf",
-      "recording", "bf0053",
+      "attention", "ff3333",
+      "restrictions", "292929",
+      "cue", "7ddbf3",
+      "aux", "f67247",
+      "busA", "8cd867",
+      "busB", "d88c67",
+      "surface", "e5b242",
+      "recording", "ec624a",
       "cursor", "555555",
       "selection", "cccccc",
       "error", "cc0000",
@@ -191,7 +205,8 @@ public class UITheme {
       "listSectionArrow", "666666",
       "listSectionText", "333333",
 
-      "meterBackground", "191919",
+      "meterBackground", "292929",
+      "messageBoxBackground", "7f7f7f",
 
       "iconDisabled", "505050",
       "iconInactive", "404040",
@@ -205,14 +220,18 @@ public class UITheme {
 
       "midiMapping", "ff0000",
       "modulationSourceMapping", "00ff00",
-      "modulationTargetMapping", "00cccc"
+      "modulationTargetMapping", "00cccc",
+
+      "projectFileIcon", "444444"
     );
 
     public final String name;
     public final Map<String, Integer> colors = new HashMap<String, Integer>();
+    public final int knobDetentSize;
 
-    private Theme(String name, String ... colors) {
+    private Theme(String name, int knobDetentSize, String ... colors) {
       this.name = name;
+      this.knobDetentSize = knobDetentSize;
       for (int i = 0; i < colors.length; i +=2) {
         String field = colors[i];
         String hex = colors[i+1];
@@ -234,6 +253,8 @@ public class UITheme {
   private final VGraphics.Font labelFont;
   private final VGraphics.Font controlFont;
 
+  private int knobDetentSize;
+
   public final Color labelColor = new Color("label");
 
   public final Color deviceBackgroundColor = new Color("deviceBackground");
@@ -248,6 +269,8 @@ public class UITheme {
   public final Color paneSelectorInactiveColor = new Color("paneSelectorInactive");
 
   public final Color toolbarBackgroundColor = new Color("toolbarBackground");
+  public final Color toolbarSectionBackgroundColor = new Color("toolbarSectionBackground");
+  public final Color toolbarActivatorColor = new Color("toolbarActivator");
   public final Color helpBackgroundColor = new Color("helpBackground");
   public final Color helpTextColor = new Color("helpText");
 
@@ -260,10 +283,12 @@ public class UITheme {
   public final Color controlBorderColor = new Color("controlBorder");
   public final Color controlHandleColor = new Color("controlHandle");
   public final Color controlDetentColor = new Color("controlDetent");
-  public final Color controlDisabledColor = new Color("controlDisabled");
   public final Color controlTextColor = new Color("controlText");
   public final Color controlActiveTextColor = new Color("controlActiveText");
+  public final Color controlDisabledColor = new Color("controlDisabled");
   public final Color controlDisabledTextColor = new Color("controlDisabledText");
+  public final Color controlDisabledFillColor = new Color("controlDisabledFill");
+  public final Color controlDisabledValueColor = new Color("controlDisabledValue");
 
   public final Color editTextBackgroundColor = new Color("editTextBackground");
   public final Color editTextColor = new Color("editText");
@@ -272,6 +297,7 @@ public class UITheme {
   public final Color secondaryColor = new Color("secondary");
   public final Color focusColor = new Color("focus");
   public final Color attentionColor = new Color("attention");
+  public final Color restrictionsColor = new Color("restrictions");
   public final Color cueColor = new Color("cue");
   public final Color auxColor = new Color("aux");
   public final Color busAColor = new Color("busA");
@@ -295,6 +321,8 @@ public class UITheme {
 
   public final Color meterBackgroundColor = new Color("meterBackground");
 
+  public final Color messageBoxBackgroundColor = new Color("messageBoxBackground");
+
   public final Color iconDisabledColor = new Color("iconDisabled");
   public final Color iconInactiveColor = new Color("iconInactive");
 
@@ -308,6 +336,8 @@ public class UITheme {
   public final Color midiMappingColor = new Color("midiMapping");
   public final Color modulationSourceMappingColor = new Color("modulationSourceMapping");
   public final Color modulationTargetMappingColor = new Color("modulationTargetMapping");
+
+  public final Color projectFileIconColor = new Color("projectFileIcon");
 
   public final VGraphics.Image iconNote;
   public final VGraphics.Image iconTempo;
@@ -349,6 +379,8 @@ public class UITheme {
     this.labelFont = this.deviceFont = loadFont(vg, "Inter-Black", "Inter-Black.otf");
     this.labelFont.fontSize(10);
     LX.initProfiler.log("GLX: UI: Theme: labelFont");
+
+    this.knobDetentSize = 4;
 
     this.iconNote = loadIcon(vg, "icon-note@2x.png");
     this.iconTempo = loadIcon(vg, "icon-tempo@2x.png");
@@ -398,6 +430,10 @@ public class UITheme {
     VGraphics.Image icon = vg.loadIcon(filename);
     this.icons.add(icon);
     return icon;
+  }
+
+  public int getKnobDetentSize() {
+    return this.knobDetentSize;
   }
 
   /**

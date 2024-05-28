@@ -55,6 +55,58 @@ public abstract class VertexBuffer {
     }
   }
 
+  public static class UnitCubeEdges extends VertexBuffer {
+
+    public static final int NUM_VERTICES = 24;
+
+    public UnitCubeEdges(GLX glx) {
+      this(glx, NUM_VERTICES);
+    }
+
+    protected UnitCubeEdges(GLX glx, int numVertices) {
+      super(glx, numVertices, VertexDeclaration.ATTRIB_POSITION);
+    }
+
+    @Override
+    protected void bufferData(ByteBuffer buffer) {
+      putVertex(+0.5f, +0.5f, +0.5f); // Back-top-right
+      putVertex(-0.5f, +0.5f, +0.5f); // Back-top-left
+
+      putVertex(-0.5f, +0.5f, +0.5f); // Back-top-left
+      putVertex(-0.5f, -0.5f, +0.5f); // Back-bottom-left
+
+      putVertex(-0.5f, -0.5f, +0.5f); // Back-bottom-left
+      putVertex(+0.5f, -0.5f, +0.5f); // Back-bottom-right
+
+      putVertex(+0.5f, -0.5f, +0.5f); // Back-bottom-right
+      putVertex(+0.5f, +0.5f, +0.5f); // Back-top-right
+
+      putVertex(+0.5f, +0.5f, -0.5f); // Front-top-right
+      putVertex(-0.5f, +0.5f, -0.5f); // Front-top-left
+
+      putVertex(-0.5f, +0.5f, -0.5f); // Front-top-left
+      putVertex(-0.5f, -0.5f, -0.5f); // Front-bottom-left
+
+      putVertex(-0.5f, -0.5f, -0.5f); // Front-bottom-left
+      putVertex(+0.5f, -0.5f, -0.5f); // Front-bottom-right
+
+      putVertex(+0.5f, -0.5f, -0.5f); // Front-bottom-right
+      putVertex(+0.5f, +0.5f, -0.5f); // Front-top-right
+
+      putVertex(+0.5f, +0.5f, -0.5f); // Front-top-right
+      putVertex(+0.5f, +0.5f, +0.5f); // Back-top-right
+
+      putVertex(-0.5f, +0.5f, -0.5f); // Front-top-left
+      putVertex(-0.5f, +0.5f, +0.5f); // Back-top-left
+
+      putVertex(-0.5f, -0.5f, -0.5f); // Front-bottom-left
+      putVertex(-0.5f, -0.5f, +0.5f); // Back-bottom-left
+
+      putVertex(+0.5f, -0.5f, -0.5f); // Front-bottom-right
+      putVertex(+0.5f, -0.5f, +0.5f); // Back-bottom-right
+    }
+  }
+
   public VertexBuffer(GLX glx, int numVertices) {
     this(glx, numVertices, VertexDeclaration.ATTRIB_POSITION | VertexDeclaration.ATTRIB_TEXCOORD0);
   }
@@ -74,7 +126,7 @@ public abstract class VertexBuffer {
     putVertex(this.vertexData, x, y, z);
   }
 
-  protected static void putVertex(ByteBuffer buffer, float x, float y, float z) {
+  public static void putVertex(ByteBuffer buffer, float x, float y, float z) {
     buffer.putFloat(x);
     buffer.putFloat(y);
     buffer.putFloat(z);
@@ -84,7 +136,7 @@ public abstract class VertexBuffer {
     putTex2d(this.vertexData, u, v);
   }
 
-  protected static void putTex2d(ByteBuffer buffer, float u, float v) {
+  public static void putTex2d(ByteBuffer buffer, float u, float v) {
     buffer.putFloat(u);
     buffer.putFloat(v);
   }

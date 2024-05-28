@@ -20,13 +20,13 @@ package heronarts.glx.ui.component;
 
 import heronarts.lx.osc.LXOscEngine;
 import heronarts.lx.parameter.BooleanParameter;
-import heronarts.lx.parameter.CompoundParameter;
 import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.FunctionalParameter;
 import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
+import heronarts.lx.parameter.TriggerParameter;
 import heronarts.glx.event.Event;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
@@ -43,6 +43,7 @@ import heronarts.lx.clipboard.LXClipboardItem;
 import heronarts.lx.clipboard.LXNormalizedValue;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.command.LXCommand;
+import heronarts.lx.modulation.LXCompoundModulation;
 
 public abstract class UIParameterControl extends UIInputBox implements UIControlTarget, UIModulationTarget, UIModulationSource, LXParameterListener, UICopy, UIPaste {
 
@@ -140,6 +141,10 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
     return this;
   }
 
+  public boolean isShowLabel() {
+    return this.showLabel;
+  }
+
   public UIParameterControl setLabel(String label) {
     if (this.label != label) {
       this.label = label;
@@ -164,12 +169,9 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
     redraw();
   }
 
-  protected double getNormalized() {
+  protected double getBaseNormalized() {
     if (this.parameter != null) {
-      if (this.parameter instanceof CompoundParameter) {
-        return ((CompoundParameter) this.parameter).getBaseNormalized();
-      }
-      return this.parameter.getNormalized();
+      return this.parameter.getBaseNormalized();
     }
     return 0;
   }
@@ -227,13 +229,11 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   protected String getValueString() {
     if (this.parameter != null) {
       if (this.parameter instanceof DiscreteParameter) {
-        return ((DiscreteParameter) this.parameter).getOption();
+        return ((DiscreteParameter) this.parameter).getBaseOption();
       } else if (this.parameter instanceof BooleanParameter) {
         return ((BooleanParameter) this.parameter).isOn() ? "ON" : "OFF";
-      } else if (this.parameter instanceof CompoundParameter) {
-        return this.parameter.getFormatter().format(((CompoundParameter) this.parameter).getBaseValue());
       } else {
-        return this.parameter.getFormatter().format(this.parameter.getValue());
+        return this.parameter.getFormatter().format(this.parameter.getBaseValue());
       }
     }
     return "-";
@@ -308,10 +308,14 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       vg.fill();
 
     } else {
-      String labelText = (this.showValue || (this.editTimeRemaining > 0)) ? getValueString() : getLabelString();
+      final boolean showValue = (this.showValue || (this.editTimeRemaining > 0)) && !isTriggerParameter();
+      String labelText = showValue ? getValueString() : getLabelString();
       drawParameterLabel(ui, vg, this, labelText);
-
     }
+  }
+
+  protected boolean isTriggerParameter() {
+    return this.parameter instanceof TriggerParameter;
   }
 
   private double getIncrement(Event inputEvent) {
@@ -343,7 +347,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
           ((BooleanParameter) this.parameter).setValue(value);
         }
       } else {
-        double value = getNormalized() - getIncrement(keyEvent);
+        double value = getBaseNormalized() - getIncrement(keyEvent);
         if (isWrappable() && value < 0) {
           value = 1 + (value % 1.);
         }
@@ -377,7 +381,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
           ((BooleanParameter) this.parameter).setValue(value);
         }
       } else {
-        double value = getNormalized() + getIncrement(keyEvent);
+        double value = getBaseNormalized() + getIncrement(keyEvent);
         if (isWrappable() && value > 1) {
           value = value % 1.;
         }
@@ -431,7 +435,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   }
 
   @Override
-  public LXParameter getControlTarget() {
+  public LXNormalizedParameter getControlTarget() {
     return getMappableParameter();
   }
 
@@ -441,18 +445,15 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   }
 
   @Override
-  public CompoundParameter getModulationTarget() {
-    if (this.parameter instanceof CompoundParameter) {
-      return (CompoundParameter) getMappableParameter();
+  public LXCompoundModulation.Target getModulationTarget() {
+    if (this.parameter instanceof LXCompoundModulation.Target) {
+      return (LXCompoundModulation.Target) getMappableParameter();
     }
     return null;
   }
 
   private LXNormalizedParameter getMappableParameter() {
-    if (isMappable() && this.parameter != null && this.parameter.isMappable() && this.parameter.getParent() != null) {
-      return this.parameter;
-    }
-    return null;
+    return getMappableParameter(this.parameter);
   }
 
   /**

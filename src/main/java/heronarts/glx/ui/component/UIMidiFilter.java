@@ -83,7 +83,7 @@ public class UIMidiFilter extends UI2dComponent {
     if (this.midiFilter.enabled.isOn()) {
       ui.theme.iconNote.setTint(ui.theme.primaryColor);
     } else {
-      ui.theme.iconNote.setTint(ui.theme.controlBackgroundColor);
+      ui.theme.iconNote.setTint(ui.theme.controlFillColor);
     }
     vg.beginPath();
     vg.image(ui.theme.iconNote, -2, -2);

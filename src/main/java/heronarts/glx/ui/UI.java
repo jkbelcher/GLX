@@ -374,6 +374,10 @@ public class UI {
     new StringParameter("Contextual Help")
     .setDescription("Parameter for contextual help messages in the bottom bar");
 
+  public final StringParameter statusMessageText =
+    new StringParameter("Status Message")
+    .setDescription("Parameter for status messages in the bottom bar");
+
   protected CoordinateSystem coordinateSystem = CoordinateSystem.LEFT_HANDED;
 
   private static final long INIT_RUN = -1;
@@ -549,16 +553,16 @@ public class UI {
       public void projectChanged(File file, Change change) {
         switch (change) {
         case TRY:
-          contextualHelpText.setValue("Loading project file: " + file.getName());
+          statusMessageText.setValue("Loading project file: " + file.getName());
           break;
         case NEW:
-          contextualHelpText.setValue("Created new project");
+          statusMessageText.setValue("Created new project");
           break;
         case SAVE:
-          contextualHelpText.setValue("Saved project file: " + file.getName());
+          statusMessageText.setValue("Saved project file: " + file.getName());
           break;
         case OPEN:
-          contextualHelpText.setValue("Opened project file: " + file.getName());
+          statusMessageText.setValue("Opened project file: " + file.getName());
           break;
         }
       }
@@ -590,22 +594,22 @@ public class UI {
       }
 
       if (this.midiMapping) {
-        this.contextualHelpText.setValue("Click on a control target to MIDI map, eligible controls are highlighted");
+        this.statusMessageText.setValue("Click on a control target to MIDI map, eligible controls are highlighted");
       } else if (this.modulationSourceMapping) {
-        this.contextualHelpText.setValue("Click on a modulation source, eligible sources are highlighted ");
+        this.statusMessageText.setValue("Click on a modulation source, eligible sources are highlighted ");
       } else if (this.modulationTargetMapping) {
         LXNormalizedParameter sourceParameter = modulationSource.getModulationSource();
         if (sourceParameter == null) {
-          this.contextualHelpText.setValue("You are somehow mapping a non-existent source parameter, choose a destination");
+          this.statusMessageText.setValue("You are somehow mapping a non-existent source parameter, choose a destination");
         } else {
-          this.contextualHelpText.setValue("Select a modulation destination for " + sourceParameter.getCanonicalLabel() + ", eligible targets are highlighted");
+          this.statusMessageText.setValue("Select a modulation destination for " + sourceParameter.getCanonicalLabel() + ", eligible targets are highlighted");
         }
       } else if (this.triggerSourceMapping) {
-        this.contextualHelpText.setValue("Click on a trigger source, eligible sources are highlighted ");
+        this.statusMessageText.setValue("Click on a trigger source, eligible sources are highlighted ");
       } else if (this.triggerTargetMapping) {
-        this.contextualHelpText.setValue("Select a trigger destination for " + triggerSource.getTriggerSource().getCanonicalLabel() + ", eligible targets are highlighted");
+        this.statusMessageText.setValue("Select a trigger destination for " + triggerSource.getTriggerSource().getCanonicalLabel() + ", eligible targets are highlighted");
       } else {
-        this.contextualHelpText.setValue("");
+        this.statusMessageText.setValue("");
       }
 
       this.root.redraw();
@@ -620,14 +624,14 @@ public class UI {
       @Override
       public void mappingAdded(LXMidiEngine engine, LXMidiMapping mapping) {
         if (midiMapping) {
-          contextualHelpText.setValue("Successfully mapped MIDI Ch." + (mapping.channel+1) + " " + mapping.getDescription() + " to " + mapping.parameter.getCanonicalLabel());
+          statusMessageText.setValue("Successfully mapped MIDI Ch." + (mapping.channel+1) + " " + mapping.getDescription() + " to " + mapping.parameter.getCanonicalLabel());
         }
       }
     });
 
     lx.statusMessage.addListener(p -> {
       if (!isMapping()) {
-        contextualHelpText.setValue(lx.statusMessage.getString());
+        statusMessageText.setValue(lx.statusMessage.getString());
       }
     });
 
@@ -642,8 +646,9 @@ public class UI {
         .setBreakLines(true)
         .setPadding(8)
         .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
-        .setBorderColor(this.theme.attentionColor)
         .setBackgroundColor(this.theme.listBackgroundColor)
+        .setBorderColor(this.theme.attentionColor)
+        .setBorderWeight(2)
         .setBorderRounding(4)
         .setFontColor(this.theme.attentionColor)
       );
@@ -756,9 +761,9 @@ public class UI {
     this.lx.engine.mapping.setControlTarget(controlTarget.getControlTarget());
     LXParameter midiParameter = controlTarget.getControlTarget();
     if (midiParameter == null) {
-      this.contextualHelpText.setValue("Press a MIDI key or controller to map a non-existent parameter?");
+      this.statusMessageText.setValue("Press a MIDI key or controller to map a non-existent parameter?");
     } else {
-      this.contextualHelpText.setValue("Press a MIDI key or controller to map " + midiParameter.getCanonicalLabel());
+      this.statusMessageText.setValue("Press a MIDI key or controller to map " + midiParameter.getCanonicalLabel());
     }
     if (this.controlTarget != controlTarget) {
       if (this.controlTarget != null) {

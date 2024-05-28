@@ -21,16 +21,20 @@ package heronarts.glx.ui.component;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.UI;
+import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UIContextActions;
 import heronarts.glx.ui.UIControlTarget;
 import heronarts.glx.ui.UIFocus;
+import heronarts.glx.ui.UIModulationTarget;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.command.LXCommand;
+import heronarts.lx.modulation.LXCompoundModulation;
 import heronarts.lx.parameter.DiscreteParameter;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
 
-public class UIDropMenu extends UIParameterComponent implements UIFocus, UIControlTarget, LXParameterListener {
+public class UIDropMenu extends UIParameterComponent implements UIFocus, UIControlTarget, UIModulationTarget, LXParameterListener {
 
   private DiscreteParameter parameter = null;
 
@@ -116,23 +120,23 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
         @Override
         public void onContextAction(UI ui) {
           if (useCommandEngine) {
-            getLX().command.perform(new LXCommand.Parameter.SetValue(parameter, ii));
+            getLX().command.perform(new LXCommand.Parameter.SetIndex(parameter, ii));
           } else {
-            parameter.setValue(ii);
+            parameter.setIndex(ii);
           }
         }
       };
     }
     setOptions(this.parameter.getOptions());
     this.contextMenu.setActions(this.actions);
-    this.contextMenu.setHighlight(this.parameter.getValuei());
+    this.contextMenu.setHighlight(this.parameter.getBaseIndex());
     redraw();
   }
 
   public void onParameterChanged(LXParameter p) {
     if (this.parameter != null) {
       if (p == this.parameter) {
-        this.contextMenu.setHighlight(this.parameter.getValuei());
+        this.contextMenu.setHighlight(this.parameter.getBaseIndex());
         redraw();
       } else if (p == this.parameter.optionsChanged) {
         updateActions();
@@ -181,9 +185,9 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
 
     String text;
     if (this.options != null) {
-      text = this.options[this.parameter.getValuei()];
+      text = this.options[this.parameter.getBaseIndex()];
     } else {
-      text = Integer.toString(this.parameter.getValuei());
+      text = Integer.toString(this.parameter.getBaseValuei());
     }
 
     vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
@@ -192,10 +196,16 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
     vg.textAlign(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE);
     vg.text(4 + this.textOffsetX, this.height / 2 + 1 + this.textOffsetY, clipTextToWidth(vg, text, this.width - 12));
 
+    drawTriangle(ui, this, vg, this.textOffsetY);
+  }
+
+  public static void drawTriangle(UI ui, UI2dComponent component, VGraphics vg, float textOffsetY) {
+    final float width = component.getWidth();
+    final float height = component.getHeight();
     vg.beginPath();
-    vg.moveTo(this.width-4, this.height / 2 + this.textOffsetY - 2);
-    vg.lineTo(this.width-10, this.height / 2 + this.textOffsetY - 2);
-    vg.lineTo(this.width-7, this.height / 2 + this.textOffsetY + 2);
+    vg.moveTo(width-4, height / 2 + textOffsetY - 2);
+    vg.lineTo(width-10, height / 2 + textOffsetY - 2);
+    vg.lineTo(width-7, height / 2 + textOffsetY + 2);
     vg.closePath();
     vg.fill();
   }
@@ -207,7 +217,7 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   private void setExpanded(boolean expanded) {
     if (this.contextMenu.isVisible() != expanded) {
       if (expanded) {
-        this.contextMenu.setHighlight(this.parameter.getValuei());
+        this.contextMenu.setHighlight(this.parameter.getBaseIndex());
         if (this.direction == Direction.UP) {
           this.contextMenu.setPosition(this, 0, -this.contextMenu.getHeight());
         } else {
@@ -231,7 +241,9 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
   @Override
   public void onKeyPressed(KeyEvent keyEvent, char keyChar, int keyCode) {
     if (this.enabled) {
-      if (keyEvent.isEnter() || (keyCode == KeyEvent.VK_SPACE)) {
+      if (this.contextMenu.isVisible()) {
+        this.contextMenu.onKeyPressed(keyEvent, keyChar, keyCode);
+      } else if (keyEvent.isEnter() || (keyCode == KeyEvent.VK_SPACE)) {
         keyEvent.consume();
         toggleExpanded();
       } else if (keyCode == KeyEvent.VK_DOWN) {
@@ -248,19 +260,19 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
         } else {
           this.parameter.decrement();
         }
-      } else if (keyCode == KeyEvent.VK_ESCAPE) {
-        if (this.contextMenu.isVisible()) {
-          keyEvent.consume();
-          setExpanded(false);
-        }
       }
     }
   }
 
   @Override
-  public LXParameter getControlTarget() {
-    if (isMappable() && this.parameter != null && this.parameter.isMappable() && this.parameter.getParent() != null) {
-      return this.parameter;
+  public LXNormalizedParameter getControlTarget() {
+    return getMappableParameter(this.parameter);
+  }
+
+  @Override
+  public LXCompoundModulation.Target getModulationTarget() {
+    if (this.parameter instanceof LXCompoundModulation.Target) {
+      return (LXCompoundModulation.Target) getMappableParameter(this.parameter);
     }
     return null;
   }

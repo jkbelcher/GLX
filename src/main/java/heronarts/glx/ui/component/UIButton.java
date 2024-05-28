@@ -35,15 +35,23 @@ import heronarts.lx.command.LXCommand;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.EnumParameter;
 import heronarts.lx.parameter.LXListenableNormalizedParameter;
-import heronarts.lx.parameter.LXParameter;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameterListener;
 
 public class UIButton extends UIParameterComponent implements UIControlTarget, UITriggerSource, UITriggerTarget, UIFocus {
 
   public static class Tooltip extends UIButton {
 
+    public enum Placement {
+      TOP_RIGHT,
+      TOP_LEFT,
+      BOTTOM_RIGHT,
+      BOTTOM_LEFT;
+    }
+
     private final float tipWidth, tipHeight;
     private final String message;
+    private Placement placement = Placement.TOP_RIGHT;
 
     public Tooltip(float tipWidth, float tipHeight, String message) {
       super(0, 0, 12, 12);
@@ -57,6 +65,11 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       this.tipWidth = tipWidth;
       this.tipHeight = tipHeight;
       this.message = message;
+    }
+
+    public Tooltip setPlacement(Placement placement) {
+      this.placement = placement;
+      return this;
     }
 
     @Override
@@ -74,8 +87,22 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
         .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
         .setBackgroundColor(theme.contextBackgroundColor)
         .setBorderColor(theme.contextBorderColor)
-        .setBorderRounding(4)
-        .setPosition(this, this.width/2, this.height/2 - this.tipHeight);
+        .setBorderRounding(4);
+
+      switch (this.placement) {
+      case TOP_RIGHT:
+        overlay.setPosition(this, this.width/2, this.height/2 - this.tipHeight);
+        break;
+      case TOP_LEFT:
+        overlay.setPosition(this, this.width/2 - this.tipWidth, this.height/2 - this.tipHeight);
+        break;
+      case BOTTOM_RIGHT:
+        overlay.setPosition(this, this.width/2, this.height/2);
+        break;
+      case BOTTOM_LEFT:
+        overlay.setPosition(this, this.width/2 - this.tipWidth, this.height/2);
+        break;
+      }
       getUI().showContextOverlay(overlay);
     }
   }
@@ -98,6 +125,102 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
     public Action(float x, float y, float w, float h, String label) {
       this(x, y, w, h);
       setLabel(label);
+    }
+  }
+
+  public static class Expander extends Action {
+
+    public enum Direction {
+      BOTTOM_LEFT,
+      BOTTOM_RIGHT,
+      TOP_LEFT,
+      TOP_RIGHT;
+    }
+
+    private Direction direction = Direction.BOTTOM_LEFT;
+
+    public Expander(BooleanParameter param) {
+      this(0, 0, param);
+    }
+
+    public Expander(float x, float y, BooleanParameter param) {
+      super(x, y, 12, 12);
+      setParameter(param);
+    }
+
+    public Expander setDirection(Direction direction) {
+      this.direction = direction;
+      return this;
+    }
+
+    @Override
+    protected void drawBackground(UI ui, VGraphics vg) {
+      drawParentBackground(ui, vg);
+    }
+
+    @Override
+    protected void drawBorder(UI ui, VGraphics vg) {}
+
+    @Override
+    @SuppressWarnings("fallthrough")
+    protected void onDraw(UI ui, VGraphics vg) {
+      vg.beginPath();
+      vg.fillColor(ui.theme.sectionExpanderBackgroundColor);
+
+      boolean isOn = getParameter().getValue() > 0;
+
+      switch (this.direction) {
+      case TOP_RIGHT:
+        isOn = !isOn;
+        // Intentional fall-through
+      case BOTTOM_LEFT:
+        if (isOn) {
+          drawBottomLeft(ui, vg);
+        } else {
+          drawTopRight(ui, vg);
+        }
+        break;
+      case TOP_LEFT:
+        isOn = !isOn;
+        // Intentional fall-through
+      case BOTTOM_RIGHT:
+        if (isOn) {
+          drawBottomRight(ui, vg);
+        } else {
+          drawTopLeft(ui, vg);
+        }
+        break;
+      }
+
+      vg.fill();
+    }
+
+    protected void drawBottomLeft(UI ui, VGraphics vg) {
+      final float x = 1, y = getHeight()-1;
+      vg.moveTo(x, y-10);
+      vg.lineTo(x+10, y);
+      vg.lineTo(x, y);
+    }
+
+    protected void drawTopRight(UI ui, VGraphics vg) {
+      final float x = 1, y = getHeight()-1;
+      vg.moveTo(x, y-10);
+      vg.lineTo(x+10, y-10);
+      vg.lineTo(x+10, y);
+    }
+
+    protected void drawBottomRight(UI ui, VGraphics vg) {
+      final float x = 1, y = getHeight()-1;
+      vg.moveTo(x, y);
+      vg.lineTo(x+10, y-10);
+      vg.lineTo(x+10, y);
+    }
+
+    protected void drawTopLeft(UI ui, VGraphics vg) {
+      final float x = 1, y = getHeight()-1;
+      vg.moveTo(x, y-10);
+      vg.lineTo(x+10, y-10);
+      vg.lineTo(x, y);
     }
   }
 
@@ -148,8 +271,8 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
 
   }
 
-  private LXParameter controlSource = null;
-  private LXParameter controlTarget = null;
+  private LXNormalizedParameter controlSource = null;
+  private LXNormalizedParameter controlTarget = null;
 
   protected boolean active = false;
   protected boolean isMomentary = false;
@@ -207,7 +330,11 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton(float w, float h, BooleanParameter p) {
-    this(0, 0, w, h);
+    this(0, 0, w, h, p);
+  }
+
+  public UIButton(float x, float y, float w, float h, BooleanParameter p) {
+    this(x, y, w, h);
     setParameter(p);
     setLabel(p.getLabel());
   }
@@ -217,9 +344,17 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
   }
 
   public UIButton(float w, float h, EnumParameter<?> p) {
-    this(0, 0, w, h);
+    this(0, 0, w, h, p);
+  }
+
+  public UIButton(float x, float y, float w, float h, EnumParameter<?> p) {
+    this(x, y, w, h);
     setParameter(p);
     setLabel(enumFormatter.toString(p));
+  }
+
+  public UIButton(float w, float h) {
+    this(0, 0, w, h);
   }
 
   public UIButton(float x, float y, float w, float h) {
@@ -659,7 +794,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
    * @param controlSource Control source
    * @return this
    */
-  public UIButton setControlSource(LXParameter controlSource) {
+  public UIButton setControlSource(LXNormalizedParameter controlSource) {
     this.controlSource = controlSource;
     return this;
   }
@@ -673,13 +808,13 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
    * @param controlTarget Control target
    * @return this
    */
-  public UIButton setControlTarget(LXParameter controlTarget) {
+  public UIButton setControlTarget(LXNormalizedParameter controlTarget) {
     this.controlTarget = controlTarget;
     return this;
   }
 
   @Override
-  public LXParameter getControlTarget() {
+  public LXNormalizedParameter getControlTarget() {
     if (this.controlTarget != null) {
       // If one is explicitly set, doesn't have to match the rest
       return this.controlTarget;

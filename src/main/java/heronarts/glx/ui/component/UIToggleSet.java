@@ -27,6 +27,7 @@ import heronarts.glx.ui.UIFocus;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.command.LXCommand;
 import heronarts.lx.parameter.DiscreteParameter;
+import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.utils.LXUtils;
@@ -52,6 +53,15 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
 
   public UIToggleSet(float x, float y, float w, float h) {
     super(x, y, w, h);
+  }
+
+  public UIToggleSet(float w, float h, DiscreteParameter parameter) {
+    this(0, 0, w, h, parameter);
+  }
+
+  public UIToggleSet(float x, float y, float w, float h, DiscreteParameter parameter) {
+    this(x, y, w, h);
+    setParameter(parameter);
   }
 
   public UIToggleSet setActiveColor(int activeColor) {
@@ -109,7 +119,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
           }
         }
         setOptions(options);
-        setSelectedIndex(this.parameter.getValuei() - this.parameter.getMinValue(), false);
+        setSelectedIndex(this.parameter.getBaseIndex(), false);
       }
     }
     return this;
@@ -117,7 +127,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
 
   public void onParameterChanged(LXParameter parameter) {
     if (parameter == this.parameter) {
-      setSelectedIndex(this.parameter.getValuei() - this.parameter.getMinValue(), false);
+      setSelectedIndex(this.parameter.getBaseIndex(), false);
     }
   }
 
@@ -143,8 +153,12 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   }
 
   public UIToggleSet setEvenSpacing() {
-    if (!this.evenSpacing) {
-      this.evenSpacing = true;
+    return setEvenSpacing(true);
+  }
+
+  public UIToggleSet setEvenSpacing(boolean evenSpacing) {
+    if (this.evenSpacing != evenSpacing) {
+      this.evenSpacing = evenSpacing;
       computeBoundaries();
       redraw();
     }
@@ -280,11 +294,8 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
   }
 
   @Override
-  public LXParameter getControlTarget() {
-    if (isMappable() && this.parameter != null && this.parameter.isMappable() && this.parameter.getParent() != null) {
-      return this.parameter;
-    }
-    return null;
+  public LXNormalizedParameter getControlTarget() {
+    return getMappableParameter(this.parameter);
   }
 
   @Override
