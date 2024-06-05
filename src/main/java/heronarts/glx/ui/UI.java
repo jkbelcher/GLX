@@ -145,19 +145,26 @@ public class UI {
 
     @Override
     void mousePressed(MouseEvent mouseEvent, float mx, float my) {
-      // If a context menu is open, we'll want to close it on mouse-press
+      // If a drop or context menu is open, we'll want to close it on mouse-press
       // unless the mouse-press is within the context menu itself
-      boolean hideContextOverlay = false;
-      if (contextMenuOverlay.overlayContent != null) {
-        hideContextOverlay = true;
-        contextMenuOverlay.mousePressed = false;
-      }
+      contextOverlay.mousePressed = false;
+      contextOverlay.hideOnMousePress = (contextOverlay.overlayContent != null);
+      dropMenuOverlay.mousePressed = false;
+      dropMenuOverlay.hideOnMousePress = (dropMenuOverlay.overlayContent != null);
+
       super.mousePressed(mouseEvent, mx, my);
 
-      // Note: check
-      if (hideContextOverlay && !mouseEvent.isContextMenuConsumed() && !contextMenuOverlay.mousePressed && !isErrorDialog(contextMenuOverlay.overlayContent)) {
+      if (dropMenuOverlay.hideOnMousePress) {
+        // Catch clicks on an open drop menu *within* a context overlay, in this case
+        // the click will have closed the drop menu itself if appropriate, and we don't
+        // want to hide the containing context overlay
+        if (!dropMenuOverlay.mousePressed) {
+          hideDropMenu();
+        }
+      } else if (contextOverlay.hideOnMousePress && !contextOverlay.mousePressed && !isErrorDialog(contextOverlay.overlayContent)) {
         hideContextOverlay();
       }
+
     }
 
     @Override
@@ -387,6 +394,8 @@ public class UI {
 
   private class UIContextOverlay extends UI2dScrollContext {
 
+    private boolean hideOnMousePress = false;
+
     private boolean mousePressed = false;
 
     private UI2dComponent overlayContent = null;
@@ -415,6 +424,9 @@ public class UI {
       this.overlayContent = overlayContent;
       this.contextMenu = null;
       if (overlayContent != null) {
+        // If new content has been just set this frame as a result of some action,
+        // then do not hide the overlay!
+        this.hideOnMousePress = false;
         float contentWidth = overlayContent.getWidth();
         float contentHeight = overlayContent.getHeight();
         if (overlayContent instanceof UIContextMenu) {
@@ -507,9 +519,16 @@ public class UI {
   }
 
   /**
-   * Drop menu overlay object
+   * Contextual window overlay object
    */
-  private UIContextOverlay contextMenuOverlay;
+  private UIContextOverlay contextOverlay;
+
+  /**
+   * Drop menu overlay object. This is distinct from the contextOverlay because it's allowed
+   * to put a drop menu within a contextOverlay, but that's the only nesting allowed (no overlays
+   * within overlays within overlays)
+   */
+  private UIContextOverlay dropMenuOverlay;
 
   /**
    * UI look and feel
@@ -545,7 +564,8 @@ public class UI {
     LX.initProfiler.log("GLX: UI: Theme");
 
     this.root = new UIRoot();
-    this.contextMenuOverlay = new UIContextOverlay();
+    this.contextOverlay = new UIContextOverlay();
+    this.dropMenuOverlay = new UIContextOverlay();
     LX.initProfiler.log("GLX: UI: Root");
 
     lx.addProjectListener(new LX.ProjectListener() {
@@ -919,13 +939,24 @@ public class UI {
     return showContextOverlay(new UIDialogBox(this, message));
   }
 
-  public UI clearContextOverlay(UI2dComponent contextOverlay) {
-    this.contextMenuOverlay.clearContent(contextOverlay);
+  public UI showContextOverlay(UI2dComponent contextOverlay) {
+    this.contextOverlay.setContent(contextOverlay);
     return this;
   }
 
-  public UI showContextOverlay(UI2dComponent contextOverlay) {
-    this.contextMenuOverlay.setContent(contextOverlay);
+  public UI clearContextOverlay(UI2dComponent contextOverlay) {
+    this.contextOverlay.clearContent(contextOverlay);
+    this.dropMenuOverlay.clearContent(contextOverlay);
+    return this;
+  }
+
+  public UI hideDropMenu() {
+    showDropMenu(null);
+    return this;
+  }
+
+  public UI showDropMenu(UIContextMenu dropMenu) {
+    this.dropMenuOverlay.setContent(dropMenu);
     return this;
   }
 
