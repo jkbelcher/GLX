@@ -115,13 +115,13 @@ public abstract class UIEventHandler {
   protected void onKeyReleased(KeyEvent keyEvent, char keyChar, int keyCode) {
   }
 
-  protected void onGamepadButtonPressed(GamepadEvent gamepadEvent) {
+  protected void onGamepadButtonPressed(GamepadEvent gamepadEvent, int button) {
   }
 
-  protected void onGamepadButtonReleased(GamepadEvent gamepadEvent) {
+  protected void onGamepadButtonReleased(GamepadEvent gamepadEvent, int button) {
   }
 
-  protected void onGamepadAxisChanged(GamepadEvent gamepadEvent) {
+  protected void onGamepadAxisChanged(GamepadEvent gamepadEvent, int axis, float value) {
   }
 
 }

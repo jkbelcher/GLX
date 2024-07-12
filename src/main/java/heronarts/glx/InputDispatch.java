@@ -42,7 +42,7 @@ public class InputDispatch implements LXEngine.Dispatch {
   private static final int NUM_GAMEPADS = GLFW_JOYSTICK_LAST + 1;
   private static final int NUM_GAMEPAD_AXES = GLFW_GAMEPAD_AXIS_LAST + 1;
   private static final int NUM_GAMEPAD_BUTTONS = GLFW_GAMEPAD_BUTTON_LAST + 1;
-  private static final float AXIS_CHANGE_THRESHOLD = 0.001f;
+  private static final float GAMEPAD_AXIS_CHANGE_THRESHOLD = 0.001f;
 
   private final GLX lx;
 
@@ -54,8 +54,6 @@ public class InputDispatch implements LXEngine.Dispatch {
   private MouseEvent previousMousePress = null;
 
   private GLFWGamepadState gamepadState = GLFWGamepadState.create();
-  private FloatBuffer axesBuffer;
-  private ByteBuffer buttonsBuffer;
   private float[][] gamepadAxes = new float[NUM_GAMEPADS][NUM_GAMEPAD_AXES];
   private boolean[][] gamepadButtons = new boolean[NUM_GAMEPADS][NUM_GAMEPAD_BUTTONS];
 
@@ -65,15 +63,6 @@ public class InputDispatch implements LXEngine.Dispatch {
 
   InputDispatch(GLX lx) {
     this.lx = lx;
-
-    for (int i = 0; i <= GLFW.GLFW_JOYSTICK_LAST; i++) {
-      for (int a = 0; a < NUM_GAMEPAD_AXES; a++) {
-        this.gamepadAxes[i][a] = 0.f;
-      }
-      for (int b = 0; b < NUM_GAMEPAD_BUTTONS; b++) {
-        this.gamepadButtons[i][b] = false;
-      }
-    }
   }
 
   private void queueEvent(Event event) {
@@ -187,17 +176,17 @@ public class InputDispatch implements LXEngine.Dispatch {
   private void pollGamepad() {
     for (int i = 0; i < NUM_GAMEPADS; i++) {
       if (GLFW.glfwJoystickIsGamepad(i)) {
-        if(GLFW.glfwGetGamepadState(i, gamepadState)) {
-          axesBuffer = gamepadState.axes();
+        if (GLFW.glfwGetGamepadState(i, gamepadState)) {
+          FloatBuffer axesBuffer = gamepadState.axes();
           for (int a = 0; a < NUM_GAMEPAD_AXES; a++) {
             float axisValue = axesBuffer.get(a);
-            if (Math.abs(axisValue - gamepadAxes[i][a]) > AXIS_CHANGE_THRESHOLD) {
+            if (Math.abs(axisValue - gamepadAxes[i][a]) > GAMEPAD_AXIS_CHANGE_THRESHOLD) {
               queueEvent(new GamepadEvent(i, a, axisValue, this.modifiers));
               gamepadAxes[i][a] = axisValue;
             }
           }
 
-          buttonsBuffer = gamepadState.buttons();
+          ByteBuffer buttonsBuffer = gamepadState.buttons();
           for (int b = 0; b < NUM_GAMEPAD_BUTTONS; b++) {
             boolean on = buttonsBuffer.get(b) == GLFW.GLFW_PRESS;
             if (on != gamepadButtons[i][b]) {

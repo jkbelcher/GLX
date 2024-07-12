@@ -200,23 +200,23 @@ public class UI {
     }
 
     @Override
-    protected void onGamepadButtonPressed(GamepadEvent gamepadEvent) {
+    protected void onGamepadButtonPressed(GamepadEvent gamepadEvent, int button) {
       if (topLevelKeyEventHandler != null) {
-        topLevelKeyEventHandler.onGamepadButtonPressed(gamepadEvent);
+        topLevelKeyEventHandler.onGamepadButtonPressed(gamepadEvent, button);
       }
     }
 
     @Override
-    protected void onGamepadButtonReleased(GamepadEvent gamepadEvent) {
+    protected void onGamepadButtonReleased(GamepadEvent gamepadEvent, int button) {
       if (topLevelKeyEventHandler != null) {
-        topLevelKeyEventHandler.onGamepadButtonReleased(gamepadEvent);
+        topLevelKeyEventHandler.onGamepadButtonReleased(gamepadEvent, button);
       }
     }
 
     @Override
-    protected void onGamepadAxisChanged(GamepadEvent gamepadEvent) {
+    protected void onGamepadAxisChanged(GamepadEvent gamepadEvent, int axis, float value) {
       if (topLevelKeyEventHandler != null) {
-        topLevelKeyEventHandler.onGamepadAxisChanged(gamepadEvent);
+        topLevelKeyEventHandler.onGamepadAxisChanged(gamepadEvent, axis, value);
       }
     }
 
@@ -1130,13 +1130,13 @@ public class UI {
   public void gamepadEvent(GamepadEvent gamepadEvent) {
     switch (gamepadEvent.getAction()) {
     case BUTTON_PRESS:
-      this.root.onGamepadButtonPressed(gamepadEvent);
+      this.root.onGamepadButtonPressed(gamepadEvent, gamepadEvent.button);
       break;
     case BUTTON_RELEASE:
-      this.root.onGamepadButtonReleased(gamepadEvent);
+      this.root.onGamepadButtonReleased(gamepadEvent, gamepadEvent.button);
       break;
     case AXIS_CHANGE:
-      this.root.onGamepadAxisChanged(gamepadEvent);
+      this.root.onGamepadAxisChanged(gamepadEvent, gamepadEvent.axis, gamepadEvent.axisValue);
       break;
     }
   }
