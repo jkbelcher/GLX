@@ -51,6 +51,7 @@ import heronarts.lx.parameter.BoundedParameter;
 import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.EnumParameter;
 import heronarts.lx.parameter.LXParameter;
+import heronarts.lx.utils.LXUtils;
 
 public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
@@ -99,10 +100,10 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       this.dimensionsBuffer.put(2, view.getAspectRatio());
       switch (getContext().projection.getEnum()) {
       case PERSPECTIVE:
-        this.dimensionsBuffer.put(3, 2.0f / view.getAspectRatio() * params.pointSize.getValuef());
+        this.dimensionsBuffer.put(3, 2f * params.pointSize.getValuef() / view.getAspectRatio());
         break;
       case ORTHOGRAPHIC:
-        this.dimensionsBuffer.put(3, 2.0f * params.pointSize.getValuef() / view.getWidth());
+        this.dimensionsBuffer.put(3, 2f * params.pointSize.getValuef() / LXUtils.maxf(1f, getContext().getRadius()));
         break;
       }
       this.sparkleBuffer.put(0, params.sparkleAmount.getValuef());
