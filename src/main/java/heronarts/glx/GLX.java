@@ -514,12 +514,7 @@ public class GLX extends LX {
                 openProject(file);
               });
             } else if (file.getName().endsWith(".jar")) {
-              final File destination = new File(getMediaFolder(LX.Media.PACKAGES), file.getName());
-              if (destination.exists()) {
-                showConfirmDialog(file.getName() + " already exists in package folder, reinstall?", () -> { importContentJar(file, destination); });
-              } else {
-                importContentJar(file, destination);
-              }
+              importContentJar(file, true);
             }
           }
         } catch (Exception x) {
@@ -723,6 +718,19 @@ public class GLX extends LX {
   public void useHandCursor(boolean useHandCursor) {
     this.useCursor = useHandCursor ? this.handCursor : 0;
     this.needsCursorUpdate = true;
+  }
+
+  public void importContentJar(File file, boolean overwrite) {
+    final File destination = new File(getMediaFolder(LX.Media.PACKAGES), file.getName());
+    if (destination.exists()) {
+      if (overwrite) {
+        showConfirmDialog(file.getName() + " already exists in package folder, reinstall?", () -> { importContentJar(file, destination); });
+      } else {
+        pushError(null, "Package file already exists: " + destination.getName());
+      }
+    } else {
+      importContentJar(file, destination);
+    }
   }
 
   protected void importContentJar(File file, File destination) {
