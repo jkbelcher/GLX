@@ -715,6 +715,15 @@ public class UI3dContext extends UIObject implements LXSerializable, UILayer, UI
     return this.eye;
   }
 
+  /**
+   * Gets the radius from camera eye to center position
+   *
+   * @return Camera radius
+   */
+  public float getRadius() {
+    return this.radiusDamped.getValuef();
+  }
+
   private final LXParameter.MultiMonitor cameraMonitor =
     new LXParameter.MultiMonitor(
       this.radiusDamped, this.thetaDamped, this.phiDamped,

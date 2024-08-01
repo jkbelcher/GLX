@@ -625,12 +625,12 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
     }
 
     // Show a right-click context menu, if no child has, and if we're eligible
-    if (!mouseEvent.isContextMenuConsumed() && this instanceof UIContextActions && (mouseEvent.getButton() == MouseEvent.BUTTON_RIGHT)) {
+    if (!mouseEvent.isDropMenuConsumed() && this instanceof UIContextActions && (mouseEvent.getButton() == MouseEvent.BUTTON_RIGHT)) {
       UIContextActions contextParent = (UIContextActions) this;
       List<UIContextActions.Action> contextActions = contextParent.getContextActions();
       if (contextActions != null && contextActions.size() > 0) {
-        mouseEvent.consumeContextMenu();
-        getUI().showContextOverlay(
+        mouseEvent.consumeDropMenu();
+        getUI().showDropMenu((UIContextMenu)
           new UIContextMenu(mx, my, UIContextMenu.DEFAULT_WIDTH, 0)
           .setActions(contextActions.toArray(new UIContextActions.Action[0]))
           .setPosition(this, (int) mx, (int) my)
@@ -643,7 +643,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
       if (!hasFocus() && (this instanceof UIMouseFocus)) {
         focus(mouseEvent);
       }
-      if (!mouseEvent.isContextMenuConsumed()) {
+      if (!mouseEvent.isDropMenuConsumed()) {
         onMousePressed(mouseEvent, mx, my);
       }
       if (!mouseEvent.isConsumed() && mouseEvent.isButton(MouseEvent.BUTTON_LEFT) && (this instanceof UI2dComponent.UIDragReorder)) {

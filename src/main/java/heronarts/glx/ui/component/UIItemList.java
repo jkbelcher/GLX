@@ -257,8 +257,7 @@ public interface UIItemList {
 
     private int keyActivate = -1;
 
-    private int controlSurfaceFocusIndex = -1;
-    private int controlSurfaceFocusLength = -1;
+    private boolean controlSurfaceFocus = false;
     private UIColor controlSurfaceFocusColor = UIColor.NONE;
 
     private String filter = null;
@@ -591,9 +590,8 @@ public interface UIItemList {
       }
     }
 
-    private void setControlSurfaceFocus(int index, int length, UIColor color) {
-      this.controlSurfaceFocusIndex = index;
-      this.controlSurfaceFocusLength = length;
+    private void setControlSurfaceFocus(boolean hasFocus, UIColor color) {
+      this.controlSurfaceFocus = hasFocus;
       this.controlSurfaceFocusColor = color;
       this.list.redraw();
     }
@@ -819,23 +817,19 @@ public interface UIItemList {
         vg.fill();
       }
 
-      if (this.controlSurfaceFocusIndex >= 0 && this.controlSurfaceFocusLength > 0) {
-        vg.strokeColor(this.controlSurfaceFocusColor);
-        vg.beginPath();
-        vg.rect(
-          PADDING - .5f,
-          ROW_MARGIN + scrollY + this.controlSurfaceFocusIndex * ROW_SPACING - .5f,
-          rowWidth - 2*PADDING + 1,
-          Math.min(this.controlSurfaceFocusLength, this.items.size() - this.controlSurfaceFocusIndex) * ROW_SPACING - ROW_MARGIN + 1,
-          4
-        );
-        vg.stroke();
-      }
-
       if (hasScroll) {
         vg.scissorPop();
       }
 
+    }
+
+    private void drawBorder(UI ui, VGraphics vg) {
+      if (this.controlSurfaceFocus) {
+        vg.strokeColor(this.controlSurfaceFocusColor);
+        vg.beginPath();
+        vg.rect(1.5f, 1.5f, getWidth() - 3, getHeight() - 3, 4);
+        vg.stroke();
+      }
     }
 
     private int getMousePressIndex(float my) {
@@ -1312,8 +1306,8 @@ public interface UIItemList {
     }
 
     @Override
-    public UIItemList setControlSurfaceFocus(int index, int length, UIColor color) {
-      this.impl.setControlSurfaceFocus(index, length, color);
+    public UIItemList setControlSurfaceFocus(boolean hasFocus, UIColor color) {
+      this.impl.setControlSurfaceFocus(hasFocus, color);
       return this;
     }
 
@@ -1336,7 +1330,14 @@ public interface UIItemList {
 
     @Override
     public void onDraw(UI ui, VGraphics vg) {
+      super.onDraw(ui, vg);
       this.impl.onDraw(ui, vg);
+    }
+
+    @Override
+    public void drawBorder(UI ui, VGraphics vg) {
+      super.drawBorder(ui, vg);
+      this.impl.drawBorder(ui, vg);
     }
 
     @Override
@@ -1521,8 +1522,8 @@ public interface UIItemList {
     }
 
     @Override
-    public UIItemList setControlSurfaceFocus(int index, int length, UIColor color) {
-      this.impl.setControlSurfaceFocus(index, length, color);
+    public UIItemList setControlSurfaceFocus(boolean hasFocus, UIColor color) {
+      this.impl.setControlSurfaceFocus(hasFocus, color);
       return this;
     }
 
@@ -1545,7 +1546,14 @@ public interface UIItemList {
 
     @Override
     public void onDraw(UI ui, VGraphics vg) {
+      super.onDraw(ui, vg);
       this.impl.onDraw(ui, vg);
+    }
+
+    @Override
+    public void drawBorder(UI ui, VGraphics vg) {
+      super.drawBorder(ui, vg);
+      this.impl.drawBorder(ui, vg);
     }
 
     @Override
@@ -1764,12 +1772,11 @@ public interface UIItemList {
   /**
    * Sets a control focus range that is highlighted in the list
    *
-   * @param index Start of the surface focus
-   * @param length Length of the surface focus block
+   * @param hasFocus If there is control surface focus
    * @param color Color to show focus with
    * @return this
    */
-  public UIItemList setControlSurfaceFocus(int index, int length, UIColor color);
+  public UIItemList setControlSurfaceFocus(boolean hasFocus, UIColor color);
 
   /**
    * Adds a listener to receive notifications about list operations
