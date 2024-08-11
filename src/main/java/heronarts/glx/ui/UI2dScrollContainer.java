@@ -19,6 +19,7 @@
 package heronarts.glx.ui;
 
 import heronarts.glx.event.MouseEvent;
+import heronarts.lx.LX;
 import heronarts.lx.utils.LXUtils;
 
 public class UI2dScrollContainer extends UI2dContainer implements UI2dScrollInterface {
@@ -41,6 +42,22 @@ public class UI2dScrollContainer extends UI2dContainer implements UI2dScrollInte
     super(x, y, w, h);
     this.scrollWidth = w;
     this.scrollHeight = h;
+  }
+
+  public boolean hasDynamicHeight() {
+    return this.dynamicHeight;
+  }
+
+  public boolean hasDynamicWidth() {
+    return this.dynamicWidth;
+  }
+
+  public float getMaxHeight() {
+    return this.maxHeight;
+  }
+
+  public float getMaxWidth() {
+    return this.maxWidth;
   }
 
   /**
@@ -167,6 +184,14 @@ public class UI2dScrollContainer extends UI2dContainer implements UI2dScrollInte
       rescroll();
     }
     return this;
+  }
+
+  public boolean getHorizontalScrollingEnabled() {
+    return this.horizontalScrollingEnabled;
+  }
+
+  public boolean getVerticalScrollingEnabled() {
+    return this.verticalScrollingEnabled;
   }
 
   public UI2dScrollContainer setHorizontalScrollingEnabled(boolean horizontalScrollingEnabled) {

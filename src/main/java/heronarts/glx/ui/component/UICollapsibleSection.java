@@ -143,10 +143,16 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
       this.expanded = expanded;
       this.content.setVisible(this.expanded);
       setHeight(this.expanded ? this.expandedHeight : CLOSED_HEIGHT);
+      onExpanded(this.expanded);
       redraw();
     }
     return this;
   }
+
+  /**
+   * The Expanded state of the UICollapsibleSection has changed
+   */
+  protected void onExpanded(boolean expanded) { }
 
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
