@@ -503,15 +503,21 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
   }
 
   public UI2dContainer removeAllChildren(boolean dispose) {
-    UI2dContainer contentTarget = getContentTarget();
-    for (UIObject child : contentTarget.mutableChildren) {
+    final UI2dContainer contentTarget = getContentTarget();
+    final List<UIObject> removed = new ArrayList<UIObject>(contentTarget.mutableChildren);
+    this.focusedChild = null;
+    this.pressedChild = null;
+    this.overChild = null;
+    dragCancel();
+    contentTarget.mutableChildren.clear();
+    for (UIObject child : removed) {
       ((UI2dComponent) child).parent = null;
       if (dispose) {
         child.dispose();
       }
     }
-    contentTarget.mutableChildren.clear();
     reflow();
+    redraw();
     return this;
   }
 
