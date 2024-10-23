@@ -25,7 +25,9 @@ import heronarts.glx.ui.UI2dComponent;
 import heronarts.glx.ui.UI2dContainer;
 import heronarts.glx.ui.UIMouseFocus;
 import heronarts.glx.ui.vg.VGraphics;
+import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.BoundedParameter;
+import heronarts.lx.parameter.LXParameterListener;
 
 /**
  * Section with a title which can collapse/expand
@@ -43,8 +45,22 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
   private final UILabel title;
   private boolean expanded = true;
   private float expandedHeight;
+  private BooleanParameter expandedParameter = null;
+
+  private final LXParameterListener expandedListener = p -> {
+    _setExpanded(((BooleanParameter) p).isOn(), false);
+  };
 
   private final UI2dContainer content;
+
+  public UICollapsibleSection(UI ui, float w, float h) {
+    this(ui, 0, 0, w, h);
+  }
+
+  public UICollapsibleSection(UI ui, float w, float h, BooleanParameter expandedParameter) {
+    this(ui, w, h);
+    setExpandedParameter(expandedParameter);
+  }
 
   /**
    * Constructs a new collapsible section
@@ -78,8 +94,31 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
     setContentTarget(this.content);
   }
 
+  /**
+   * Whether the section is presently expanded
+   *
+   * @return Whether section is expanded
+   */
   public boolean isExpanded() {
     return this.expanded;
+  }
+
+  /**
+   * Set the section to follow and update a parameter for its expansion state
+   *
+   * @param expandedParameter Parameter to follow and update for expansion changes
+   * @return this
+   */
+  public UICollapsibleSection setExpandedParameter(BooleanParameter expandedParameter) {
+    if (this.expandedParameter != null) {
+      this.expandedParameter.removeListener(this.expandedListener);
+    }
+    this.expandedParameter = null;
+    if (expandedParameter != null) {
+      this.expandedParameter = expandedParameter;
+      this.expandedParameter.addListener(this.expandedListener, true);
+    }
+    return this;
   }
 
   protected UICollapsibleSection setTitleX(float x) {
@@ -139,20 +178,23 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
    * @return this
    */
   public UICollapsibleSection setExpanded(boolean expanded) {
+    return _setExpanded(expanded, true);
+  }
+
+  private UICollapsibleSection _setExpanded(boolean expanded, boolean pushToParam) {
     if (this.expanded != expanded) {
       this.expanded = expanded;
       this.content.setVisible(this.expanded);
       setHeight(this.expanded ? this.expandedHeight : CLOSED_HEIGHT);
-      onExpanded(this.expanded);
       redraw();
+
+      // Push change to parameter
+      if (pushToParam && (this.expandedParameter != null)) {
+        this.expandedParameter.setValue(expanded);
+      }
     }
     return this;
   }
-
-  /**
-   * The Expanded state of the UICollapsibleSection has changed
-   */
-  protected void onExpanded(boolean expanded) { }
 
   @Override
   public void onMousePressed(MouseEvent mouseEvent, float mx, float my) {
@@ -183,6 +225,12 @@ public class UICollapsibleSection extends UI2dContainer implements UIMouseFocus 
       new UILabel.Control(ui, getContentWidth()-60, 16, label),
       control.setWidth(60)
     );
+  }
+
+  @Override
+  public void dispose() {
+    setExpandedParameter(null);
+    super.dispose();
   }
 
   public interface Utils {
