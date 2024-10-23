@@ -255,7 +255,7 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     if (dragToReorder && !this.contentTarget.layout.canDragReorder()) {
       throw new IllegalStateException("Cannot set dragToReorder on a container with a non-list layout:"  + this);
     }
-    this.dragToReorder = dragToReorder;
+    this.contentTarget.dragToReorder = dragToReorder;
     return this;
   }
 
