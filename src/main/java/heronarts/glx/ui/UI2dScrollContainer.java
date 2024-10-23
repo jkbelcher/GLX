@@ -19,7 +19,6 @@
 package heronarts.glx.ui;
 
 import heronarts.glx.event.MouseEvent;
-import heronarts.lx.LX;
 import heronarts.lx.utils.LXUtils;
 
 public class UI2dScrollContainer extends UI2dContainer implements UI2dScrollInterface {
