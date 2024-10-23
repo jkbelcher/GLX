@@ -28,8 +28,8 @@ import heronarts.glx.ui.vg.VGraphics;
  */
 public class UI2dScrollPane extends UI2dContainer {
 
-  public static final float DEFAULT_INSET = 8;
-  public static final float DEFAULT_PADDING = 6;
+  public static final int DEFAULT_INSET = 8;
+  public static final int DEFAULT_PADDING = 6;
   public static final int DEFAULT_BORDER_ROUNDING = 4;
 
   public final UI2dScrollContainer scrollContent;
@@ -109,7 +109,7 @@ public class UI2dScrollPane extends UI2dContainer {
       this.insetLeft + this.paddingLeft,
       this.insetTop + this.paddingTop,
       this.width - this.insetLeft - this.paddingLeft - this.insetRight - this.paddingRight,
-      this.height- this.insetTop - this.paddingTop - this.insetBottom - this.paddingBottom
+      this.height - this.insetTop - this.paddingTop - this.insetBottom - this.paddingBottom
     );
     _setHorizontalScrollBarPosition();
     _setVerticalScrollBarPosition();
@@ -303,7 +303,16 @@ public class UI2dScrollPane extends UI2dContainer {
     // TODO(mcslee): do we need drawBorder to properly clip scrolling aliasing on the content? Doesn't seem to be?
     vg.beginPath();
     vg.fillColor(this.contentBackgroundColor);
-    vg.roundedRectVarying(this.insetTop, this.insetLeft, this.width - this.insetLeft - this.insetRight, this.height - this.insetTop - this.insetBottom, this.borderRoundingTopLeft, this.borderRoundingTopRight, this.borderRoundingBottomRight, this.borderRoundingBottomLeft);
+    vg.roundedRectVarying(
+      this.insetLeft,
+      this.insetTop,
+      this.width - this.insetLeft - this.insetRight,
+      this.height - this.insetTop - this.insetBottom,
+      this.borderRoundingTopLeft,
+      this.borderRoundingTopRight,
+      this.borderRoundingBottomRight,
+      this.borderRoundingBottomLeft
+    );
     vg.fill();
   }
 
