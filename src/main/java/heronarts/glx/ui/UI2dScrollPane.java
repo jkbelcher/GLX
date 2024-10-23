@@ -228,6 +228,24 @@ public class UI2dScrollPane extends UI2dContainer {
     return this;
   }
 
+  public float getScrollX() {
+    return this.scrollContent.getScrollX();
+  }
+
+  public float getScrollY() {
+    return this.scrollContent.getScrollY();
+  }
+
+  public UI2dScrollPane setScrollX(float scrollX) {
+    this.scrollContent.setScrollX(scrollX);
+    return this;
+  }
+
+  public UI2dScrollPane setScrollY(float scrollY) {
+    this.scrollContent.setScrollY(scrollY);
+    return this;
+  }
+
   public UI2dScrollPane setVerticalScrollBarPosition(VerticalScrollBarPosition verticalScrollBarPosition) {
     if (this.verticalScrollBarPosition != verticalScrollBarPosition) {
       this.verticalScrollBarPosition = verticalScrollBarPosition;
