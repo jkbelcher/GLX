@@ -438,6 +438,10 @@ public class UI {
     }
 
     private void setContent(UI2dComponent overlayContent) {
+      if (overlayContent == this.overlayContent) {
+        // Don't re-show the same thing
+        return;
+      }
       if (this.overlayContent != null) {
         this.overlayContent.setVisible(false);
         this.overlayContent.removeFromContainer();
