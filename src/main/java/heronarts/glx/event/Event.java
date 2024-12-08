@@ -20,9 +20,7 @@ package heronarts.glx.event;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-import org.lwjgl.system.Platform;
-
-public abstract class Event {
+public abstract class Event extends Modifiers {
 
   private static class Virtual extends Event {
     private Virtual() {
@@ -40,13 +38,6 @@ public abstract class Event {
   public static final Event NONE = new Virtual();
   public static final Event SIBLING_REMOVED = new Virtual();
 
-  public static final int SHIFT = GLFW_MOD_SHIFT;
-  public static final int CONTROL = GLFW_MOD_CONTROL;
-  public static final int ALT = GLFW_MOD_ALT;
-  public static final int META = GLFW_MOD_SUPER;
-  public static final int CAPS_LOCK = GLFW_MOD_CAPS_LOCK;
-  public static final int NUM_LOCK = GLFW_MOD_NUM_LOCK;
-
   /**
    * Value of glfwGetTime() in seconds when the event occurred
    */
@@ -57,11 +48,6 @@ public abstract class Event {
    */
   public final long nanoTime;
 
-  /**
-   * Bitmask of modifier keys held
-   */
-  public final int modifiers;
-
   private boolean isConsumed = false;
 
   protected Event(int modifiers) {
@@ -69,7 +55,7 @@ public abstract class Event {
   }
 
   protected Event(int modifiers, double glfwTime, long nanoTime) {
-    this.modifiers = modifiers;
+    super(modifiers);
     this.glfwTime = glfwTime;
     this.nanoTime = nanoTime;
   }
@@ -82,42 +68,6 @@ public abstract class Event {
    */
   public double getTime() {
     return this.glfwTime;
-  }
-
-  public int getModifiers() {
-    return this.modifiers;
-  }
-
-  public boolean hasModifier(int modifier) {
-    return (this.modifiers & modifier) != 0;
-  }
-
-  public boolean isShiftDown() {
-    return hasModifier(SHIFT);
-  }
-
-  public boolean isControlDown() {
-    return hasModifier(CONTROL);
-  }
-
-  public boolean isAltDown() {
-    return hasModifier(ALT);
-  }
-
-  public boolean isMetaDown() {
-    return hasModifier(META);
-  }
-
-  public boolean isCommand() {
-    return (Platform.get() == Platform.MACOSX) ? isMetaDown() : isControlDown();
-  }
-
-  public boolean isMultiSelect() {
-    return isMetaDown() || isControlDown();
-  }
-
-  public boolean isRangeSelect() {
-    return isShiftDown();
   }
 
   /**
