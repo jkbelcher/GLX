@@ -16,6 +16,10 @@ public class Shortcut extends Modifiers {
     this.key = key;
   }
 
+  public boolean matches(KeyEvent keyEvent) {
+    return this.key == keyEvent.getKeyCode() && this.modifiers == keyEvent.modifiers;
+  }
+
   /**
    * Create a new shortcut containing the platform-specific command key.
    *
