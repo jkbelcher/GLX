@@ -65,7 +65,7 @@ public class ShortcutCollection {
       if (mapEntry != null) {
         // Warn for duplicates
         for (Shortcut existing : mapEntry) {
-          if (existing.button == shortcut.button) {
+          if (existing.key == shortcut.key) {
             LX.warning("Shortcut " + shortcut + " conflicts with " + existing);
           }
         }
@@ -102,7 +102,7 @@ public class ShortcutCollection {
   public Shortcut match(KeyEvent event) {
     return map.getOrDefault(event.modifiers, Collections.emptyList())
               .stream()
-              .filter(shortcut -> shortcut.button == event.keyCode)
+              .filter(shortcut -> shortcut.key == event.keyCode)
               .findFirst()
               .orElse(null);
   }
