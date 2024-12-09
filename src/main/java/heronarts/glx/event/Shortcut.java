@@ -1,7 +1,5 @@
 package heronarts.glx.event;
 
-import org.lwjgl.system.Platform;
-
 /**
  * Keyboard shortcut representing a combination of character key and modifier keys.
  */
@@ -39,7 +37,7 @@ public class Shortcut extends Modifiers {
   public static Shortcut command(int key, int modifiers) {
     return new Shortcut(
       key,
-      modifiers | ((Platform.get() == Platform.MACOSX) ? META : CONTROL)
+      modifiers | getCommand()
     );
   }
 

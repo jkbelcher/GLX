@@ -58,6 +58,10 @@ public abstract class Modifiers {
     return (Platform.get() == Platform.MACOSX) ? isMetaDown() : isControlDown();
   }
 
+  public static int getCommand() {
+    return (Platform.get() == Platform.MACOSX) ? META : CONTROL;
+  }
+
   public boolean isMultiSelect() {
     return isMetaDown() || isControlDown();
   }
