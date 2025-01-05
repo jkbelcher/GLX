@@ -88,7 +88,7 @@ public abstract class UI2dComponent extends UIObject {
       this.x = LXUtils.maxf(0, that.x - ox);
       this.y = LXUtils.maxf(0, that.y - oy);
       this.width = LXUtils.minf(ow - this.x, that.x + that.width - ox);
-      this.height = LXUtils.minf(oh - this.y, that.y + that.height - oy);
+      this.height = LXUtils.minf(oh - this.y, that.y + that.height - oy); // Bug?
       return (this.width > 0) && (this.height > 0);
     }
   }
@@ -1607,7 +1607,7 @@ public abstract class UI2dComponent extends UIObject {
 
     // Scissor all the content and children
     if (needsVgScissor) {
-      vg.scissorPush(this.scissor.x + .5f, this.scissor.y + .5f, this.scissor.width-1, this.scissor.height-1);
+      vg.scissorPush(this.scissor.x, this.scissor.y, this.scissor.width, this.scissor.height);
     }
 
     // Redraw ourselves, just our immediate content
@@ -1659,6 +1659,17 @@ public abstract class UI2dComponent extends UIObject {
       drawMappingOverlay(ui, vg, 0, 0, this.width, this.height);
     }
 
+  }
+
+  /**
+   * Child classes can precede a vg.text() call with this scissor operation to remove stray aliasing
+   */
+  protected void textScissorPush(VGraphics vg) {
+    vg.scissorPush(this.scissor.x + 1f, this.scissor.y + 1f, this.scissor.width - 2, this.scissor.height - 2);
+  }
+
+  protected void textScissorPop(VGraphics vg) {
+    vg.scissorPop();
   }
 
   protected void vgRoundedRect(VGraphics vg) {

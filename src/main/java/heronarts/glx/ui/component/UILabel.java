@@ -227,6 +227,8 @@ public class UILabel extends UI2dComponent {
     default:
       break;
     }
+    // Scissor a *little* tighter around the text to remove aliasing
+    textScissorPush(vg);
     if (this.breakLines) {
       vg.beginPath();
       vg.textAlign(this.textAlignHorizontal, this.textAlignVertical);
@@ -242,6 +244,7 @@ public class UILabel extends UI2dComponent {
       vg.text(tx + this.textOffsetX, ty + this.textOffsetY + 1, str);
       vg.fill();
     }
+    textScissorPop(vg);
   }
 
   private static final int MAX_LABEL_LENGTH = 1024;

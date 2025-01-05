@@ -488,7 +488,9 @@ public abstract class UIInputBox extends UIParameterComponent implements UIFocus
     final float availableWidth = this.width - TEXT_MARGIN - 1;
     final String rawString = this.editing ? this.editState.buffer : getValueString();
 
+    textScissorPush(vg);
     onDrawText(ui, vg, this.editState, rawString, this.editing, this.textAlignHorizontal, 0, 0, this.width, this.height, availableWidth);
+    textScissorPop(vg);
   }
 
   /**

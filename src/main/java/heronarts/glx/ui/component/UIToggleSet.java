@@ -252,6 +252,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
     }
 
     // Text labels
+    textScissorPush(vg);
     vg.fontFace(hasFont() ? getFont() : ui.theme.getControlFont());
     vg.textAlign(VGraphics.Align.CENTER, VGraphics.Align.MIDDLE);
     vg.beginPath();
@@ -263,6 +264,7 @@ public class UIToggleSet extends UIParameterComponent implements UIFocus, UICont
       leftBoundary = this.boundaries[i];
     }
     vg.fill();
+    textScissorPop(vg);
   }
 
   protected void onToggle(int value) {

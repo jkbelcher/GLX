@@ -294,6 +294,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
   }
 
   private void drawLabel(UI ui, VGraphics vg) {
+    textScissorPush(vg);
     if (this.editing) {
       vg.beginPath();
       vg.rect(0, this.height - LABEL_HEIGHT, this.width, LABEL_HEIGHT);
@@ -312,6 +313,7 @@ public abstract class UIParameterControl extends UIInputBox implements UIControl
       String labelText = showValue ? getValueString() : getLabelString();
       drawParameterLabel(ui, vg, this, labelText);
     }
+    textScissorPop(vg);
   }
 
   protected boolean isTriggerParameter() {

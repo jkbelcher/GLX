@@ -538,6 +538,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
       vg.fill();
     }
 
+    textScissorPush(vg);
     VGraphics.Image icon = this.active ? this.activeIcon : this.inactiveIcon;
     if (icon != null) {
       if (this.active || this.momentaryPressEngaged) {
@@ -570,6 +571,7 @@ public class UIButton extends UIParameterComponent implements UIControlTarget, U
         }
       }
     }
+    textScissorPop(vg);
   }
 
   @Override
