@@ -26,6 +26,7 @@ import static org.lwjgl.util.tinyfd.TinyFileDialogs.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -40,11 +41,14 @@ import org.lwjgl.bgfx.BGFXPlatformData;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWDropCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.glfw.GLFWNativeCocoa;
 import org.lwjgl.glfw.GLFWNativeWin32;
 import org.lwjgl.glfw.GLFWNativeX11;
+import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.system.Platform;
 import org.lwjgl.system.macosx.ObjCRuntime;
 
@@ -70,8 +74,7 @@ public class GLX extends LX {
 
   private long window;
 
-  private long handCursor;
-  private long useCursor = 0;
+  private MouseCursor mouseCursor = null;
   private boolean needsCursorUpdate = false;
 
   private int displayX = -1;
@@ -108,6 +111,78 @@ public class GLX extends LX {
 
   public final UI ui;
   public final LXEngine.Frame uiFrame;
+
+  public enum MouseCursor {
+    ARROW(GLFW_ARROW_CURSOR),
+    HAND(GLFW_HAND_CURSOR),
+    HRESIZE(GLFW_HRESIZE_CURSOR),
+    VRESIZE(GLFW_VRESIZE_CURSOR),
+    MAGNIFYING_GLASS("magnifying.png", 4, 4),
+    LEFT_BRACE("left-brace.png", 2, 7),
+    RIGHT_BRACE("right-brace.png", 2, 7),
+    START_MARKER("start-marker.png", 1, 4),
+    END_MARKER("end-marker.png", 8, 4);
+
+    private final int glfwShape;
+    private final String resourceName;
+    private final int xhot, yhot;
+    private ByteBuffer stbiBuffer;
+    private GLFWImage glfwImage;
+    private long handle;
+
+    private MouseCursor(int glfwShape) {
+      this.glfwShape = glfwShape;
+      this.resourceName = null;
+      this.xhot = this.yhot = 0;
+    }
+
+    private MouseCursor(String resourceName) {
+      this(resourceName, 0, 0);
+    }
+
+    private MouseCursor(String resourceName, int xhot, int yhot) {
+      this.glfwShape = -1;
+      this.resourceName = resourceName;
+      this.xhot = xhot;
+      this.yhot = yhot;
+    }
+
+    private void initialize() {
+      if (this.resourceName != null) {
+        this.glfwImage = GLFWImage.create();
+        ByteBuffer buffer = null;
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+          buffer = GLXUtils.loadResource("cursors/" + this.resourceName);
+
+          IntBuffer width = stack.mallocInt(1);
+          IntBuffer height = stack.mallocInt(1);
+          IntBuffer components = stack.mallocInt(1);
+
+          this.stbiBuffer = STBImage.stbi_load_from_memory(buffer, width, height, components, STBImage.STBI_rgb_alpha);
+          this.glfwImage.set(width.get(), height.get(), this.stbiBuffer);
+          this.handle = glfwCreateCursor(this.glfwImage, this.xhot, this.yhot);
+
+        } catch (Exception x) {
+          GLX.error(x, "Cannot load mouse cursor: " + this.resourceName);
+        } finally {
+          if (buffer != null) {
+            MemoryUtil.memFree(buffer);
+          }
+        }
+
+      } else {
+        this.handle = glfwCreateStandardCursor(this.glfwShape);
+      }
+    }
+
+    private void dispose() {
+      glfwDestroyCursor(this.handle);
+      if (this.stbiBuffer != null) {
+        STBImage.stbi_image_free(this.stbiBuffer);
+      }
+
+    }
+  };
 
   public final class Programs {
 
@@ -530,8 +605,10 @@ public class GLX extends LX {
     glfwSetMouseButtonCallback(this.window, this.inputDispatch::glfwMouseButtonCallback);
     glfwSetScrollCallback(window, this.inputDispatch::glfwScrollCallback);
 
-    // Create hand editing cursor
-    this.handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+    // Initialize standard mouse cursors
+    for (MouseCursor cursor : MouseCursor.values()) {
+      cursor.initialize();
+    }
 
     // Initialize BGFX platform data
     initializePlatformData();
@@ -642,8 +719,9 @@ public class GLX extends LX {
       // Poll for input events
       this.inputDispatch.poll();
 
+      // Update mouse cursor if needed
       if (this.needsCursorUpdate) {
-        glfwSetCursor(this.window, this.useCursor);
+        glfwSetCursor(this.window, (this.mouseCursor != null) ? this.mouseCursor.handle : 0);
         this.needsCursorUpdate = false;
       }
 
@@ -705,7 +783,9 @@ public class GLX extends LX {
 
   @Override
   public void dispose() {
-    glfwDestroyCursor(this.handCursor);
+    for (MouseCursor cursor : MouseCursor.values()) {
+      cursor.dispose();
+    }
     this.program.dispose();
 
     // NOTE: destroy the whole UI first, rip down all the listeners
@@ -715,9 +795,11 @@ public class GLX extends LX {
     super.dispose();
   }
 
-  public void useHandCursor(boolean useHandCursor) {
-    this.useCursor = useHandCursor ? this.handCursor : 0;
-    this.needsCursorUpdate = true;
+  public void setMouseCursor(MouseCursor mouseCursor) {
+    if (this.mouseCursor != mouseCursor) {
+      this.mouseCursor = mouseCursor;
+      this.needsCursorUpdate = true;
+    }
   }
 
   public void importContentJar(File file, boolean overwrite) {

@@ -84,6 +84,7 @@ public class UITheme {
       "controlBorder", "292929",
       "controlDetent", "333333",
       "controlHandle", "5f5f5f",
+      "controlIndicator", "99cc99",
       "controlText", "cccccc",
       "controlActiveText", "ffffff",
       "controlDisabled", "303030",
@@ -137,7 +138,22 @@ public class UITheme {
       "modulationSourceMapping", "00ff00",
       "modulationTargetMapping", "00cccc",
 
-      "projectFileIcon", "999999"
+      "projectFileIcon", "999999",
+
+      "timelineBackground", "191919",
+
+      "gridBackgroundA", "404040",
+      "gridBackgroundB", "4c4c4c",
+      "gridBackgroundAInactive", "303030",
+      "gridBackgroundBInactive", "333333",
+      "gridLineMajor", "292929",
+      "gridLineDisabled", "393939",
+
+      "gridCursor", "99cc99",
+
+      "loopBraceActive", "669966",
+      "loopBraceInactive", "333333",
+      "loopBraceSelected", "99cc99"
     ),
 
     LIGHT("Light", 8,
@@ -169,6 +185,7 @@ public class UITheme {
       "controlBorder", "444444",
       "controlDetent", "808080",
       "controlHandle", "9f9f9f",
+      "controlIndicator", "bbeebb",
       "controlText", "191919",
       "controlActiveText", "000000",
       "controlDisabled", "909090",
@@ -222,7 +239,21 @@ public class UITheme {
       "modulationSourceMapping", "00ff00",
       "modulationTargetMapping", "00cccc",
 
-      "projectFileIcon", "444444"
+      "projectFileIcon", "444444",
+
+      "timelineBackground", "606060",
+
+      "gridBackgroundA", "888888",
+      "gridBackgroundB", "8f8f8f",
+      "gridBackgroundAInactive", "808080",
+      "gridBackgroundBInactive", "8f8f8f",
+      "gridLineMajor", "444444",
+      "gridLineDisabled", "797979",
+      "gridCursor", "040404",
+
+      "loopBraceActive", "8cd867",
+      "loopBraceInactive", "808080",
+      "loopBraceSelected", "bbeebb"
     );
 
     public final String name;
@@ -283,6 +314,7 @@ public class UITheme {
   public final Color controlBorderColor = new Color("controlBorder");
   public final Color controlHandleColor = new Color("controlHandle");
   public final Color controlDetentColor = new Color("controlDetent");
+  public final Color controlIndicatorColor = new Color("controlIndicator");
   public final Color controlTextColor = new Color("controlText");
   public final Color controlActiveTextColor = new Color("controlActiveText");
   public final Color controlDisabledColor = new Color("controlDisabled");
@@ -339,6 +371,19 @@ public class UITheme {
 
   public final Color projectFileIconColor = new Color("projectFileIcon");
 
+  public final Color timelineBackgroundColor = new Color("timelineBackground");
+  public final Color gridBackgroundAColor = new Color("gridBackgroundA");
+  public final Color gridBackgroundBColor = new Color("gridBackgroundB");
+  public final Color gridBackgroundAInactiveColor = new Color("gridBackgroundAInactive");
+  public final Color gridBackgroundBInactiveColor = new Color("gridBackgroundBInactive");
+  public final Color gridLineMajorColor = new Color("gridLineMajor");
+  public final Color gridLineDisabledColor = new Color("gridLineDisabled");
+  public final Color gridCursorColor = new Color("gridCursor");
+
+  public final Color loopBraceActiveColor = new Color("loopBraceActive");
+  public final Color loopBraceInactiveColor = new Color("loopBraceInactive");
+  public final Color loopBraceSelectedColor = new Color("loopBraceSelected");
+
   public final VGraphics.Image iconNote;
   public final VGraphics.Image iconTempo;
   public final VGraphics.Image iconControl;
@@ -371,6 +416,10 @@ public class UITheme {
   public final VGraphics.Image iconAdd;
   public final VGraphics.Image iconSearch;
   public final VGraphics.Image iconLock;
+  public final VGraphics.Image iconMidi;
+  public final VGraphics.Image iconSnapshot;
+  public final VGraphics.Image iconAutomation;
+  public final VGraphics.Image iconGrid;
 
   UITheme(VGraphics vg) throws IOException {
     this.controlFont = loadFont(vg, "Inter-SemiBold", "Inter-SemiBold.otf");
@@ -415,6 +464,10 @@ public class UITheme {
     this.iconAdd = loadIcon(vg, "icon-add@2x.png");
     this.iconSearch = loadIcon(vg, "icon-search@2x.png");
     this.iconLock = loadIcon(vg, "icon-lock@2x.png");
+    this.iconMidi = loadIcon(vg, "icon-midi@2x.png");
+    this.iconSnapshot = loadIcon(vg, "icon-snapshot@2x.png");
+    this.iconAutomation = loadIcon(vg, "icon-automation@2x.png");
+    this.iconGrid = loadIcon(vg, "icon-grid@2x.png");
     LX.initProfiler.log("GLX: UI: Theme: Icons");
   }
 

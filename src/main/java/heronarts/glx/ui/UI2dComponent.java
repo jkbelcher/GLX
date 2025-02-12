@@ -141,9 +141,9 @@ public abstract class UI2dComponent extends UIObject {
 
   private int borderWeight = 1;
 
-  private boolean hasBorderRounding = false;
+  protected boolean hasBorderRounding = false;
 
-  int
+  protected int
     borderRoundingTopLeft = 0,
     borderRoundingTopRight = 0,
     borderRoundingBottomRight = 0,
@@ -1340,6 +1340,34 @@ public abstract class UI2dComponent extends UIObject {
     return this;
   }
 
+  private UI2dComponent _addRelativeToSibling(UI2dComponent sibling, int offset) {
+    final UI2dContainer parent = sibling.getContainer();
+    if (parent == null) {
+      throw new IllegalArgumentException("Cannot add component next to sibling with no container: " + sibling);
+    }
+    return addToContainer(parent, parent.children.indexOf(sibling) + offset);
+  }
+
+  /**
+   * Adds this component to the same container as a sibling, immediately before it
+   *
+   * @param sibling Sibling component
+   * @return this
+   */
+  public UI2dComponent addBeforeSibling(UI2dComponent sibling) {
+    return _addRelativeToSibling(sibling, 0);
+  }
+
+  /**
+   * Adds this component to the same container as a sibling, immediately after it
+   *
+   * @param sibling Sibling component
+   * @return this
+   */
+  public UI2dComponent addAfterSibling(UI2dComponent sibling) {
+    return _addRelativeToSibling(sibling, 1);
+  }
+
   /**
    * Subclasses may override and throw an exception if they don't want to be added to this container type
    *
@@ -1376,7 +1404,7 @@ public abstract class UI2dComponent extends UIObject {
     case MIDDLE_LEFT:
     case BOTTOM_LEFT:
       setX = true;
-      x = target.getLeftPadding() + this.marginLeft;
+      x = target.leftPadding + this.marginLeft;
       break;
 
     case CENTER:
@@ -1384,7 +1412,7 @@ public abstract class UI2dComponent extends UIObject {
     case MIDDLE_CENTER:
     case BOTTOM_CENTER:
       setX = true;
-      x = .5f * (target.getWidth() + target.getLeftPadding() - target.getRightPadding() - this.width);
+      x = .5f * (target.getWidth() + target.leftPadding - target.rightPadding - this.width);
       break;
 
     case RIGHT:
@@ -1392,7 +1420,7 @@ public abstract class UI2dComponent extends UIObject {
     case MIDDLE_RIGHT:
     case BOTTOM_RIGHT:
       setX = true;
-      x = target.getWidth() - target.getRightPadding() - this.width - this.marginRight;
+      x = target.getWidth() - target.rightPadding - this.width - this.marginRight;
       break;
 
     default:
@@ -1406,7 +1434,7 @@ public abstract class UI2dComponent extends UIObject {
     case TOP_CENTER:
     case TOP_RIGHT:
       setY = true;
-      y = target.getTopPadding() + this.marginTop;
+      y = target.topPadding + this.marginTop;
       break;
 
     case MIDDLE:
@@ -1414,7 +1442,7 @@ public abstract class UI2dComponent extends UIObject {
     case MIDDLE_CENTER:
     case MIDDLE_RIGHT:
       setY = true;
-      y = .5f * (target.getHeight() + target.getTopPadding() - target.getBottomPadding() - this.height);
+      y = .5f * (target.getHeight() + target.topPadding - target.bottomPadding - this.height);
       break;
 
     case BOTTOM:
@@ -1422,7 +1450,7 @@ public abstract class UI2dComponent extends UIObject {
     case BOTTOM_RIGHT:
     case BOTTOM_CENTER:
       setY = true;
-      y = target.getHeight() - target.getBottomPadding() - this.height - this.marginBottom;
+      y = target.getHeight() - target.bottomPadding - this.height - this.marginBottom;
       break;
 
     default:
@@ -1566,11 +1594,23 @@ public abstract class UI2dComponent extends UIObject {
     final float sx = this.scrollX;
     final float sy = this.scrollY;
 
-    final boolean needsVgScissor =
-      (this.needsRedraw || this.childNeedsRedraw) && (
-        (this instanceof Scissored) ||
-        ((this instanceof UI2dScrollContainer) && ((UI2dScrollContainer) this).hasScroll())
-      );
+    boolean needsVgScissor = false;
+    float scissorX = 0, scissorY = 0;
+    if (this.needsRedraw || this.childNeedsRedraw) {
+      if (this instanceof Scissored) {
+        needsVgScissor = true;
+        scissorX = scissorY = .5f;
+      } else if (this instanceof UI2dScrollContainer scroll) {
+        if (scroll.hasScrollX()) {
+          needsVgScissor = true;
+          scissorX = .5f;
+        }
+        if (scroll.hasScrollY()) {
+          needsVgScissor = true;
+          scissorY = .5f;
+        }
+      }
+    }
 
     // Put down the background first, before scissoring
     if (this.needsRedraw) {
@@ -1579,7 +1619,7 @@ public abstract class UI2dComponent extends UIObject {
 
     // Scissor all the content and children
     if (needsVgScissor) {
-      vg.scissorPush(this.scissor.x + .5f, this.scissor.y + .5f, this.scissor.width-1, this.scissor.height-1);
+      vg.scissorPush(this.scissor.x + scissorX, this.scissor.y + scissorY, this.scissor.width - 2*scissorX, this.scissor.height - 2*scissorY);
     }
 
     // Redraw ourselves, just our immediate content
@@ -1711,11 +1751,16 @@ public abstract class UI2dComponent extends UIObject {
     }
 
     if (ownBackground) {
-      vg.beginPath();
-      vgRoundedRect(vg);
-      vg.fillColor((this.hasFocus && this.hasFocusBackground) ? this.focusBackgroundColor : this.backgroundColor);
-      vg.fill();
+      drawComponentBackground(ui, vg);
     }
+  }
+
+  protected void drawComponentBackground(UI ui, VGraphics vg) {
+    int borderWeight = this.hasBorder ? this.borderWeight : 0;
+    vg.beginPath();
+    vgRoundedRect(vg, borderWeight * .5f, borderWeight * .5f, this.width - borderWeight, this.height - borderWeight);
+    vg.fillColor((this.hasFocus && this.hasFocusBackground) ? this.focusBackgroundColor : this.backgroundColor);
+    vg.fill();
   }
 
   protected void drawParentBackground(UI ui, VGraphics vg) {

@@ -19,6 +19,7 @@
 package heronarts.glx.ui;
 
 import heronarts.glx.GLX;
+import heronarts.glx.GLX.MouseCursor;
 import heronarts.glx.View;
 import heronarts.glx.event.Event;
 import heronarts.glx.event.GamepadEvent;
@@ -438,6 +439,10 @@ public class UI {
     }
 
     private void setContent(UI2dComponent overlayContent) {
+      if (overlayContent == this.overlayContent) {
+        // Don't re-show the same thing
+        return;
+      }
       if (this.overlayContent != null) {
         this.overlayContent.setVisible(false);
         this.overlayContent.removeFromContainer();
@@ -786,6 +791,10 @@ public class UI {
     if (!isMapping()) {
       this.contextualHelpText.setValue("");
     }
+  }
+
+  public MouseCursor getMouseCursor() {
+    return this.root._getMouseCursor();
   }
 
   /**

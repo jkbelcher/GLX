@@ -92,9 +92,9 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
 
   ArrowKeyFocus arrowKeyFocus = ArrowKeyFocus.NONE;
 
-  private float topPadding = 0, rightPadding = 0, bottomPadding = 0, leftPadding = 0;
+  protected float topPadding = 0, rightPadding = 0, bottomPadding = 0, leftPadding = 0;
 
-  private float childSpacingX = 0, childSpacingY = 0;
+  protected float childSpacingX = 0, childSpacingY = 0;
 
   private float minHeight = 0, minWidth = 0;
 
@@ -154,25 +154,30 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
   }
 
   public UI2dContainer setPadding(float topPadding, float rightPadding, float bottomPadding, float leftPadding) {
+    if (this.contentTarget != this) {
+      this.contentTarget.setPadding(topPadding, rightPadding, bottomPadding, leftPadding);
+      return this;
+    }
+
     boolean reflow = false;
-    if (this.contentTarget.topPadding != topPadding) {
-      this.contentTarget.topPadding = topPadding;
+    if (this.topPadding != topPadding) {
+      this.topPadding = topPadding;
       reflow = true;
     }
-    if (this.contentTarget.rightPadding != rightPadding) {
-      this.contentTarget.rightPadding = rightPadding;
+    if (this.rightPadding != rightPadding) {
+      this.rightPadding = rightPadding;
       reflow = true;
     }
-    if (this.contentTarget.bottomPadding != bottomPadding) {
-      this.contentTarget.bottomPadding = bottomPadding;
+    if (this.bottomPadding != bottomPadding) {
+      this.bottomPadding = bottomPadding;
       reflow = true;
     }
-    if (this.contentTarget.leftPadding != leftPadding) {
-      this.contentTarget.leftPadding = leftPadding;
+    if (this.leftPadding != leftPadding) {
+      this.leftPadding = leftPadding;
       reflow = true;
     }
     if (reflow) {
-      this.contentTarget.reflow();
+      reflow();
     }
     return this;
   }
@@ -193,6 +198,14 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     return this.leftPadding;
   }
 
+  public float getChildSpacingX() {
+    return this.childSpacingX;
+  }
+
+  public float getChildSpacingY() {
+    return this.childSpacingY;
+  }
+
   /**
    * Deprecated. Use {@link #setChildSpacing(float)} instead
    *
@@ -208,11 +221,31 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     return setChildSpacing(childSpacing, childSpacing);
   }
 
+  public UI2dContainer setChildSpacingX(float childSpacingX) {
+    if (this.contentTarget != this) {
+      this.contentTarget.setChildSpacingX(childSpacingX);
+      return this;
+    }
+    return setChildSpacing(this.contentTarget.childSpacingY, childSpacingX);
+  }
+
+  public UI2dContainer setChildSpacingY(float childSpacingY) {
+    if (this.contentTarget != this) {
+      this.contentTarget.setChildSpacingY(childSpacingY);
+      return this;
+    }
+    return setChildSpacing(childSpacingY, this.contentTarget.childSpacingX);
+  }
+
   public UI2dContainer setChildSpacing(float childSpacingY, float childSpacingX) {
-    if ((this.contentTarget.childSpacingX != childSpacingX) || (this.contentTarget.childSpacingY != childSpacingY)) {
-      this.contentTarget.childSpacingX = childSpacingX;
-      this.contentTarget.childSpacingY = childSpacingY;
-      this.contentTarget.reflow();
+    if (this.contentTarget != this) {
+      this.contentTarget.setChildSpacing(childSpacingY, childSpacingX);
+      return this;
+    }
+    if ((this.childSpacingX != childSpacingX) || (this.childSpacingY != childSpacingY)) {
+      this.childSpacingX = childSpacingX;
+      this.childSpacingY = childSpacingY;
+      reflow();
     }
     return this;
   }
@@ -255,7 +288,7 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     if (dragToReorder && !this.contentTarget.layout.canDragReorder()) {
       throw new IllegalStateException("Cannot set dragToReorder on a container with a non-list layout:"  + this);
     }
-    this.dragToReorder = dragToReorder;
+    this.contentTarget.dragToReorder = dragToReorder;
     return this;
   }
 
@@ -526,8 +559,12 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     return this.contentTarget.mutableChildren.iterator();
   }
 
+  public boolean isEmpty() {
+    return this.contentTarget.children.isEmpty();
+  }
+
   public List<UIObject> getChildren() {
-    return this.contentTarget.mutableChildren;
+    return this.contentTarget.children;
   }
 
   public UI2dComponent getChild(int i) {

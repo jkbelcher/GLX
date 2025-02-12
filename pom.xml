@@ -34,7 +34,7 @@
 	</scm>
 
     <properties>
-        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -55,7 +55,7 @@
 			<activation>
 				<os>
 					<family>unix</family>
-					<name>Linux</name>
+					<name>linux</name>
 					<arch>amd64</arch>
 				</os>
 			</activation>
@@ -68,7 +68,7 @@
 			<activation>
 				<os>
 					<family>unix</family>
-					<name>Linux</name>
+					<name>linux</name>
 					<arch>aarch64</arch>
 				</os>
 			</activation>
