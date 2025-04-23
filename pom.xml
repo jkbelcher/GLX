@@ -190,6 +190,10 @@
 			<artifactId>lwjgl-tinyfd</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-assimp</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.joml</groupId>
 			<artifactId>joml</artifactId>
 			<version>${joml.version}</version>
@@ -231,6 +235,12 @@
 			<classifier>${lwjgl.natives}</classifier>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-assimp</artifactId>
+			<classifier>${lwjgl.natives}</classifier>
+			<scope>provided</scope>
+		</dependency>
     </dependencies>
 
     <build>
@@ -241,7 +251,7 @@
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <compilerArgs>
-                        <arg>-Xlint</arg>
+                        <arg>-Xlint:all,-this-escape</arg>
                         <arg>-Xpkginfo:always</arg>
                     </compilerArgs>
                 </configuration>

@@ -142,10 +142,10 @@ public class UITheme {
 
       "timelineBackground", "191919",
 
-      "gridBackgroundA", "404040",
-      "gridBackgroundB", "4c4c4c",
-      "gridBackgroundAInactive", "303030",
-      "gridBackgroundBInactive", "333333",
+      "gridBackgroundDark", "444444",
+      "gridBackgroundLight", "494949",
+      "gridBackgroundDarkInactive", "303030",
+      "gridBackgroundLightInactive", "333333",
       "gridLineMajor", "292929",
       "gridLineDisabled", "393939",
 
@@ -153,7 +153,11 @@ public class UITheme {
 
       "loopBraceActive", "669966",
       "loopBraceInactive", "333333",
-      "loopBraceSelected", "99cc99"
+      "loopBraceSelected", "99cc99",
+
+      "markerActive", "777777",
+      "markerInactive", "333333",
+      "markerSelected", "669966"
     ),
 
     LIGHT("Light", 8,
@@ -199,7 +203,7 @@ public class UITheme {
       "primary", "8cd867",
       "secondary", "7ddbf3",
       "focus", "c9c9c9",
-      "attention", "ff3333",
+      "attention", "cc0000",
       "restrictions", "292929",
       "cue", "7ddbf3",
       "aux", "f67247",
@@ -243,17 +247,21 @@ public class UITheme {
 
       "timelineBackground", "606060",
 
-      "gridBackgroundA", "888888",
-      "gridBackgroundB", "8f8f8f",
-      "gridBackgroundAInactive", "808080",
-      "gridBackgroundBInactive", "8f8f8f",
-      "gridLineMajor", "444444",
+      "gridBackgroundDark", "878787",
+      "gridBackgroundLight", "8c8c8c",
+      "gridBackgroundDarkInactive", "808080",
+      "gridBackgroundLightInactive", "8f8f8f",
+      "gridLineMajor", "606060",
       "gridLineDisabled", "797979",
       "gridCursor", "040404",
 
       "loopBraceActive", "8cd867",
       "loopBraceInactive", "808080",
-      "loopBraceSelected", "bbeebb"
+      "loopBraceSelected", "bbeebb",
+
+      "markerActive", "999999",
+      "markerInactive", "606060",
+      "markerSelected", "8cd867"
     );
 
     public final String name;
@@ -372,10 +380,10 @@ public class UITheme {
   public final Color projectFileIconColor = new Color("projectFileIcon");
 
   public final Color timelineBackgroundColor = new Color("timelineBackground");
-  public final Color gridBackgroundAColor = new Color("gridBackgroundA");
-  public final Color gridBackgroundBColor = new Color("gridBackgroundB");
-  public final Color gridBackgroundAInactiveColor = new Color("gridBackgroundAInactive");
-  public final Color gridBackgroundBInactiveColor = new Color("gridBackgroundBInactive");
+  public final Color gridBackgroundDarkColor = new Color("gridBackgroundDark");
+  public final Color gridBackgroundLightColor = new Color("gridBackgroundLight");
+  public final Color gridBackgroundDarkInactiveColor = new Color("gridBackgroundDarkInactive");
+  public final Color gridBackgroundLightInactiveColor = new Color("gridBackgroundLightInactive");
   public final Color gridLineMajorColor = new Color("gridLineMajor");
   public final Color gridLineDisabledColor = new Color("gridLineDisabled");
   public final Color gridCursorColor = new Color("gridCursor");
@@ -383,6 +391,10 @@ public class UITheme {
   public final Color loopBraceActiveColor = new Color("loopBraceActive");
   public final Color loopBraceInactiveColor = new Color("loopBraceInactive");
   public final Color loopBraceSelectedColor = new Color("loopBraceSelected");
+
+  public final Color markerSelectedColor = new Color("markerSelected");
+  public final Color markerActiveColor = new Color("markerActive");
+  public final Color markerInactiveColor = new Color("markerInactive");
 
   public final VGraphics.Image iconNote;
   public final VGraphics.Image iconTempo;
@@ -402,6 +414,7 @@ public class UITheme {
   public final VGraphics.Image iconPreferences;
   public final VGraphics.Image iconUndo;
   public final VGraphics.Image iconRedo;
+  public final VGraphics.Image iconLaunch;
   public final VGraphics.Image iconTempoDown;
   public final VGraphics.Image iconTempoUp;
   public final VGraphics.Image iconOscInput;
@@ -420,6 +433,10 @@ public class UITheme {
   public final VGraphics.Image iconSnapshot;
   public final VGraphics.Image iconAutomation;
   public final VGraphics.Image iconGrid;
+  public final VGraphics.Image iconFollow;
+  public final VGraphics.Image iconClock;
+  public final VGraphics.Image iconNext;
+  public final VGraphics.Image iconPrev;
 
   UITheme(VGraphics vg) throws IOException {
     this.controlFont = loadFont(vg, "Inter-SemiBold", "Inter-SemiBold.otf");
@@ -450,6 +467,7 @@ public class UITheme {
     this.iconPreferences = loadIcon(vg, "icon-preferences@2x.png");
     this.iconUndo = loadIcon(vg, "icon-undo@2x.png");
     this.iconRedo = loadIcon(vg, "icon-redo@2x.png");
+    this.iconLaunch = loadIcon(vg, "icon-launch@2x.png");
     this.iconTempoDown = loadIcon(vg, "icon-tempo-down@2x.png");
     this.iconTempoUp = loadIcon(vg, "icon-tempo-up@2x.png");
     this.iconOscInput = loadIcon(vg, "icon-osc-input@2x.png");
@@ -468,6 +486,10 @@ public class UITheme {
     this.iconSnapshot = loadIcon(vg, "icon-snapshot@2x.png");
     this.iconAutomation = loadIcon(vg, "icon-automation@2x.png");
     this.iconGrid = loadIcon(vg, "icon-grid@2x.png");
+    this.iconFollow = loadIcon(vg, "icon-follow@2x.png");
+    this.iconClock = loadIcon(vg, "icon-clock@2x.png");
+    this.iconNext = loadIcon(vg, "icon-next@2x.png");
+    this.iconPrev = loadIcon(vg, "icon-prev@2x.png");
     LX.initProfiler.log("GLX: UI: Theme: Icons");
   }
 

@@ -74,8 +74,8 @@ public class GLX extends LX {
 
   private long window;
 
-  private MouseCursor mouseCursor = null;
-  private boolean needsCursorUpdate = false;
+  private volatile MouseCursor mouseCursor = null;
+  private volatile boolean needsCursorUpdate = false;
 
   private int displayX = -1;
   private int displayY = -1;
@@ -121,7 +121,8 @@ public class GLX extends LX {
     LEFT_BRACE("left-brace.png", 2, 7),
     RIGHT_BRACE("right-brace.png", 2, 7),
     START_MARKER("start-marker.png", 1, 4),
-    END_MARKER("end-marker.png", 8, 4);
+    END_MARKER("end-marker.png", 8, 4),
+    CLIP_PLAY("clip-play.png", 1, 5);
 
     private final int glfwShape;
     private final String resourceName;
@@ -721,7 +722,8 @@ public class GLX extends LX {
 
       // Update mouse cursor if needed
       if (this.needsCursorUpdate) {
-        glfwSetCursor(this.window, (this.mouseCursor != null) ? this.mouseCursor.handle : 0);
+        final MouseCursor mc = this.mouseCursor;
+        glfwSetCursor(this.window, (mc != null) ? mc.handle : 0);
         this.needsCursorUpdate = false;
       }
 
@@ -851,7 +853,7 @@ public class GLX extends LX {
         "Project File",
         new String[] { "lxp" },
         getMediaFile(LX.Media.PROJECTS, "default.lxp").toString(),
-        (path) -> { openProject(new File(path)); }
+        (path) -> { openProject(new File(path), true); }
       );
     });
   }
@@ -1000,6 +1002,7 @@ public class GLX extends LX {
     );
   }
 
+  @Override
   public void showConfirmDialog(String message, Runnable confirm) {
     this.ui.showContextOverlay(new UIDialogBox(this.ui,
       message,
