@@ -834,11 +834,16 @@ public class GLX extends LX {
   }
 
   public void showSaveProjectDialog() {
+    File project = getProject();
+    if (project == null) {
+      project =getMediaFile(LX.Media.PROJECTS, "default.lxp");
+    }
+
     showSaveFileDialog(
       "Save Project",
       "Project File",
       new String[] { "lxp" },
-      getMediaFile(LX.Media.PROJECTS, "default.lxp").toString(),
+      project.toString(),
       (path) -> { saveProject(new File(path)); }
     );
   }
@@ -847,12 +852,16 @@ public class GLX extends LX {
     if (this.dialogShowing) {
       return;
     }
+
+    final File project = (getProject() != null) ? getProject() :
+      getMediaFile(LX.Media.PROJECTS, "default.lxp");
+
     confirmChangesSaved("open another project", () -> {
       showOpenFileDialog(
         "Open Project",
         "Project File",
         new String[] { "lxp" },
-        getMediaFile(LX.Media.PROJECTS, "default.lxp").toString(),
+        project.toString(),
         (path) -> { openProject(new File(path), true); }
       );
     });
