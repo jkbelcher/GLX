@@ -23,7 +23,6 @@ import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.tinyfd.TinyFileDialogs.*;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -31,34 +30,22 @@ import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Map;
-
-import static org.lwjgl.bgfx.BGFX.*;
-import static org.lwjgl.bgfx.BGFXPlatform.*;
+import java.util.concurrent.TimeUnit;
 
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.bgfx.BGFXInit;
-import org.lwjgl.bgfx.BGFXPlatformData;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWDropCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWImage;
-import org.lwjgl.glfw.GLFWNativeCocoa;
-import org.lwjgl.glfw.GLFWNativeWin32;
-import org.lwjgl.glfw.GLFWNativeX11;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.system.Platform;
-import org.lwjgl.system.macosx.ObjCRuntime;
-
-import heronarts.glx.shader.UniformFill;
-import heronarts.glx.shader.VertexFill;
-import heronarts.glx.shader.Tex2d;
 import heronarts.glx.ui.UI;
 import heronarts.glx.ui.UIDialogBox;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
+import heronarts.lx.LXClassLoader;
 import heronarts.lx.LXEngine;
 import heronarts.lx.clipboard.LXTextValue;
 import heronarts.lx.model.LXModel;
@@ -72,7 +59,7 @@ public class GLX extends LX {
   private static final int DEFAULT_WINDOW_WIDTH = 1280;
   private static final int DEFAULT_WINDOW_HEIGHT = 720;
 
-  private long window;
+  long window;
 
   private volatile MouseCursor mouseCursor = null;
   private volatile boolean needsCursorUpdate = false;
@@ -85,12 +72,14 @@ public class GLX extends LX {
   private int windowHeight = DEFAULT_WINDOW_HEIGHT;
   private int windowPosX = -1;
   private int windowPosY = -1;
-  private int frameBufferWidth = 0;
-  private int frameBufferHeight = 0;
+
+  int frameBufferWidth = 0;
+  int frameBufferHeight = 0;
+
   private float uiWidth = 0;
   private float uiHeight = 0;
 
-  private boolean flagUIDebug = false;
+  boolean flagUIDebug = false;
 
   float systemContentScaleX = 1;
   float systemContentScaleY = 1;
@@ -100,12 +89,9 @@ public class GLX extends LX {
   float cursorScaleX = 1;
   float cursorScaleY = 1;
 
-  private int bgfxRenderer = BGFX_RENDERER_TYPE_COUNT;
-  private int bgfxFormat = 0;
+  final boolean zZeroToOne;
 
   public final VGraphics vg;
-
-  public final boolean zZeroToOne;
 
   private final InputDispatch inputDispatch = new InputDispatch(this);
 
@@ -185,29 +171,10 @@ public class GLX extends LX {
     }
   };
 
-  public final class Programs {
-
-    public final Tex2d tex2d;
-    public final UniformFill uniformFill;
-    public final VertexFill vertexFill;
-
-    public Programs(GLX glx) {
-      this.tex2d = new Tex2d(glx);
-      this.uniformFill = new UniformFill(glx);
-      this.vertexFill = new VertexFill(glx);
-    }
-
-    public void dispose() {
-      this.tex2d.dispose();
-      this.uniformFill.dispose();
-      this.vertexFill.dispose();
-    }
-  }
-
   /**
    * Publicly accessible, globally reusable shader programs.
    */
-  public final Programs program;
+  public final BGFXEngine.Programs program;
 
   public static class Flags extends LX.Flags {
     public int windowWidth = -1;
@@ -219,6 +186,9 @@ public class GLX extends LX {
 
   public final Flags flags;
 
+  public final BGFXEngine.RenderThread bgfxThread;
+  public final BGFXEngine bgfx;
+
   protected GLX(Flags flags) throws IOException {
     this(flags, null);
   }
@@ -226,10 +196,6 @@ public class GLX extends LX {
   protected GLX(Flags flags, LXModel model) throws IOException {
     super(flags, model);
     this.flags = flags;
-
-    if (this.flags.useOpenGL) {
-      this.bgfxRenderer = BGFX_RENDERER_TYPE_OPENGL;
-    }
 
     // Get initial window size from preferences
     int preferenceWidth = this.preferences.getWindowWidth();
@@ -244,19 +210,43 @@ public class GLX extends LX {
     this.windowPosX = this.preferences.getWindowPosX();
     this.windowPosY = this.preferences.getWindowPosY();
 
+    // GLFW initialization
     initializeWindow();
-    this.zZeroToOne = !bgfx_get_caps().homogeneousDepth();
 
-    // Initialize global shader programs and VG library
-    this.program = new Programs(this);
-    this.vg = new VGraphics(this);
+    // BGFX initialization
+    this.bgfxThread = new BGFXEngine.RenderThread(this);
+    this.bgfxThread.start();
+
+    // Get BGFX instance and core state
+    GLX.log("GLX Thread awaiting initialized");
+    try {
+      while (true) {
+        // NB: this poll is necessary to kick GLFW and get bgfx_init() to return!
+        glfwPollEvents();
+        if (this.bgfxThread.didInitialize.await(16, TimeUnit.MILLISECONDS)) {
+          break;
+        }
+      }
+    } catch (InterruptedException ix) {
+      GLX.error(ix, "GLX interrupted awaiting BGFX initialization");
+    }
+    this.bgfx = this.bgfxThread.bgfx;
+    this.zZeroToOne = this.bgfx.zZeroToOne;
+    this.program = this.bgfx.program;
+    this.vg = this.bgfx.vg;
+
+    // Have the BGFX build the UI
+    this.bgfxThread.buildUI.countDown();
+    try {
+      this.bgfxThread.didBuildUI.await();
+    } catch (InterruptedException ix) {
+      GLX.error(ix, "GLX interrupted awaiting BGFX to buildUI");
+    }
+    this.ui = this.bgfxThread.ui;
 
     // Initialize LED frame buffer for the UI
     this.uiFrame = new LXEngine.Frame(this);
     this.engine.getFrameNonThreadSafe(this.uiFrame);
-
-    // Create the UI system
-    this.ui = buildUI();
   }
 
   void toggleUIPerformanceDebug() {
@@ -271,22 +261,30 @@ public class GLX extends LX {
     this.engine.setInputDispatch(this.inputDispatch);
     this.engine.start();
 
-    // Enter the core rendering loop
+    // Start the render thread
+    this.bgfxThread.run.countDown();
+
+    // Enter the core event loop
     log("Bootstrap complete, running main loop.");
-    loop();
+    eventLoop();
+
+    // Dispose the BGFX render thread and UI assets
+    try {
+      log("Waiting for BGFX render thread to finish...");
+      this.bgfxThread.join();
+    } catch (InterruptedException ix) {
+      GLX.error(ix, "Interrupted awaiting BGFX shutdown");
+    }
 
     // Stop the LX engine
     log("Stopping LX engine...");
     this.engine.stop();
 
     // TODO(mcslee): join the LX engine thread? make sure it's really
-    // done before cleaning up the window assets? doesn't seem necessary
+    // done before cleaning up the window assets? doesn't seem to be necessary...
 
     // Clean up after ourselves
     dispose();
-
-    // Shut down bgfx
-    bgfx_shutdown();
 
     // Free the window callbacks and destroy the window
     glfwFreeCallbacks(this.window);
@@ -311,11 +309,11 @@ public class GLX extends LX {
   }
 
   public int getRenderer() {
-    return this.bgfxRenderer;
+    return this.bgfx.getRenderer();
   }
 
   public boolean isOpenGL() {
-    return this.bgfxRenderer == BGFX_RENDERER_TYPE_OPENGL;
+    return this.bgfx.isOpenGL();
   }
 
   public float getUIWidth() {
@@ -390,13 +388,15 @@ public class GLX extends LX {
 
     // Grab uiZoom from preferences
     this.uiZoom = this.preferences.uiZoom.getValuef() / 100f;
-    this.preferences.uiZoom.addListener((p) -> { setUIZoom(this.preferences.uiZoom.getValuef() / 100f); });
+    this.preferences.uiZoom.addListener((p) -> {
+      setUIZoom(this.preferences.uiZoom.getValuef() / 100f);
+    });
 
     // Configure GLFW
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_FALSE);
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
-    glfwWindowHint(GLFW_RESIZABLE, flags.windowResizable ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, this.flags.windowResizable ? GLFW_TRUE : GLFW_FALSE);
 
     // Detect window/framebuffer sizes and content scale
     try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -523,10 +523,13 @@ public class GLX extends LX {
     });
 
     glfwSetWindowCloseCallback(this.window, (window) -> {
-      glfwSetWindowShouldClose(this.window, false);
-      confirmChangesSaved("quit", () -> {
-        glfwSetWindowShouldClose(this.window, true);
-      });
+      if (!this.bgfxThread.hasFailed) {
+        // Confirm that we really want to do it
+        glfwSetWindowShouldClose(this.window, false);
+        confirmChangesSaved("quit", () -> {
+          glfwSetWindowShouldClose(this.window, true);
+        });
+      }
     });
 
     glfwSetWindowSizeCallback(this.window, (window, width, height) -> {
@@ -564,8 +567,7 @@ public class GLX extends LX {
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
       this.preferences.uiZoom.setRange((int) Math.ceil(100 / this.systemContentScaleX), 201);
-      ui.resize();
-      draw();
+      this.bgfxThread.resizeUI.set(true);
     });
 
     glfwSetFramebufferSizeCallback(this.window, (window, width, height) -> {
@@ -575,9 +577,7 @@ public class GLX extends LX {
       this.uiHeight = this.frameBufferHeight / this.systemContentScaleY / this.uiZoom;
       this.cursorScaleX = this.uiWidth / this.windowWidth;
       this.cursorScaleY = this.uiHeight / this.windowHeight;
-      bgfx_reset(this.frameBufferWidth, this.frameBufferHeight, BGFX_RESET_VSYNC, this.bgfxFormat);
-      ui.resize();
-      draw();
+      this.bgfxThread.resizeFramebuffer.set(true);
     });
 
     glfwSetDropCallback(this.window, (window, count, names) -> {
@@ -586,11 +586,15 @@ public class GLX extends LX {
           final File file = new File(GLFWDropCallback.getName(names, 0));
           if (file.exists() && file.isFile()) {
             if (file.getName().endsWith(".lxp")) {
-              confirmChangesSaved("open project " + file.getName(), () -> {
-                openProject(file);
+              this.engine.addTask(() -> {
+                confirmChangesSaved("open project " + file.getName(), () -> {
+                  openProject(file);
+                });
               });
             } else if (file.getName().endsWith(".jar")) {
-              importContentJar(file, true);
+              this.engine.addTask(() -> {
+                importContentJar(file, true);
+              });
             }
           }
         } catch (Exception x) {
@@ -601,6 +605,7 @@ public class GLX extends LX {
 
     // Register input dispatching callbacks
     glfwSetKeyCallback(this.window, this.inputDispatch::glfwKeyCallback);
+
     glfwSetCharCallback(this.window, this.inputDispatch::glfwCharCallback);
     glfwSetCursorPosCallback(this.window, this.inputDispatch::glfwCursorPosCallback);
     glfwSetMouseButtonCallback(this.window, this.inputDispatch::glfwMouseButtonCallback);
@@ -610,32 +615,6 @@ public class GLX extends LX {
     for (MouseCursor cursor : MouseCursor.values()) {
       cursor.initialize();
     }
-
-    // Initialize BGFX platform data
-    initializePlatformData();
-
-    // Construct the BGFX instance
-    try (MemoryStack stack = MemoryStack.stackPush()) {
-      BGFXInit init = BGFXInit.malloc(stack);
-      bgfx_init_ctor(init);
-      init
-        .type(this.bgfxRenderer)
-        .vendorId(BGFX_PCI_ID_NONE)
-        .deviceId((short) 0)
-        .callback(null)
-        .allocator(null)
-        .resolution(res -> res.width(this.frameBufferWidth).height(this.frameBufferHeight).reset(BGFX_RESET_VSYNC));
-      if (!bgfx_init(init)) {
-        throw new RuntimeException("Error initializing bgfx renderer");
-      }
-      this.bgfxFormat = init.resolution().format();
-      this.bgfxRenderer = bgfx_get_renderer_type();
-    }
-    String rendererName = bgfx_get_renderer_name(this.bgfxRenderer);
-    if ("NULL".equals(rendererName)) {
-      throw new RuntimeException("Error identifying bgfx renderer");
-    }
-    log("Using BGFX renderer: " + rendererName);
   }
 
   private boolean setWindowSizeLimits = true;
@@ -647,8 +626,7 @@ public class GLX extends LX {
     this.cursorScaleX = this.uiWidth / this.windowWidth;
     this.cursorScaleY = this.uiHeight / this.windowHeight;
     this.vg.notifyContentScaleChanged();
-    this.ui.resize();
-    this.ui.redraw();
+    this.bgfxThread.resizeUI.set(true);
     this.setWindowSizeLimits = true;
   }
 
@@ -656,49 +634,7 @@ public class GLX extends LX {
     glfwSetWindowSize(this.window, windowWidth, windowHeight);
   }
 
-  private void initializePlatformData() {
-    try (MemoryStack stack = MemoryStack.stackPush()) {
-      BGFXPlatformData platformData = BGFXPlatformData.calloc(stack);
-      switch (Platform.get()) {
-      case LINUX:
-        platformData.ndt(GLFWNativeX11.glfwGetX11Display());
-        platformData.nwh(GLFWNativeX11.glfwGetX11Window(this.window));
-        break;
-      case MACOSX:
-//        platformData.ndt(NULL);
-//        platformData.nwh(GLFWNativeCocoa.glfwGetCocoaWindow(this.window));
-
-        // NOTE(mcslee): nasty hacks to fix bgfx/M1 bug
-        // https://github.com/LWJGL/lwjgl3/issues/619
-        long objc_msgSend = ObjCRuntime.getLibrary().getFunctionAddress("objc_msgSend");
-        long layer = org.lwjgl.system.JNI.invokePPP(ObjCRuntime.objc_getClass("CAMetalLayer"), ObjCRuntime.sel_getUid("alloc"), objc_msgSend);
-        org.lwjgl.system.JNI.invokePPP(layer, ObjCRuntime.sel_getUid("init"), objc_msgSend);
-
-        long contentView = org.lwjgl.system.JNI.invokePPP(GLFWNativeCocoa.glfwGetCocoaWindow(window), ObjCRuntime.sel_getUid("contentView"), objc_msgSend);
-        org.lwjgl.system.JNI.invokePPPV(contentView, ObjCRuntime.sel_getUid("setLayer:"), layer, objc_msgSend);
-
-        platformData.nwh(layer);
-
-        break;
-      case WINDOWS:
-        platformData.ndt(NULL);
-        platformData.nwh(GLFWNativeWin32.glfwGetWin32Window(this.window));
-        break;
-      }
-      platformData.context(NULL);
-      platformData.backBuffer(NULL);
-      platformData.backBufferDS(NULL);
-      bgfx_set_platform_data(platformData);
-    }
-  }
-
-  private void loop() {
-    final int FRAME_PERF_LOG = 300;
-    long before = System.currentTimeMillis();
-    long now;
-    int frameCount = 0;
-    long drawNanos = 0;
-    boolean failed = false;
+  private void eventLoop() {
 
     while (!glfwWindowShouldClose(this.window)) {
 
@@ -727,37 +663,6 @@ public class GLX extends LX {
         this.needsCursorUpdate = false;
       }
 
-      if (!failed) {
-        long drawStart = System.nanoTime();
-        try {
-          draw();
-        } catch (Throwable x) {
-          error(x, "UI THREAD FAILURE: Unhandled error in GLX.draw(): " + x.getLocalizedMessage());
-          fail(x);
-
-          // The above should have set a UI failure window to be drawn...
-          // Take one last whack at re-drawing. This may very well fail and
-          // throw an uncaught error or exception, so be it.
-          try {
-            draw();
-          } catch (Throwable ignored) {
-            // Yeah, we thought that may happen.
-          }
-
-          failed = true;
-        }
-        drawNanos += (System.nanoTime() - drawStart);
-        if (!failed && (++frameCount == FRAME_PERF_LOG)) {
-          frameCount = 0;
-          now = System.currentTimeMillis();
-          if (this.flagUIDebug) {
-            GLX.log("UI thread healthy, running at: " + FRAME_PERF_LOG * 1000f / (now - before) + "fps, average draw time: " + (drawNanos / FRAME_PERF_LOG / 1000) + "us");
-          }
-          before = now;
-          drawNanos = 0;
-        }
-      }
-
       // Copy something to the clipboard
       final String copyToClipboard = this._setSystemClipboardString;
       if (copyToClipboard != null) {
@@ -776,24 +681,11 @@ public class GLX extends LX {
     }
   }
 
-  private void draw() {
-    // Copy the latest engine-rendered LED frame
-    this.engine.copyFrameThreadSafe(this.uiFrame);
-    this.ui.draw();
-    bgfx_frame(false);
-  }
-
   @Override
   public void dispose() {
     for (MouseCursor cursor : MouseCursor.values()) {
       cursor.dispose();
     }
-    this.program.dispose();
-
-    // NOTE: destroy the whole UI first, rip down all the listeners
-    // before disposing of the engine itself
-    this.ui.dispose();
-
     super.dispose();
   }
 
@@ -808,12 +700,30 @@ public class GLX extends LX {
     final File destination = new File(getMediaFolder(LX.Media.PACKAGES), file.getName());
     if (destination.exists()) {
       if (overwrite) {
-        showConfirmDialog(file.getName() + " already exists in package folder, reinstall?", () -> { importContentJar(file, destination); });
+        showConfirmDialog(
+          file.getName() + " already exists in package folder, reinstall?",
+          () -> { importContentJar(file, destination); }
+        );
       } else {
         pushError(null, "Package file already exists: " + destination.getName());
       }
     } else {
-      importContentJar(file, destination);
+      final LXClassLoader.Package existingPackage = this.registry.findPackage(file);
+      if (existingPackage != null) {
+        if (overwrite) {
+          showConfirmDialog(
+            existingPackage.getName() + " package already exists with filename " + existingPackage.getFileName() + ", replace?",
+            () -> {
+              this.registry.uninstallPackage(existingPackage, false);
+              importContentJar(file, destination);
+            }
+          );
+        } else {
+          pushError(null, "Package already exists: " + existingPackage.getFileName());
+        }
+      } else {
+        importContentJar(file, destination);
+      }
     }
   }
 
@@ -821,9 +731,12 @@ public class GLX extends LX {
     log("Importing content JAR: " + destination.toString());
     if (this.registry.installPackage(file, true)) {
       this.engine.addTask(() -> {
-        reloadContent();
+        String message = "Installed package: " + destination.getName();
+        if (this.registry.getClassLoader().hasDuplicateClasses()) {
+          message += "\n\nDuplicate classes were found. See log for details.";
+        }
         this.ui.contextualHelpText.setValue("New package imported into " + destination.getName());
-        this.ui.showContextDialogMessage("Installed package: " + destination.getName());
+        this.ui.showContextDialogMessage(message);
       });
     };
   }

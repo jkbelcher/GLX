@@ -21,14 +21,14 @@ package heronarts.glx.ui.component;
 import static org.lwjgl.bgfx.BGFX.*;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
 import org.joml.Matrix4f;
-import org.lwjgl.system.MemoryUtil;
+import org.joml.Vector3f;
 
 import com.google.gson.JsonObject;
 
+import heronarts.glx.BGFXEngine;
 import heronarts.glx.DynamicIndexBuffer;
 import heronarts.glx.DynamicVertexBuffer;
 import heronarts.glx.GLX;
@@ -56,21 +56,22 @@ import heronarts.lx.utils.LXUtils;
 public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
   private class Program extends ShaderProgram {
-    private short uniformTextureBase;
-    private short uniformTextureSparkle;
-    private short uniformDimensions;
-    private short uniformSparkle;
-    private final FloatBuffer dimensionsBuffer;
-    private final FloatBuffer sparkleBuffer;
 
-    Program(GLX lx) {
-      super(lx, "vs_led", "fs_led");
-      this.uniformTextureBase = bgfx_create_uniform("s_texColor", BGFX_UNIFORM_TYPE_SAMPLER, 1);
-      this.uniformTextureSparkle = bgfx_create_uniform("s_texSparkle", BGFX_UNIFORM_TYPE_SAMPLER, 1);
-      this.uniformDimensions = bgfx_create_uniform("u_dimensions", BGFX_UNIFORM_TYPE_VEC4, 1);
-      this.uniformSparkle = bgfx_create_uniform("u_sparkle", BGFX_UNIFORM_TYPE_VEC4, 1);
-      this.dimensionsBuffer = MemoryUtil.memAllocFloat(4);
-      this.sparkleBuffer = MemoryUtil.memAllocFloat(4);
+    private final Uniform.Sampler uniformTextureBase;
+    private final Uniform.Sampler uniformTextureSparkle;
+    private final Uniform.Vec4f uniformDimensions;
+    private final Uniform.Vec4f uniformSparkle;
+    private final Uniform.Vec4f uniformDirectional;
+    private final Uniform.Vec4f uniformEyePosition;
+
+    Program(BGFXEngine bgfx) {
+      super(bgfx, "vs_led", "fs_led");
+      this.uniformTextureBase = new Uniform.Sampler("s_texColor");
+      this.uniformTextureSparkle = new Uniform.Sampler("s_texSparkle");
+      this.uniformDimensions = new Uniform.Vec4f("u_dimensions");
+      this.uniformSparkle = new Uniform.Vec4f("u_sparkle");
+      this.uniformDirectional = new Uniform.Vec4f("u_directional");
+      this.uniformEyePosition = new Uniform.Vec4f("u_eyePosition");
     }
 
     @Override
@@ -82,37 +83,46 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
 
     @Override
     public void dispose() {
-      bgfx_destroy_uniform(this.uniformTextureBase);
-      bgfx_destroy_uniform(this.uniformTextureSparkle);
-      bgfx_destroy_uniform(this.uniformDimensions);
-      bgfx_destroy_uniform(this.uniformSparkle);
-      MemoryUtil.memFree(this.dimensionsBuffer);
-      MemoryUtil.memFree(this.sparkleBuffer);
+      this.uniformTextureBase.dispose();
+      this.uniformTextureSparkle.dispose();
+      this.uniformDimensions.dispose();
+      this.uniformSparkle.dispose();
+      this.uniformDirectional.dispose();
+      this.uniformEyePosition.dispose();
       super.dispose();
     }
 
     @Override
     public void setUniforms(View view) {
-      bgfx_set_texture(0, this.uniformTextureBase, textures[params.ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_NONE);
-      bgfx_set_texture(1, this.uniformTextureSparkle, sparkles[params.ledStyle.getValuei()].getHandle(), BGFX_SAMPLER_U_BORDER | BGFX_SAMPLER_V_BORDER);
-      this.dimensionsBuffer.put(0, global.contrast.getValuef());
-      this.dimensionsBuffer.put(1, params.feather.getValuef());
-      this.dimensionsBuffer.put(2, view.getAspectRatio());
-      switch (getContext().projection.getEnum()) {
-      case PERSPECTIVE:
-        this.dimensionsBuffer.put(3, 2f * params.pointSize.getValuef() / view.getAspectRatio());
-        break;
-      case ORTHOGRAPHIC:
-        this.dimensionsBuffer.put(3, 2f * params.pointSize.getValuef() / LXUtils.maxf(1f, getContext().getRadius()));
-        break;
-      }
-      this.sparkleBuffer.put(0, params.sparkleAmount.getValuef());
-      this.sparkleBuffer.put(1, params.sparkleCurve.getValuef());
-      this.sparkleBuffer.put(2, (float) Math.toRadians(params.sparkleRotate.getValue()));
-      this.sparkleBuffer.put(3, (lx.engine.nowMillis % 30000) * LX.TWO_PIf / 30000f);
+      this.uniformTextureBase.setTexture(0, textures[params.ledStyle.getValuei()], BGFX_SAMPLER_NONE);
+      this.uniformTextureSparkle.setTexture(1, sparkles[params.ledStyle.getValuei()], BGFX_SAMPLER_U_BORDER | BGFX_SAMPLER_V_BORDER);
 
-      bgfx_set_uniform(this.uniformDimensions, this.dimensionsBuffer, 1);
-      bgfx_set_uniform(this.uniformSparkle, this.sparkleBuffer, 1);
+      final float pointScale = switch (getContext().projection.getEnum()) {
+        case PERSPECTIVE -> 2f * params.pointSize.getValuef() / view.getAspectRatio();
+        case ORTHOGRAPHIC -> 2f * params.pointSize.getValuef() / LXUtils.maxf(1f, getContext().getRadius());
+      };
+      this.uniformDimensions.set(
+        global.contrast.getValuef(),
+        params.feather.getValuef(),
+        view.getAspectRatio(),
+        pointScale
+      );
+
+      this.uniformSparkle.set(
+        params.sparkleAmount.getValuef(),
+        params.sparkleCurve.getValuef(),
+        (float) Math.toRadians(params.sparkleRotate.getValue()),
+        (lx.engine.nowMillis % 30000) * LX.TWO_PIf / 30000f
+      );
+
+      this.uniformDirectional.set(
+        (params.directional.getEnum() == DirectionStyle.DIRECTED) ? 1f : 0f,
+        (float) Math.cos(.5 * Math.toRadians(params.directionalDispersion.getValuef())),
+        LXUtils.lerpf(1f, .1f, params.directionalContrast.getValuef())
+      );
+
+      final Vector3f eye = getContext().getEye();
+      this.uniformEyePosition.set(eye.x, eye.y, eye.z);
     }
   }
 
@@ -191,28 +201,54 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     }
   }
 
+  private class NormalBuffer extends VertexBuffer {
+
+    private static final int VERTICES_PER_POINT = 2;
+
+    private NormalBuffer(GLX lx) {
+      super(lx, model.size * VERTICES_PER_POINT, VertexDeclaration.Attribute.POSITION);
+    }
+
+    @Override
+    protected void bufferData(ByteBuffer buffer) {
+      bufferDirectionalNormalLength = directionalShowNormalsLength.getValuef();
+      for (LXPoint p : model.points) {
+        putVertex(p.x, p.y, p.z);
+        putVertex(
+          p.x + bufferDirectionalNormalLength * p.xnormal,
+          p.y + bufferDirectionalNormalLength * p.ynormal,
+          p.z + bufferDirectionalNormalLength * p.znormal
+        );
+      }
+    }
+  }
+
   private class ModelBuffer extends VertexBuffer {
 
     private static final int VERTICES_PER_POINT = 4;
 
     private ModelBuffer(GLX lx) {
-      super(lx, model.size * VERTICES_PER_POINT, VertexDeclaration.ATTRIB_POSITION | VertexDeclaration.ATTRIB_TEXCOORD0);
+      super(lx, model.size * VERTICES_PER_POINT, VertexDeclaration.Attribute.POSITION, VertexDeclaration.Attribute.TEXCOORD1, VertexDeclaration.Attribute.NORMAL);
     }
 
     @Override
     protected void bufferData(ByteBuffer buffer) {
       for (LXPoint p : model.points) {
         putVertex(p.x, p.y, p.z);
-        putTex2d(0f, 0f);
+        putTex3d(0f, 0f, p.size);
+        putVertex(p.xnormal, p.ynormal, p.znormal);
 
         putVertex(p.x, p.y, p.z);
-        putTex2d(1f, 0f);
+        putTex3d(1f, 0f, p.size);
+        putVertex(p.xnormal, p.ynormal, p.znormal);
 
         putVertex(p.x, p.y, p.z);
-        putTex2d(0f, 1f);
+        putTex3d(0f, 1f, p.size);
+        putVertex(p.xnormal, p.ynormal, p.znormal);
 
         putVertex(p.x, p.y, p.z);
-        putTex2d(1f, 1f);
+        putTex3d(1f, 1f, p.size);
+        putVertex(p.xnormal, p.ynormal, p.znormal);
       }
 
     }
@@ -234,6 +270,22 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       this.label = label;
       this.texture = texture;
       this.sparkle = sparkle;
+    }
+
+    @Override
+    public String toString() {
+      return this.label;
+    }
+  }
+
+  public enum DirectionStyle {
+    OMNI("Omni"),
+    DIRECTED("Directed");
+
+    public final String label;
+
+    private DirectionStyle(String label) {
+      this.label = label;
     }
 
     @Override
@@ -264,6 +316,28 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     new BoundedParameter("Sparkle Rotate", 45, 0, 360)
     .setUnits(BoundedParameter.Units.DEGREES)
     .setDescription("Amount sparkle rotates as it brightens");
+
+  public final EnumParameter<DirectionStyle> directional =
+    new EnumParameter<DirectionStyle>("Directional", DirectionStyle.OMNI)
+    .setDescription("Whether points cast light directionally or everywhere");
+
+  public final BoundedParameter directionalDispersion =
+    new BoundedParameter("Directional Dispersion", 180, 30, 180)
+    .setUnits(BoundedParameter.Units.DEGREES)
+    .setDescription("Beam angle of directed lighting");
+
+  public final BoundedParameter directionalContrast =
+    new BoundedParameter("Directional Contrast", 0)
+    .setUnits(BoundedParameter.Units.PERCENT_NORMALIZED)
+    .setDescription("Boost contrast of directed lighting, 0% is cosine falloff");
+
+  public final BooleanParameter directionalShowNormals =
+    new BooleanParameter ("Show Direction", false)
+    .setDescription("Show normal vectors for light directions");
+
+  public final BoundedParameter directionalShowNormalsLength =
+    new BoundedParameter("Direction Length", 5, 1, 10000)
+    .setDescription("Length of normal vectors showing light direction");
 
   public final BoundedParameter contrast =
     new BoundedParameter("Contrast", 1, 1, 10)
@@ -296,6 +370,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   private final Texture[] textures = new Texture[LedStyle.values().length];
   private final Texture[] sparkles = new Texture[LedStyle.values().length];
 
+  private NormalBuffer normalBuffer;
   private ModelBuffer modelBuffer;
   private DynamicVertexBuffer colorBuffer;
   private IndexBuffer indexBuffer;
@@ -305,6 +380,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
   private LXModel model = null;
 
   private int modelGeneration = -1;
+  private float bufferDirectionalNormalLength = -1;
 
   private boolean auxiliary = false;
 
@@ -314,9 +390,9 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this(lx, null);
   }
 
-  public UIPointCloud(GLX lx, UIPointCloud global) {
-    this.lx = lx;
-    this.program = new Program(lx);
+  public UIPointCloud(GLX glx, UIPointCloud global) {
+    this.lx = glx;
+    this.program = new Program(glx.bgfx);
     int ti = 0;
     for (LedStyle ledStyle : LedStyle.values()) {
       this.textures[ti] = new Texture(ledStyle.texture);
@@ -335,6 +411,11 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.parameters.add("sparkle", this.sparkleAmount);
     this.parameters.add("sparkleCurve", this.sparkleCurve);
     this.parameters.add("sparkleRotate", this.sparkleRotate);
+    this.parameters.add("directional", this.directional);
+    this.parameters.add("directionalDispersion", this.directionalDispersion);
+    this.parameters.add("directionalContrast", this.directionalContrast);
+    this.parameters.add("directionalShowNormals", this.directionalShowNormals);
+    this.parameters.add("directionalShowNormalsLength", this.directionalShowNormalsLength);
     this.parameters.add("contrast", this.contrast);
     this.parameters.add("depthTest", this.depthTest);
     this.parameters.add("useCustomParams", this.useCustomParams);
@@ -370,6 +451,9 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     if (this.colorBuffer != null) {
       this.colorBuffer.dispose();
     }
+    if (this.normalBuffer != null) {
+      this.normalBuffer.dispose();
+    }
     this.program.dispose();
   }
 
@@ -380,11 +464,30 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.modelBuffer = new ModelBuffer(lx);
   }
 
+  // Need to keep the normal buffer around for at least
+  // 2 frames for bgfx to not get given garbage...
+  private boolean flagBuildNormalBuffer = true;
+
+  private boolean flagNormalBufferDirty = true;
+
+  private void buildNormalBuffer() {
+    if (this.flagBuildNormalBuffer) {
+      if (this.normalBuffer != null) {
+        this.normalBuffer.dispose();
+      }
+      this.normalBuffer = new NormalBuffer(lx);
+      this.flagBuildNormalBuffer = false;
+      this.flagNormalBufferDirty = false;
+    } else {
+      this.flagBuildNormalBuffer = true;
+    }
+  }
+
   private void buildColorBuffer() {
     if (this.colorBuffer != null) {
       this.colorBuffer.dispose();
     }
-    this.colorBuffer = new DynamicVertexBuffer(lx, this.model.size * ModelBuffer.VERTICES_PER_POINT, VertexDeclaration.ATTRIB_COLOR0);
+    this.colorBuffer = new DynamicVertexBuffer(lx, this.model.size * ModelBuffer.VERTICES_PER_POINT, VertexDeclaration.Attribute.COLOR0);
   }
 
   private void buildIndexBuffer() {
@@ -411,6 +514,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
       this.model = frameModel;
       this.modelGeneration = frameModelGeneration;
       buildModelBuffer();
+      this.flagNormalBufferDirty = true;
       if ((this.colorBuffer == null) || (oldModel == null) || (oldModel.size != frameModel.size)) {
         buildColorBuffer();
       }
@@ -420,6 +524,7 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     } else if (this.modelGeneration != frameModelGeneration) {
       // Model geometry (but not size) has changed, rebuild model buffer
       buildModelBuffer();
+      this.flagNormalBufferDirty = true;
       this.modelGeneration = frameModelGeneration;
       this.needsZSort = true;
       this.zSortMillis = 0;
@@ -449,11 +554,37 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     this.program.submit(
       view,
       BGFX_STATE_WRITE_RGB |
-      BGFX_STATE_WRITE_Z |
+      BGFX_STATE_WRITE_A |
+      // NOTE: very nearby pixels shouldn't clip each other, we draw UIPointCloud *last* from
+      // back to front. Don't write the Z values so that "stacked" lights both render
+      // BGFX_STATE_WRITE_Z |
       BGFX_STATE_BLEND_ALPHA |
       BGFX_STATE_ALPHA_REF(this.global.alphaRef.getValuei()) |
       (this.depthTest.isOn() ? BGFX_STATE_DEPTH_TEST_LESS : 0)
     );
+
+    if ((this.directional.getEnum() == DirectionStyle.DIRECTED) && this.directionalShowNormals.isOn()) {
+      if (this.bufferDirectionalNormalLength != this.directionalShowNormalsLength.getValuef()) {
+        this.flagNormalBufferDirty = true;
+      }
+
+      // Try to rebuild the normal buffer if we need to on this pass or flagged on a prev pass
+      if (this.flagBuildNormalBuffer || this.flagNormalBufferDirty) {
+        buildNormalBuffer();
+      }
+
+      if (this.normalBuffer != null) {
+        this.lx.program.uniformFill.setFillColor(0xff00ff00);
+        this.lx.program.uniformFill.submit(
+          view,
+          BGFX_STATE_WRITE_RGB |
+          BGFX_STATE_BLEND_ALPHA |
+          BGFX_STATE_DEPTH_TEST_LESS |
+          BGFX_STATE_PT_LINES,
+          this.normalBuffer
+        );
+      }
+    }
   }
 
   private static final long Z_SORT_TIMEOUT_MS = 50;
@@ -478,6 +609,11 @@ public class UIPointCloud extends UI3dComponent implements LXSerializable {
     if (object.has(LXComponent.KEY_RESET)) {
       this.parameters.reset();
     } else {
+      this.directional.reset();
+      this.directionalDispersion.reset();
+      this.directionalContrast.reset();
+      this.directionalShowNormals.reset();
+      this.directionalShowNormalsLength.reset();
       LXSerializable.Utils.loadParameters(object, this.parameters);
     }
   }
