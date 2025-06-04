@@ -24,15 +24,15 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.HashSet;
-import java.util.Set;
-
+import java.util.ArrayList;
+import java.util.List;
 import org.lwjgl.nanovg.NVGColor;
 import org.lwjgl.nanovg.NVGLUFramebufferBGFX;
 import org.lwjgl.nanovg.NVGPaint;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import heronarts.glx.BGFXEngine;
 import heronarts.glx.GLX;
 import heronarts.glx.GLXUtils;
 import heronarts.glx.View;
@@ -49,7 +49,7 @@ import static org.lwjgl.nanovg.NanoVGBGFX.*;
  * idiomatic java style and doesn't require the API client to keep track of the NanoVG context
  * handle or prefix everything with nvg. Also makes for simpler method chaining calls.
  */
-public class VGraphics {
+public class VGraphics implements BGFXEngine.Resource {
 
   public static enum Winding {
     CCW(NVG_CCW),
@@ -146,7 +146,7 @@ public class VGraphics {
     }
   }
 
-  public class Image {
+  public class Image implements BGFXEngine.Resource {
     public final int id;
     public final int width;
     public final int height;
@@ -156,6 +156,7 @@ public class VGraphics {
     private final boolean isRgbData;
 
     private Image(int id, ByteBuffer imageData, int w, int h, boolean is2x, boolean isRgbData) {
+      glx.assertBgfxThreadAllocation(this);
       this.id = id;
       this.imageData = imageData;
       if (is2x) {
@@ -167,6 +168,8 @@ public class VGraphics {
       this.paint = imagePattern(0, 0, w, h, id);
       this.isRgbData = isRgbData;
       noTint();
+
+      allocatedImages.add(this);
     }
 
     private static ByteBuffer bufferARGB(ByteBuffer rgbaData, int[] argb) {
@@ -190,6 +193,7 @@ public class VGraphics {
       if (argb.length != (this.width * this.height)) {
         throw new IllegalArgumentException("ARGB array length (" + argb.length + ") doesn't match width(" + this.width + ") x height(" + this.height +")");
       }
+      glx.assertBgfxThreadUpdate(this);
       nvgUpdateImage(vg, this.id, bufferARGB(this.imageData, argb));
     }
 
@@ -218,8 +222,10 @@ public class VGraphics {
     }
 
     public void dispose() {
+      glx.assertBgfxThread("VGraphics.Image.dispose()  must happen on the BGFX thread");
       nvgDeleteImage(vg, this.id);
       MemoryUtil.memFree(this.imageData);
+      allocatedImages.remove(this);
     }
   }
 
@@ -237,7 +243,7 @@ public class VGraphics {
     }
   }
 
-  public class Framebuffer {
+  public class Framebuffer implements BGFXEngine.Resource {
     private final UI2dContext context;
     private NVGLUFramebufferBGFX buffer = null;
     private final Paint paint = new Paint();
@@ -256,6 +262,7 @@ public class VGraphics {
       this.height = h;
       this.imageFlags = imageFlags;
       this.viewId = 0;
+      allocatedBuffers.add(this);
     }
 
     private Framebuffer markStale() {
@@ -297,6 +304,7 @@ public class VGraphics {
     }
 
     private Framebuffer bind() {
+      glx.assertBgfxThread("VGraphics.Framebuffer.bind() must be on BGFX thread");
       if (this.isStale) {
         rebuffer();
       }
@@ -315,6 +323,7 @@ public class VGraphics {
     }
 
     private void rebuffer() {
+      glx.assertBgfxThreadAllocation(this);
       if (this.buffer != null) {
         nvgluDeleteFramebuffer(this.buffer);
       }
@@ -326,8 +335,8 @@ public class VGraphics {
       // extra sub-pixel is okay, see the nvgBeginFrame() call where
       // the actual frame size is passed as a float.
       this.buffer = nvgluCreateFramebuffer(vg,
-        (int) Math.ceil(this.width * glx.getUIContentScaleX()),
-        (int) Math.ceil(this.height * glx.getUIContentScaleY()),
+        (int) Math.ceil(this.width * glx.window.getUIContentScaleX()),
+        (int) Math.ceil(this.height * glx.window.getUIContentScaleY()),
         this.imageFlags
       );
 
@@ -339,16 +348,22 @@ public class VGraphics {
       // when we're going to paint it into another UI2dContext, those pixels will be in
       // UI-space. So the paint image pattern is in UI-space width/height
 
-      this.paint.imagePattern(0, 0, this.width, glx.isOpenGL() ? -this.height : this.height, this.buffer.image());
+      this.paint.imagePattern(0, 0, this.width, glx.bgfx.isOpenGL() ? -this.height : this.height, this.buffer.image());
 
       this.isStale = false;
     }
 
     public void dispose() {
-      if (this.buffer != null) {
-        nvgluDeleteFramebuffer(this.buffer);
+      if (glx.bgfxThreadDispose(this)) {
+        final NVGLUFramebufferBGFX buffer = this.buffer;
+        if (buffer != null) {
+          nvgluDeleteFramebuffer(buffer);
+        }
+        this.buffer = null;
       }
-      this.buffer = null;
+
+      // We know it *will* be removed, whether now or later
+      allocatedBuffers.remove(this);
     }
 
   }
@@ -361,9 +376,12 @@ public class VGraphics {
   private final NVGColor fillColorLinearGradientEnd = NVGColor.create();
   private final NVGColor fillColor = NVGColor.create();
   private final NVGColor strokeColor = NVGColor.create();
-  private final Set<Framebuffer> allocatedBuffers = new HashSet<Framebuffer>();
+
+  private final List<Framebuffer> allocatedBuffers = new ArrayList<Framebuffer>();
+  private final List<Image> allocatedImages = new ArrayList<Image>();
 
   public VGraphics(GLX glx) {
+    glx.assertBgfxThreadAllocation(this);
     this.glx = glx;
     this.vg = nvgCreate(true, 0, NULL);
     this.view = new View(glx);
@@ -375,18 +393,11 @@ public class VGraphics {
   }
 
   public Framebuffer createFramebuffer(UI2dContext context, float w, float h, int imageFlags) {
-    Framebuffer framebuffer = new Framebuffer(context, w, h, imageFlags);
-    this.allocatedBuffers.add(framebuffer);
-    return framebuffer;
+    return new Framebuffer(context, w, h, imageFlags);
   }
 
   public void bindFramebuffer(Framebuffer framebuffer) {
     framebuffer.bind();
-  }
-
-  public void deleteFrameBuffer(Framebuffer framebuffer) {
-    nvgluDeleteFramebuffer(framebuffer.buffer);
-    this.allocatedBuffers.remove(framebuffer);
   }
 
   public void notifyContentScaleChanged() {
@@ -498,7 +509,7 @@ public class VGraphics {
       this.vg,
       width, // * this.glx.getUIContentScaleX(),
       height, // * this.glx.getUIContentScaleY(),
-      this.glx.getUIContentScaleX()
+      this.glx.window.getUIContentScaleX()
     );
     return this;
   }
@@ -804,4 +815,19 @@ public class VGraphics {
     return this;
   }
 
+  public void dispose() {
+    this.glx.assertBgfxThreadDispose(this);
+    if (!this.allocatedBuffers.isEmpty()) {
+      new ArrayList<>(this.allocatedBuffers).forEach(buffer -> {
+        GLX.error("Stranded VGraphics.Framebuffer: " + buffer);
+        buffer.dispose();
+      });
+    }
+    if (!this.allocatedImages.isEmpty()) {
+      new ArrayList<>(this.allocatedImages).forEach(image -> {
+        GLX.error("Stranded VGraphics.Image: " + image);
+        image.dispose();
+      });
+    }
+  }
 }

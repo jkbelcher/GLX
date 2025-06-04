@@ -24,8 +24,9 @@ import java.nio.ByteBuffer;
 
 import org.lwjgl.system.MemoryUtil;
 
-public class DynamicVertexBuffer {
+public class DynamicVertexBuffer implements BGFXEngine.Resource {
 
+  private final GLX glx;
   private final VertexDeclaration vertexDeclaration;
   private final ByteBuffer vertexData;
 
@@ -37,6 +38,8 @@ public class DynamicVertexBuffer {
   }
 
   public DynamicVertexBuffer(GLX glx, int numVertices, VertexDeclaration.Attribute ... attributes) {
+    glx.assertBgfxThreadAllocation(this);
+    this.glx = glx;
     this.vertexDeclaration = new VertexDeclaration(glx, attributes);
     this.vertexData = MemoryUtil.memAlloc(this.vertexDeclaration.getStride() * numVertices);
     this.vertexBufferHandle = bgfx_create_dynamic_vertex_buffer(numVertices, this.vertexDeclaration.getHandle(), BGFX_BUFFER_NONE);
@@ -56,12 +59,15 @@ public class DynamicVertexBuffer {
   }
 
   public void update() {
+    this.glx.assertBgfxThreadUpdate(this);
     bgfx_update_dynamic_vertex_buffer(this.vertexBufferHandle, 0, bgfx_make_ref(this.vertexData));
   }
 
   public void dispose() {
-    bgfx_destroy_dynamic_vertex_buffer(this.vertexBufferHandle);
-    MemoryUtil.memFree(this.vertexData);
-    this.vertexDeclaration.dispose();
+    if (this.glx.bgfxThreadDispose(this)) {
+      bgfx_destroy_dynamic_vertex_buffer(this.vertexBufferHandle);
+      MemoryUtil.memFree(this.vertexData);
+      this.vertexDeclaration.dispose();
+    }
   }
 }

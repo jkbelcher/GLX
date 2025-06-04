@@ -19,7 +19,7 @@
 package heronarts.glx.ui;
 
 import heronarts.glx.GLX;
-import heronarts.glx.GLX.MouseCursor;
+import heronarts.glx.GLXWindow.MouseCursor;
 import heronarts.glx.event.Event;
 import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
@@ -144,12 +144,6 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
 
   protected GLX getLX() {
     return this.ui.lx;
-  }
-
-  protected void requireUIThread() {
-    if (Thread.currentThread() != UI.thread) {
-      throw new IllegalStateException("Method may only be called on UI thread");
-    }
   }
 
   /**

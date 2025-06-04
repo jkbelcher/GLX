@@ -24,8 +24,9 @@ import java.nio.ByteBuffer;
 
 import org.lwjgl.system.MemoryUtil;
 
-public abstract class VertexBuffer {
+public abstract class VertexBuffer implements BGFXEngine.Resource {
 
+  private final GLX glx;
   private final VertexDeclaration vertexDeclaration;
   private final ByteBuffer vertexData;
   private final short vbh;
@@ -116,6 +117,8 @@ public abstract class VertexBuffer {
   }
 
   private VertexBuffer(GLX glx, int numVertices, VertexDeclaration vertexDeclaration) {
+    glx.assertBgfxThreadAllocation(this);
+    this.glx = glx;
     this.vertexDeclaration = vertexDeclaration;
     this.vertexData = MemoryUtil.memAlloc(this.vertexDeclaration.getStride() * numVertices);
     bufferData(this.vertexData);
@@ -164,8 +167,10 @@ public abstract class VertexBuffer {
   }
 
   public void dispose() {
-    bgfx_destroy_vertex_buffer(this.vbh);
-    MemoryUtil.memFree(this.vertexData);
-    this.vertexDeclaration.dispose();
+    if (this.glx.bgfxThreadDispose(this)) {
+      bgfx_destroy_vertex_buffer(this.vbh);
+      MemoryUtil.memFree(this.vertexData);
+      this.vertexDeclaration.dispose();
+    }
   }
 }

@@ -19,7 +19,7 @@
 package heronarts.glx.ui;
 
 import heronarts.glx.GLX;
-import heronarts.glx.GLX.MouseCursor;
+import heronarts.glx.GLXWindow.MouseCursor;
 import heronarts.glx.View;
 import heronarts.glx.event.Event;
 import heronarts.glx.event.GamepadEvent;
@@ -45,7 +45,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -64,7 +63,6 @@ public class UI {
   }
 
   private static UI instance = null;
-  public static Thread thread;
 
   private class UIRoot extends UIObject implements UIContainer {
 
@@ -88,16 +86,16 @@ public class UI {
       this.viewClear.setRect(
         0,
         0,
-        lx.getFrameBufferWidth(),
-        lx.getFrameBufferHeight()
+        lx.window.getFrameBufferWidth(),
+        lx.window.getFrameBufferHeight()
       );
       this.viewClear.setScreenOrtho();
 
       this.view2d.setRect(
         0,
         0,
-        lx.getFrameBufferWidth(),
-        lx.getFrameBufferHeight()
+        lx.window.getFrameBufferWidth(),
+        lx.window.getFrameBufferHeight()
       );
       this.view2d.setScreenOrtho();
 
@@ -110,7 +108,7 @@ public class UI {
      */
     @Override
     public float getWidth() {
-      return this.ui.lx.getUIWidth();
+      return this.ui.lx.window.getUIWidth();
     }
 
     /**
@@ -120,7 +118,7 @@ public class UI {
      */
     @Override
     public float getHeight() {
-      return this.ui.lx.getUIHeight();
+      return this.ui.lx.window.getUIHeight();
     }
 
     @Override
@@ -384,10 +382,6 @@ public class UI {
    * Redraw may be called from any thread
    */
   private final AtomicBoolean redrawFlag = new AtomicBoolean(true);
-  private final AtomicBoolean disposeFramebufferFlag = new AtomicBoolean(false);
-
-  private final List<VGraphics.Framebuffer> threadSafeDisposeList =
-    Collections.synchronizedList(new ArrayList<VGraphics.Framebuffer>());
 
   public class Profiler {
     public long drawNanos = 0;
@@ -592,7 +586,6 @@ public class UI {
     }
 
     UI.instance = this;
-    UI.thread = Thread.currentThread();
 
     this.lx = lx;
     this.vg = lx.vg;
@@ -1014,25 +1007,20 @@ public class UI {
     this.redrawFlag.set(true);
   }
 
-  void disposeFramebuffer(VGraphics.Framebuffer buffer) {
-    this.threadSafeDisposeList.add(buffer);
-    this.disposeFramebufferFlag.set(true);
-  }
-
   public float getContentScaleX() {
-    return this.lx.getUIContentScaleX();
+    return this.lx.window.getUIContentScaleX();
   }
 
   public float getContentScaleY() {
-    return this.lx.getUIContentScaleY();
+    return this.lx.window.getUIContentScaleY();
   }
 
   public float getWidth() {
-    return this.lx.getUIWidth();
+    return this.lx.window.getUIWidth();
   }
 
   public float getHeight() {
-    return this.lx.getUIHeight();
+    return this.lx.window.getUIHeight();
   }
 
   public void resize() {
@@ -1066,16 +1054,6 @@ public class UI {
     endDraw();
 
     this.profiler.drawNanos = System.nanoTime() - drawStart;
-
-    // Dispose of any framebuffers that we are done with
-    if (this.disposeFramebufferFlag.compareAndSet(true, false)) {
-      synchronized (this.threadSafeDisposeList) {
-        for (VGraphics.Framebuffer framebuffer : this.threadSafeDisposeList) {
-          framebuffer.dispose();
-        }
-        this.threadSafeDisposeList.clear();
-      }
-    }
   }
 
   protected void beginDraw() {
@@ -1166,6 +1144,10 @@ public class UI {
   }
 
   public void dispose() {
+    hideContextOverlay();
+    hideDropMenu();
+    this.contextOverlay.dispose();
+    this.dropMenuOverlay.dispose();
     this.root.dispose();
     this.theme.dispose();
   }
