@@ -45,13 +45,18 @@ public class BGFXDebugCallbacks {
       traceCallback =
           BGFXTraceVarArgsCallback.create(
               (thisPtr, filePath, line, format, args) -> {
-                System.out.println("TRACE CALLBACK INVOKED!");
-                String file = memUTF8(filePath);
-                String formatStr = memUTF8(format);
-                // Extract just the filename from path
-                String fileName =
-                    file.substring(Math.max(file.lastIndexOf('/'), file.lastIndexOf('\\')) + 1);
-                System.out.printf("[BGFX] %s:%d - %s%n", fileName, line, formatStr);
+                System.out.println(
+                    "=== TRACE CALLBACK CALLED ==="); // This should print if callback works
+                try {
+                  String file = memUTF8(filePath);
+                  String formatStr = memUTF8(format);
+                  String fileName =
+                      file.substring(Math.max(file.lastIndexOf('/'), file.lastIndexOf('\\')) + 1);
+                  System.out.printf("[BGFX] %s:%d - %s%n", fileName, line, formatStr);
+                } catch (Exception e) {
+                  System.out.println("Error in trace callback: " + e.getMessage());
+                  e.printStackTrace();
+                }
               });
 
       profilerBegin =
