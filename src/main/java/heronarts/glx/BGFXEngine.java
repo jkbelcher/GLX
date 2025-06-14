@@ -114,8 +114,8 @@ public class BGFXEngine {
         throw new RuntimeException("Error initializing bgfx renderer");
       }
 
-//      bgfx_set_debug(BGFX_DEBUG_TEXT);
-      bgfx_set_debug(BGFX_DEBUG_STATS);
+      bgfx_set_debug(BGFX_DEBUG_TEXT);
+      //            bgfx_set_debug(BGFX_DEBUG_STATS | BGFX_DEBUG_TEXT);
       this.format = init.resolution().format();
     }
 
@@ -182,11 +182,6 @@ public class BGFXEngine {
       long drawStart = System.nanoTime();
       try {
         draw();
-
-        // In your render loop, try adding some debug text
-        bgfx_dbg_text_clear(0, false);
-        bgfx_dbg_text_printf(500, 500, 0x0f, "Debug text test");
-
       } catch (Throwable x) {
         GLX.error(
             x,
@@ -230,6 +225,10 @@ public class BGFXEngine {
     // Copy the latest engine-rendered LED frame
     this.glx.engine.copyFrameThreadSafe(this.glx.uiFrame);
     this.glx.ui.draw();
+    //
+    //    bgfx_dbg_text_clear(0, false);
+    //    bgfx_dbg_text_printf(0, 0, 0x0f, "Debug Test");
+    //
     bgfx_frame(false);
   }
 
