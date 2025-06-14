@@ -1,31 +1,28 @@
 /**
  * Copyright 2019- Mark C. Slee, Heron Arts LLC
  *
- * This file is part of the LX Studio software library. By using
- * LX, you agree to the terms of the LX Studio Software License
- * and Distribution Agreement, available at: http://lx.studio/license
+ * <p>This file is part of the LX Studio software library. By using LX, you agree to the terms of
+ * the LX Studio Software License and Distribution Agreement, available at: http://lx.studio/license
  *
- * Please note that the LX license is not open-source. The license
- * allows for free, non-commercial use.
+ * <p>Please note that the LX license is not open-source. The license allows for free,
+ * non-commercial use.
  *
- * HERON ARTS MAKES NO WARRANTY, EXPRESS, IMPLIED, STATUTORY, OR
- * OTHERWISE, AND SPECIFICALLY DISCLAIMS ANY WARRANTY OF
- * MERCHANTABILITY, NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR
- * PURPOSE, WITH RESPECT TO THE SOFTWARE.
+ * <p>HERON ARTS MAKES NO WARRANTY, EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, AND SPECIFICALLY
+ * DISCLAIMS ANY WARRANTY OF MERCHANTABILITY, NON-INFRINGEMENT, OR FITNESS FOR A PARTICULAR PURPOSE,
+ * WITH RESPECT TO THE SOFTWARE.
  *
  * @author Mark C. Slee <mark@heronarts.com>
  */
-
 package heronarts.glx;
 
-import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.bgfx.BGFX.*;
+import static org.lwjgl.glfw.GLFW.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
+import org.lwjgl.bgfx.BGFXCallbackInterface;
 import org.lwjgl.bgfx.BGFXInit;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeCocoa;
@@ -38,9 +35,8 @@ import org.lwjgl.system.Platform;
 public class BGFXEngine {
 
   /**
-   * Marker interface for resources that need allocation and freeing
-   * on the BGFX thread. Can be enforced by GLX.assertBgfx... family
-   * of methods.
+   * Marker interface for resources that need allocation and freeing on the BGFX thread. Can be
+   * enforced by GLX.assertBgfx... family of methods.
    */
   public interface Resource {
     public void dispose();
@@ -60,6 +56,8 @@ public class BGFXEngine {
   final int renderer;
   final int format;
 
+  final BGFXDebugCallbacks callbacks;
+
   BGFXEngine(GLX glx) {
     this.glx = glx;
 
@@ -67,40 +65,57 @@ public class BGFXEngine {
     this.thread = Thread.currentThread();
     this.thread.setName("BGFX Render Thread");
 
+    this.callbacks = new BGFXDebugCallbacks();
+    BGFXCallbackInterface callbackInterface = this.callbacks.create();
+
+    System.out.println("================================================");
+    System.out.println("============= LOOK: CALLBACKS 02 ===============");
+    System.out.println("================================================");
+
     try (MemoryStack stack = MemoryStack.stackPush()) {
-      final int renderer = this.glx.flags.useOpenGL ?
-        org.lwjgl.bgfx.BGFX.BGFX_RENDERER_TYPE_OPENGL :
-        org.lwjgl.bgfx.BGFX.BGFX_RENDERER_TYPE_COUNT;
+      final int renderer =
+          this.glx.flags.useOpenGL
+              ? org.lwjgl.bgfx.BGFX.BGFX_RENDERER_TYPE_OPENGL
+              : org.lwjgl.bgfx.BGFX.BGFX_RENDERER_TYPE_COUNT;
 
       final BGFXInit init = BGFXInit.malloc(stack);
       bgfx_init_ctor(init);
-      init
-        .type(renderer)
-        .vendorId(BGFX_PCI_ID_NONE)
-        .deviceId((short) 0)
-        .resolution(res -> res
-          .width(this.glx.window.getFrameBufferWidth())
-          .height(this.glx.window.getFrameBufferHeight())
-          .reset(BGFX_RESET_VSYNC));
+      init.type(renderer)
+          .vendorId(BGFX_PCI_ID_NONE)
+          .deviceId((short) 0)
+          .debug(true)
+          .profile(true)
+          .callback(callbackInterface)
+          .resolution(
+              res ->
+                  res.width(this.glx.window.getFrameBufferWidth())
+                      .height(this.glx.window.getFrameBufferHeight())
+                      .reset(BGFX_RESET_VSYNC));
+
       switch (Platform.get()) {
         case LINUX, FREEBSD -> {
           if (glfwGetPlatform() == GLFW.GLFW_PLATFORM_WAYLAND) {
             init.platformData()
-              .ndt(GLFWNativeWayland.glfwGetWaylandDisplay())
-              .nwh(GLFWNativeWayland.glfwGetWaylandWindow(this.glx.window.handle))
-              .type(BGFX_NATIVE_WINDOW_HANDLE_TYPE_WAYLAND);
+                .ndt(GLFWNativeWayland.glfwGetWaylandDisplay())
+                .nwh(GLFWNativeWayland.glfwGetWaylandWindow(this.glx.window.handle))
+                .type(BGFX_NATIVE_WINDOW_HANDLE_TYPE_WAYLAND);
           } else {
             init.platformData()
-              .ndt(GLFWNativeX11.glfwGetX11Display())
-              .nwh(GLFWNativeX11.glfwGetX11Window(this.glx.window.handle));
+                .ndt(GLFWNativeX11.glfwGetX11Display())
+                .nwh(GLFWNativeX11.glfwGetX11Window(this.glx.window.handle));
           }
         }
-        case MACOSX -> init.platformData().nwh(GLFWNativeCocoa.glfwGetCocoaWindow(this.glx.window.handle));
-        case WINDOWS -> init.platformData().nwh(GLFWNativeWin32.glfwGetWin32Window(this.glx.window.handle));
+        case MACOSX ->
+            init.platformData().nwh(GLFWNativeCocoa.glfwGetCocoaWindow(this.glx.window.handle));
+        case WINDOWS ->
+            init.platformData().nwh(GLFWNativeWin32.glfwGetWin32Window(this.glx.window.handle));
       }
       if (!bgfx_init(init)) {
         throw new RuntimeException("Error initializing bgfx renderer");
       }
+
+//      bgfx_set_debug(BGFX_DEBUG_TEXT);
+      bgfx_set_debug(BGFX_DEBUG_STATS);
       this.format = init.resolution().format();
     }
 
@@ -138,7 +153,8 @@ public class BGFXEngine {
         synchronized (this) {
           try {
             wait();
-          } catch (InterruptedException ix) {}
+          } catch (InterruptedException ix) {
+          }
         }
         continue;
       }
@@ -149,11 +165,10 @@ public class BGFXEngine {
       // Window size changed, reset backing framebuffer
       if (this.resizeFramebuffer.getAndSet(false)) {
         bgfx_reset(
-          this.glx.window.getFrameBufferWidth(),
-          this.glx.window.getFrameBufferHeight(),
-          BGFX_RESET_VSYNC,
-          this.format
-        );
+            this.glx.window.getFrameBufferWidth(),
+            this.glx.window.getFrameBufferHeight(),
+            BGFX_RESET_VSYNC,
+            this.format);
         this.glx.ui.resize();
         this.glx.ui.redraw();
       }
@@ -167,8 +182,15 @@ public class BGFXEngine {
       long drawStart = System.nanoTime();
       try {
         draw();
+
+        // In your render loop, try adding some debug text
+        bgfx_dbg_text_clear(0, false);
+        bgfx_dbg_text_printf(500, 500, 0x0f, "Debug text test");
+
       } catch (Throwable x) {
-        GLX.error(x, "UI THREAD FAILURE: Unhandled error in BGFXEngine.draw(): " + x.getLocalizedMessage());
+        GLX.error(
+            x,
+            "UI THREAD FAILURE: Unhandled error in BGFXEngine.draw(): " + x.getLocalizedMessage());
         this.glx.fail(x);
 
         // The above should have set a UI failure window to be drawn...
@@ -187,7 +209,12 @@ public class BGFXEngine {
         frameCount = 0;
         now = System.currentTimeMillis();
         if (this.glx.flagUIDebug) {
-          GLX.log("UI thread healthy, running at: " + FRAME_PERF_LOG * 1000f / (now - before) + "fps, average draw time: " + (drawNanos / FRAME_PERF_LOG / 1000) + "us");
+          GLX.log(
+              "UI thread healthy, running at: "
+                  + FRAME_PERF_LOG * 1000f / (now - before)
+                  + "fps, average draw time: "
+                  + (drawNanos / FRAME_PERF_LOG / 1000)
+                  + "us");
         }
         before = now;
         drawNanos = 0;
@@ -195,7 +222,8 @@ public class BGFXEngine {
     }
   }
 
-  final List<BGFXEngine.Resource> threadSafeDisposeQueue = Collections.synchronizedList(new ArrayList<>());
+  final List<BGFXEngine.Resource> threadSafeDisposeQueue =
+      Collections.synchronizedList(new ArrayList<>());
   private final List<BGFXEngine.Resource> bgfxThreadDisposeQueue = new ArrayList<>();
 
   private void draw() {
@@ -217,7 +245,7 @@ public class BGFXEngine {
   void dispose() {
     GLX.log("Disposing BGFXEngine...");
     _disposeQueue();
+    this.callbacks.free();
     bgfx_shutdown();
   }
-
 }
