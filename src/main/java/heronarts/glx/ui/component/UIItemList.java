@@ -211,12 +211,20 @@ public interface UIItemList {
       return this.label;
     }
 
+    private void addItem(int index, Item item) {
+      this.items.add(index, item);
+    }
+
     private void addItem(Item item) {
       this.items.add(item);
     }
 
     private void removeItem(Item item) {
       this.items.remove(item);
+    }
+
+    public boolean isEmpty() {
+      return this.items.isEmpty();
     }
 
     private void toggle() {
@@ -414,9 +422,14 @@ public interface UIItemList {
      * @return this
      */
     private void addItem(int index, Item item) {
-      Section section = item.getSection();
+      final Section section = item.getSection();
       if (section != null) {
-        throw new IllegalArgumentException("Cannot specify index when adding item to section");
+        final int sectionIndex = this.items.indexOf(section);
+        final int sectionLength = section.items.size();
+        if (!LXUtils.inRange(index, sectionIndex+1, sectionIndex + sectionLength + 1)) {
+          throw new IllegalArgumentException("Invalid index (" + index + ") when adding item to section (start:" + sectionIndex + " len:" + sectionLength + ")");
+        }
+        section.addItem(index - sectionIndex - 1, item);
       }
       this.items.add(index, item);
       recomputeContentHeight();
@@ -558,20 +571,38 @@ public interface UIItemList {
       this.isDeletable = isDeletable;
     }
 
+    private boolean matchesFilter(Item item, String[] filterTerms) {
+      if (filterTerms == null) {
+        return true;
+      }
+
+      final Section section = item.getSection();
+      final String lowerCase = item.getLabel().toLowerCase();
+      final String sectionLowerCase = (section != null) ? section.getLabel().toLowerCase() : null;
+
+      // Every term must be in either the section or item name
+      for (String term : filterTerms) {
+        if (!lowerCase.contains(term) && ((sectionLowerCase == null) || !sectionLowerCase.contains(term))) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     private void setFilter(String filter) {
       if (filter != null) {
-        filter = filter.toLowerCase();
+        filter = filter.toLowerCase().trim();
       }
       if (this.filter != filter) {
         this.filter = filter;
+        final String[] filterTerms = (filter != null) ? filter.split(" ") : null;
+
         boolean changed = false;
         for (Item item : this.items) {
           if (!(item instanceof Section)) {
             boolean hidden = false;
-            if ((filter != null) && !item.getLabel().toLowerCase().contains(filter)) {
-              // No item match? Check section name for a match...
-              final Section section = item.getSection();
-              hidden = (section == null) ? true : !section.getLabel().toLowerCase().contains(filter);
+            if ((filter != null) && !matchesFilter(item, filterTerms)) {
+              hidden = true;
             }
             if (hidden != item.hidden) {
               item.hidden = hidden;
@@ -580,8 +611,7 @@ public interface UIItemList {
           }
         }
         for (Item item : this.items) {
-          if (item instanceof Section) {
-            Section section = (Section) item;
+          if (item instanceof Section section) {
             boolean sectionHidden = true;
             for (Item sectionItem : section.items) {
               if (!sectionItem.hidden) {
