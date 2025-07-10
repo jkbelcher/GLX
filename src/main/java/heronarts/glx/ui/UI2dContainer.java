@@ -329,6 +329,9 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
           y += component.marginTop;
+          if (y < 0) {
+            GLX.warning(getClass().getName() + " child " + child.getClass().getName() + " drawing out of bounds due to negative top margin");
+          }
           component.setY(y);
           y += component.getHeight() + component.marginBottom + this.childSpacingY;
         }
@@ -341,6 +344,9 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
         if (child.isVisible()) {
           UI2dComponent component = (UI2dComponent) child;
           x += component.marginLeft;
+          if (x < 0) {
+            GLX.warning(getClass().getName() + " child " + child.getClass().getName() + " drawing out of bounds due to negative left margin");
+          }
           component.setX(x);
           x += component.getWidth() + component.marginRight + this.childSpacingX;
         }
@@ -697,8 +703,8 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     final boolean isVertical = this.contentTarget.layout.isVerticalList();
 
     final boolean invalid =
-      (isVertical && (mx < 0 || mx > this.contentTarget.getScrollWidth())) ||
-      (isHorizontal && (my < 0 || my > this.contentTarget.getScrollHeight()));
+      (isVertical && !LXUtils.inRange(mx, 0, this.contentTarget.getScrollWidth())) ||
+      (isHorizontal && !LXUtils.inRange(my, 0, this.contentTarget.getScrollHeight()));
     if (invalid) {
       dragCancel();
       return;
@@ -764,6 +770,14 @@ public class UI2dContainer extends UI2dComponent implements UIContainer, Iterabl
     if (hoverIndex > dragIndex) {
       --hoverIndex;
     }
+
+    // Check for out of bounds condition
+    if ((isHorizontal && (mx > this.width)) ||
+        (isVertical && (my > this.height))) {
+      dragPos = -1;
+      hoverIndex = -1;
+    }
+
     if (!release && (hoverIndex != dragIndex)) {
       // Redraw if the drag indicator position has changed
       if (this.drawDragIndicator != dragPos) {
