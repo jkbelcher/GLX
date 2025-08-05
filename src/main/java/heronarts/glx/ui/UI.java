@@ -982,6 +982,112 @@ public class UI {
     return this;
   }
 
+  public enum OverlayPosition {
+    TOP_LEFT,
+    TOP_RIGHT,
+    BOTTOM_RIGHT,
+    BOTTOM_LEFT,
+    CENTER
+  };
+
+  /**
+   * Request a context overlay to be displayed from a particular coordinate, followed by a list
+   * of positions in order of preference. The overlay will be displayed in the first position that fits on the screen.
+   * @param contextOverlay Component to overlay
+   * @param parent X, Y coordinates are relative to this component, or null for root
+   * @param offsetX X offset from parent component
+   * @param offsetY Y offset from parent component
+   * @param positions Preferred positions of the overlay to be aligned with the X, Y coordinates
+   * @return this
+   */
+  public UI showContextOverlay(UI2dComponent contextOverlay, UIObject parent, float offsetX, float offsetY, OverlayPosition ... positions) {
+    // Get global x,y coordinates
+    float x = offsetX;
+    float y = offsetY;
+    while (parent != null) {
+      x += parent.getX();
+      y += parent.getY();
+      if (parent instanceof UI2dScrollInterface scrollInterface) {
+        x += scrollInterface.getScrollX();
+        y += scrollInterface.getScrollY();
+      }
+      parent = parent.getParent();
+    }
+
+    // Get size of overlay and window
+    final float w = contextOverlay.getWidth();
+    final float h = contextOverlay.getHeight();
+    final float windowW = getWidth();
+    final float windowH = getHeight();
+
+    // Try each requested position until one of them fits in the window
+    float xMin = x;
+    float xMax = x + w;
+    float yMin = y;
+    float yMax = y + h;
+    boolean validPosition = false;
+    for (OverlayPosition position : positions) {
+      switch (position) {
+        case TOP_LEFT -> {
+          xMin = x;
+          xMax = x + w;
+          yMin = y;
+          yMax = y + h;
+        }
+        case TOP_RIGHT -> {
+          xMin = x - w;
+          xMax = x;
+          yMin = y;
+          yMax = y + h;
+        }
+        case BOTTOM_RIGHT -> {
+          xMin = x - w;
+          xMax = x;
+          yMin = y - h;
+          yMax = y;
+        }
+        case BOTTOM_LEFT -> {
+          xMin = x;
+          xMax = x + w;
+          yMin = y - h;
+          yMax = y;
+        }
+        case OverlayPosition.CENTER -> {
+          xMin = x - (w / 2);
+          xMax = xMin + w;
+          yMin = y - (h / 2);
+          yMax = yMin + h;
+        }
+        default -> throw new IllegalStateException("Unknown overlay position: " + position);
+      }
+      // Did position fit within window?
+      if (xMin >= 0 && yMin >= 0 && xMax <= windowW && yMax <= windowH) {
+        validPosition = true;
+        break;
+      }
+    }
+
+    // If no requested positions were valid, nudge the component into view
+    if (!validPosition) {
+      if (xMin < 0) {
+        xMin = 0;
+      } else if (xMax > windowW) {
+        xMin = getWidth() - w;
+      }
+
+      if (yMin < 0) {
+        yMin = 0;
+      } else if (yMax > windowH) {
+        yMin = getHeight() - h;
+      }
+    }
+
+    contextOverlay.setPosition(root, xMin, yMin);
+
+    this.contextOverlay.setContent(contextOverlay);
+    return this;
+  }
+
   public UI resizeContextOverlay(UI2dComponent contextOverlay) {
     this.contextOverlay.resizeContent(contextOverlay);
     return this;
