@@ -158,6 +158,7 @@ public class UILabel extends UI2dComponent {
     if (this.breakLines != breakLines || this.autoHeight != autoHeight) {
       this.breakLines = breakLines;
       this.autoHeight = autoHeight;
+      applyAutoHeight();
       redraw();
     }
     return this;
@@ -211,10 +212,37 @@ public class UILabel extends UI2dComponent {
       this.leftPadding = leftPadding;
       redraw = true;
     }
+    applyAutoHeight();
     if (redraw) {
       redraw();
     }
     return this;
+  }
+
+  @Override
+  public UILabel setSize(float width, float height) {
+    if (isAutoHeight() && getUI() != null) {
+      height = calcAutoHeight(width);
+    }
+    super.setSize(width, height);
+    return this;
+  }
+
+  protected final boolean isAutoHeight() {
+    return this.breakLines && this.autoHeight;
+  }
+
+  protected final float calcAutoHeight(float width) {
+    return LXUtils.maxf(1, this.topPadding + this.bottomPadding + getUI().vg.textBoxHeight(this.label, width - this.leftPadding - this.rightPadding));
+  }
+
+  protected final void applyAutoHeight() {
+    if (isAutoHeight() && getUI() != null) {
+      final float height = calcAutoHeight(this.width);
+      if (this.height != height) {
+        super.setSize(this.width, height);
+      }
+    }
   }
 
   @Override
@@ -250,12 +278,6 @@ public class UILabel extends UI2dComponent {
       vg.textAlign(this.textAlignHorizontal, this.textAlignVertical);
       vg.textBox(tx + this.textOffsetX, ty + this.textOffsetY, this.width - this.leftPadding - this.rightPadding, this.label);
       vg.fill();
-      if (this.autoHeight) {
-        final float height = LXUtils.maxf(1, this.topPadding + this.bottomPadding + vg.textBoxHeight(this.label, this.width - this.leftPadding - this.rightPadding));
-        if (this.height != height) {
-          setHeight(height);
-        }
-      }
     } else {
       String str = clipTextToWidth(vg, this.label, this.width - this.leftPadding - this.rightPadding);
       vg.beginPath();
@@ -280,6 +302,7 @@ public class UILabel extends UI2dComponent {
         label = label.substring(0, MAX_LABEL_LENGTH-3) + "...";
       }
       this.label = label;
+      applyAutoHeight();
       redraw();
     }
     return this;

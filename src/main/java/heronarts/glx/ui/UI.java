@@ -27,6 +27,7 @@ import heronarts.glx.event.KeyEvent;
 import heronarts.glx.event.MouseEvent;
 import heronarts.glx.ui.component.UIContextMenu;
 import heronarts.glx.ui.component.UILabel;
+import heronarts.glx.ui.component.UIParameterComponent;
 import heronarts.glx.ui.vg.VGraphics;
 import heronarts.lx.LX;
 import heronarts.lx.LXComponent;
@@ -36,15 +37,19 @@ import heronarts.lx.midi.LXMidiEngine;
 import heronarts.lx.midi.LXMidiMapping;
 import heronarts.lx.modulation.LXModulationEngine;
 import heronarts.lx.modulation.LXParameterModulation;
+import heronarts.lx.osc.LXOscEngine;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.MutableParameter;
 import heronarts.lx.parameter.StringParameter;
 import heronarts.lx.utils.LXUtils;
+import org.lwjgl.system.Platform;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -564,6 +569,166 @@ public class UI {
   private UIContextOverlay dropMenuOverlay;
 
   /**
+   * A top layer of visible annotations. Currently contains floating help text, but
+   * could contain other accents or visual cues such as for a tutorial.
+   */
+  private class UIAnnotationLayer extends UI2dContext { // does it need to extend UI2dContext?
+
+    private boolean annotationsVisible = false;
+    private final UIFloatingHelp floatingHelp;
+
+    private UIAnnotationLayer(float w, float h) {
+      super(UI.this, 0, 0, w, h);
+      this.parent = root;
+      setUI(UI.this);
+      setBackgroundColor(0);
+      setBackground(true);
+      this.floatingHelp = new UIFloatingHelp();
+    }
+
+    void addAnnotation(UI2dComponent object) {
+      // Temporary? Size the context down to annotation object, since a full size clear background
+      // isn't clearing its old pixels. This won't work with multiple annotations.
+      setPosition(object.getAbsoluteX(), object.getAbsoluteY());
+      setSize(object.getWidth(), object.getHeight());
+      object.setVisible(true);
+      object.setPosition(0, 0);
+      object.addToContainer(this);
+      updateVisibility();
+    }
+
+    void removeAnnotation(UI2dComponent object) {
+      if (!object.parent.equals(this)) {
+        throw new IllegalStateException("Cannot remove annotation, is not child of UIAnnotationLayer");
+      }
+      object.setVisible(false);
+      object.removeFromContainer();
+      updateVisibility();
+    }
+
+    private void updateVisibility() {
+      boolean hasChildren = !this.children.isEmpty();
+
+      if (hasChildren != this.annotationsVisible) {
+        this.annotationsVisible = hasChildren;
+        if (hasChildren) {
+          root.mutableChildren.add(this);
+          // root.redraw();
+        } else {
+          root.mutableChildren.remove(this);
+          // root.redraw();
+        }
+      }
+      // TODO: how to erase content from previous draw if floating help has moved?
+      // redraw();
+    }
+
+    @Override
+    public void dispose() {
+      if (!this.children.contains(this.floatingHelp)) {
+        this.floatingHelp.dispose();
+      }
+      super.dispose();
+    }
+
+    private class UIFloatingHelp extends UI2dContainer {
+
+      private static final int WIDTH = 240;
+      private static final int PADDING = 8;
+      private static final int BORDER_ROUND = 8;
+
+      private boolean addedToParent = false;
+      private final UILabel title;
+      private final UILabel description;
+      private final UI2dComponent oscContainer;
+      private final UILabel osc;
+      private final UILabel moreInfo;
+
+      private UIFloatingHelp() {
+        super(0, 0, WIDTH, 0);
+        setUI(UI.this);
+        setLayout(Layout.VERTICAL, 6);
+        setBackgroundColor(theme.deviceBackgroundColor);
+        setBorderColor(theme.dialogInsetColor);
+        setBorderRounding(BORDER_ROUND);
+        final float contentWidth = getWidth() - (2 * PADDING);
+        addChildren(
+          this.title = (UILabel)
+            new UILabel(PADDING, 0, contentWidth, "")
+            .setBreakLines(true, true)
+            .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE)
+            .setTopMargin(PADDING),
+          this.description = (UILabel)
+            new UILabel(PADDING, 0, contentWidth, "")
+            .setBreakLines(true, true)
+            .setFont(theme.getControlFont())
+            .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE)
+            .setBottomMargin(20),
+          this.oscContainer = new UI2dContainer(PADDING,0, contentWidth, UILabel.DEFAULT_HEIGHT)
+            .setLayout(Layout.HORIZONTAL, 0)
+            .addChildren(
+              new UILabel(0, 0, 30, "OSC:")
+              .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP),
+              this.osc = (UILabel)
+                new UILabel(0, 0, contentWidth - 30, "")
+                .setBreakLines(true, true)
+                .setFont(theme.getControlFont())
+                .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.TOP)
+              )
+            .setVisible(false),
+          this.moreInfo = (UILabel)
+            new UILabel(PADDING, 0, contentWidth, getMoreInfoText())
+            .setFont(theme.getControlFont())
+            .setTextAlignment(VGraphics.Align.LEFT, VGraphics.Align.MIDDLE)
+            .setBottomMargin(PADDING)
+        );
+      }
+
+      private static String getMoreInfoText() {
+        String os = System.getProperty("os.name").toLowerCase();
+        String commandKey = os.contains("mac") ? "⌘" : "Ctrl+";
+        return "Press " + commandKey + "/ for more help or " +
+          commandKey + "esc to hide";
+      }
+
+      private void setContents(String title, String description, String osc) {
+        this.title.setLabel(title);
+        this.description.setLabel(description);
+
+        if (LXUtils.isEmpty(osc)) {
+          this.oscContainer.setVisible(false);
+          this.osc.setLabel("");
+        } else {
+          this.osc.setLabel(osc);
+          this.oscContainer.setHeight(this.osc.getHeight());
+          // this.oscContainer.setVisible(true); // Currently disabled. Too much clutter?
+        }
+
+        // Auto-heights may have changed
+        reflow();
+      }
+
+      private void show() {
+        if (!this.addedToParent) {
+          this.addedToParent = true;
+          addAnnotation(this);
+        }
+      }
+
+      private void clear() {
+        this.title.setLabel("");
+        this.description.setLabel("");
+        if (this.addedToParent) {
+          this.addedToParent = false;
+          removeAnnotation(this);
+        }
+      }
+    }
+  }
+
+  private final UIAnnotationLayer annotationLayer;
+
+  /**
    * UI look and feel
    */
   public final UITheme theme;
@@ -597,6 +762,7 @@ public class UI {
     this.root = new UIRoot();
     this.contextOverlay = new UIContextOverlay();
     this.dropMenuOverlay = new UIContextOverlay();
+    this.annotationLayer = new UIAnnotationLayer(getWidth(), getHeight());
     LX.initProfiler.log("GLX: UI: Root");
 
     lx.addProjectListener(new LX.ProjectListener() {
@@ -714,6 +880,10 @@ public class UI {
         redraw();
       }
     }, true);
+
+    lx.preferences.floatingHelpMessages.addListener(p -> {
+      cancelFloatingHelp();
+    });
   }
 
   public void showError() {
@@ -1204,6 +1374,164 @@ public class UI {
     return this;
   }
 
+  protected static float getAbsoluteX(UIObject object) {
+    // Get object's absolute position. Add this as a method on UIObject?
+    float x;
+    if (object instanceof UI2dComponent component) {
+      x = component.getAbsoluteX();
+    } else {
+      x = object.getX();
+      UIObject parent = object.getParent();
+      while (parent != null) {
+        x += parent.getX();
+        parent = parent.getParent();
+      }
+    }
+    return x;
+  }
+
+  protected static float getAbsoluteY(UIObject object) {
+    // Get object's absolute position. Add this as a method on UIObject?
+    float y;
+    if (object instanceof UI2dComponent component) {
+      y = component.getAbsoluteY();
+    } else {
+      y = object.getY();
+      UIObject parent = object.getParent();
+      while (parent != null) {
+        y += parent.getY();
+        parent = parent.getParent();
+      }
+    }
+    return y;
+  }
+
+  // Just hacked this in here since LXStudio can't access UIObject.getParent()...
+  protected static boolean isDescendantOf(UIObject child, UIObject ancestor) {
+    UIObject parent = child.getParent();
+    while (parent != null) {
+      if (parent == ancestor) {
+        return true;
+      }
+      parent = parent.getParent();
+    }
+    return false;
+  }
+
+  private UIObject helpObject = null;
+
+  public void setFloatingHelp(UIObject helpObject, String helpText) {
+    if (this.lx.preferences.floatingHelpMessages.isOn()) {
+      // Remember context in case additional help is requested
+      this.helpObject = helpObject;
+
+      // Determine title and optional OSC path
+      String title;
+      String osc = null;
+      LXParameter parameter = null;
+      if (helpObject instanceof UIParameterComponent parameterComponent) {
+        parameter = parameterComponent.getParameter();
+      } // else (can a parameter be extracted from other UI components?)
+      if (parameter != null) {
+        title = parameter.getLabel();
+        // TODO: if parameter is registered as a global shortcut, include shortcut in parenthesis
+        osc = LXOscEngine.getOscAddress(parameter);
+      } else {
+        title = helpObject.getClass().getSimpleName();
+      }
+
+      // Set text components of floating help
+      this.annotationLayer.floatingHelp.setContents(title, helpText, osc);
+
+      // Position floating help
+      positionFloatingHelp(helpObject, this.annotationLayer.floatingHelp);
+
+      // Make it visible
+      this.annotationLayer.floatingHelp.show();
+    }
+  }
+
+  /**
+   * Extended class should override to position the floating help message
+   */
+  protected void positionFloatingHelp(UIObject helpObject, UI2dComponent floatingHelp) {
+    // TODO: Nifty location algorithm
+    if (isDescendantOf(helpObject, this.contextOverlay)) {
+      positionOutsideOf(floatingHelp, this.contextOverlay);
+    } else if (isDescendantOf(helpObject, this.dropMenuOverlay)) {
+      positionOutsideOf(floatingHelp, this.dropMenuOverlay);
+    } else {
+      // Basic placement: avoid overlapping the source object
+      positionOutsideOf(floatingHelp, helpObject);
+    }
+  }
+
+  protected void positionOutsideOf(UI2dComponent toPosition, UIObject reference) {
+    final float x = getAbsoluteX(reference);
+    final float y = getAbsoluteY(reference);
+    final float w = reference.getWidth();
+    final float h = reference.getHeight();
+    final float tw = toPosition.getWidth();
+    final float th = toPosition.getHeight();
+
+    if (x + w + tw <= getWidth()) {
+      // Right
+      toPosition.setPosition(x + w, y);
+    } else if (x - tw >= 0) {
+      // Left
+      toPosition.setPosition(x - tw, y);
+    } else if (y + h + th <= getHeight()) {
+      // Below
+      toPosition.setPosition(x, y + h);
+    } else if (y - th >= 0) {
+      // Above
+      toPosition.setPosition(x, y - th);
+    } else {
+      // Didn't fit outside the reference object
+      toPosition.setPosition(x + w, y);
+    }
+  }
+
+  public void cancelFloatingHelp() {
+    this.annotationLayer.floatingHelp.clear();
+    this.helpObject = null;
+  }
+
+  /**
+   * Show additional help for focused object
+   */
+  public void showAdditionalHelp() {
+    if (this.helpObject != null) {
+      try {
+        // TODO: get web address for the focused object
+        URI uri = new URI("https://chromatik.co/guide");
+
+        if (Desktop.isDesktopSupported()) {
+          Desktop desktop = Desktop.getDesktop();
+          if (desktop.isSupported(Desktop.Action.BROWSE)) {
+            desktop.browse(uri);
+          } else {
+            LX.warning("BROWSE is not supported on this system, cannot open extended help");
+          }
+        } else {
+          switch (Platform.get()) {
+            case MACOSX -> {
+              new ProcessBuilder("open", uri.toString()).start();
+            }
+            case WINDOWS -> {
+              new ProcessBuilder("rundll32", "url.dll,FileProtocolHandler", uri.toString()).start();
+            }
+            default -> {
+              new ProcessBuilder("xdg-open", uri.toString()).start();
+            }
+          }
+        }
+      } catch (Exception x) {
+        LX.error(x, "Failure while attempting to open extended help");
+      }
+    }
+  }
+
   void redraw(UI2dComponent component) {
     // Use atomic booleans here to create a memory barrier for the GLFW
     // UI rendering thread to see that the 2d hierarchy needs to be checked
@@ -1230,6 +1558,10 @@ public class UI {
 
   public void resize() {
     this.root.resize();
+    if (!this.annotationLayer.annotationsVisible) {
+      this.annotationLayer.resize(this);
+    }
+    this.annotationLayer.setSize(getWidth(), getHeight());
     onResize();
   }
 
@@ -1259,6 +1591,12 @@ public class UI {
     endDraw();
 
     this.profiler.drawNanos = System.nanoTime() - drawStart;
+
+    // Need to check for a hover event every loop. Is this a good spot?
+    // Check for start of hover
+    if (this.hoverWatch && !this.isHover && nowMillis >= this.hoverDueMillis) {
+      startHover();
+    }
   }
 
   protected void beginDraw() {
@@ -1274,22 +1612,61 @@ public class UI {
   }
 
   public void mouseEvent(MouseEvent mouseEvent) {
+    if (this.isHover) {
+      cancelHover();
+    }
+
     switch (mouseEvent.getAction()) {
     case SCROLL:
       this.root.mouseScroll(mouseEvent, mouseEvent.x, mouseEvent.y, mouseEvent.dx, mouseEvent.dy);
+      this.hoverWatch = false;
       return;
     case PRESS:
       this.root.mousePressed(mouseEvent, mouseEvent.x, mouseEvent.y);
+      this.hoverWatch = false;
       break;
     case RELEASE:
       this.root.mouseReleased(mouseEvent, mouseEvent.x, mouseEvent.y);
+      this.hoverWatch = false;
       break;
     case DRAG:
       this.root.mouseDragged(mouseEvent, mouseEvent.x, mouseEvent.y, mouseEvent.dx, mouseEvent.dy);
+      this.hoverWatch = false;
       break;
     case MOVE:
       this.root.mouseMoved(mouseEvent, mouseEvent.x, mouseEvent.y);
+      this.hoverWatch = true;
+      this.hoverDueMillis = System.currentTimeMillis() + HOVER_MILLIS;
+      this.hoverX = mouseEvent.x;
+      this.hoverY = mouseEvent.y;
       break;
+    }
+  }
+
+  private static final int HOVER_MILLIS = 800;
+
+  private boolean hoverWatch = false;
+  private long hoverDueMillis = 0;
+  private float hoverX, hoverY;
+  private boolean isHover = false;
+  private MouseHoverEvent mouseHoverEvent = null;
+
+  private void startHover() {
+    this.isHover = true;
+    this.mouseHoverEvent = new MouseHoverEvent();
+    this.root.mouseHover(this.mouseHoverEvent, this.hoverX, this.hoverY);
+  }
+
+  private void cancelHover() {
+    this.isHover = false;
+    this.hoverWatch = false;
+    this.root.mouseHoverCancel(this.mouseHoverEvent, this.hoverX, this.hoverY);
+  }
+
+  public static class MouseHoverEvent extends Event {
+
+    public MouseHoverEvent() {
+      super(0);
     }
   }
 
@@ -1353,6 +1730,7 @@ public class UI {
     hideDropMenu();
     this.contextOverlay.dispose();
     this.dropMenuOverlay.dispose();
+    this.annotationLayer.dispose();
     this.root.dispose();
     this.theme.dispose();
   }

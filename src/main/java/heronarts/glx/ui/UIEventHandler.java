@@ -95,6 +95,12 @@ public abstract class UIEventHandler {
   protected void onMouseScroll(MouseEvent mouseEvent, float mx, float my, float dx, float dy) {
   }
 
+  protected void onMouseHover(UI.MouseHoverEvent mouseEvent, float mx, float my) {
+  }
+
+  protected void onMouseHoverCancel(UI.MouseHoverEvent mouseEvent, float mx, float my) {
+  }
+
   /**
    * Subclasses override to receive key events
    *

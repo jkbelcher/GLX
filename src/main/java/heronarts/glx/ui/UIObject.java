@@ -34,6 +34,7 @@ import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
+import heronarts.lx.utils.LXUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,6 +68,7 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
 
   UIObject pressedChild = null;
   UIObject overChild = null;
+  UIObject hoverChild = null;
   UIDropTarget dropTarget = null;
 
   private MouseCursor mouseCursor = null;
@@ -853,6 +855,70 @@ public abstract class UIObject extends UIEventHandler implements LXLoopTask {
       showHelpText();
     }
     onMouseMoved(mouseEvent, mx, my);
+  }
+
+  void mouseHover(UI.MouseHoverEvent mouseEvent, float mx, float my) {
+    // Find child at location
+    for (int i = this.mutableChildren.size() - 1; i >= 0; --i) {
+      UIObject child = this.mutableChildren.get(i);
+      if (child.isVisible() && child.contains(mx, my)) {
+        // Give child the option to consume hover
+        child.mouseHover(mouseEvent, mx - child.getX(), my - child.getY());
+
+        // One object consumes hover. If this child (or descendant) claimed it, we will skip.
+        if (mouseEvent.isConsumed()) {
+          this.hoverChild = child;
+        }
+
+        // Assuming children cannot overlap, we don't need to check the rest of them
+        break;
+      }
+    }
+
+    // Handle mouse hover if it was not consumed by a child
+    if (!mouseEvent.isConsumed()) {
+      hover(mouseEvent);
+    }
+
+    // Overrides can know about the hover at all levels
+    onMouseHover(mouseEvent, mx, my);
+  }
+
+  void mouseHoverCancel(UI.MouseHoverEvent mouseEvent, float mx, float my) {
+    if (this.hoverChild != null) {
+      this.hoverChild.mouseHoverCancel(
+        mouseEvent,
+        mx - this.hoverChild.getX(),
+        my - this.hoverChild.getY()
+      );
+      this.hoverChild = null;
+    } else {
+      cancelHover();
+    }
+    onMouseHoverCancel(mouseEvent, mx, my);
+  }
+
+  private String hoverText;
+
+  private void hover(UI.MouseHoverEvent mouseEvent) {
+    // Show floating help text if available for this object
+    this.hoverText = getHoverText();
+    if (!LXUtils.isEmpty(this.hoverText)) {
+      mouseEvent.consume();
+      getUI().setFloatingHelp(this, this.hoverText);
+    }
+  }
+
+  private void cancelHover() {
+    if (!LXUtils.isEmpty(this.hoverText)) {
+      this.hoverText = null;
+      getUI().cancelFloatingHelp();
+    }
+  }
+
+  protected String getHoverText() {
+    // Could return more information than just the description...
+    return getDescription();
   }
 
   private String setDescription;
