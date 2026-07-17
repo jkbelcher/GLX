@@ -67,9 +67,12 @@ public class UI2dContext extends UI2dContainer implements UILayer {
   protected final void render(VGraphics vg, Window window, short viewId) {
     this.scissor.reset(this);
 
-    // Bind the framebuffer, which rebuilds if necessary
-    vg.beginFrame(this.framebuffer, window, viewId, this.width, this.height);
-    vg.scissor(0, 0, this.width, this.height);
+    // Bind the framebuffer, which rebuilds if necessary. The frame is begun
+    // against the buffer's snapshot of our dimensions, which may trail
+    // this.width/height if a resize races in from another thread - a redraw
+    // at the fresh dimensions will follow
+    vg.beginFrame(this.framebuffer, window, viewId);
+    vg.scissorPush(0, 0, this.width, this.height);
     super.draw(this.ui, vg, false);
     vg.endFrame();
 

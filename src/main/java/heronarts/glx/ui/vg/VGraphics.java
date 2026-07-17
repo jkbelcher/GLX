@@ -258,6 +258,16 @@ public class VGraphics implements BGFXEngine.Resource {
 
     private Window window;
     private short viewId;
+
+    // Device-pixel dimensions and content scale that the current buffer was
+    // allocated with, snapshotted in rebuffer(). The live width/height fields
+    // may be modified concurrently by markForResize() from other threads, so
+    // frames rendered into this buffer must use this snapshot
+    private int bufferPixelWidth;
+    private int bufferPixelHeight;
+    private float bufferScaleX;
+    private float bufferScaleY;
+
     private final int imageFlags;
     private volatile boolean isStale = true;
 
@@ -332,30 +342,32 @@ public class VGraphics implements BGFXEngine.Resource {
         nvgluDeleteFramebuffer(this.buffer);
       }
 
-      // NOTE: the framebuffer needs to be in framebuffer pixel space!
-      // We multiply our floating-point UI pixel dimensions by the
-      // scaling factor and we truncate to an integer to ensure we
-      // match the view rect nanoVG will create. See the nvgBeginFrame()
-      // call where the frame size is specified in logical pixels with
-      // content scaling separately. No clue what will happen if X and
-      // Y scaling are different (never actually encountered afaik)
-      this.buffer = nvgluCreateFramebuffer(vg,
-        (int) (this.width * this.window.getUIContentScaleX()),
-        (int) (this.height * this.window.getUIContentScaleY()),
-        this.imageFlags
-      );
+      // Clear the stale flag before snapshotting dimensions: a resize racing
+      // in from another thread then leaves the flag set, and the next render
+      // pass rebuffers again rather than the resize being lost
+      this.isStale = false;
+      final float width = this.width;
+      final float height = this.height;
+      final float scaleX = this.bufferScaleX = this.window.getUIContentScaleX();
+      final float scaleY = this.bufferScaleY = this.window.getUIContentScaleY();
+
+      // The framebuffer is allocated in device-pixel space, rounded up to
+      // cover the full fractional extent. Frames are begun against these
+      // exact pixel dimensions, see beginFrame()
+      final int pixelWidth = this.bufferPixelWidth = (int) Math.ceil(width * scaleX);
+      final int pixelHeight = this.bufferPixelHeight = (int) Math.ceil(height * scaleY);
+      this.buffer = nvgluCreateFramebuffer(vg, pixelWidth, pixelHeight, this.imageFlags);
 
       if (this.buffer == null) {
         throw new RuntimeException("nvgluCreateFramebuffer failed!! Not a good situation.");
       }
 
-      // Note what happens here... the framebuffer is in framebuffer-pixel space. But
-      // when we're going to paint it into another UI2dContext, those pixels will be in
-      // UI-space. So the paint image pattern is in UI-space width/height
-
-      this.paint.imagePattern(0, 0, this.width, glx.bgfx.isOpenGL() ? -this.height : this.height, this.buffer.image());
-
-      this.isStale = false;
+      // The paint pattern maps this buffer into the UI space of a parent
+      // context. The full pixel buffer spans the UI dimensions plus the
+      // sub-pixel round-up
+      final float patternWidth = pixelWidth / scaleX;
+      final float patternHeight = pixelHeight / scaleY;
+      this.paint.imagePattern(0, 0, patternWidth, glx.bgfx.isOpenGL() ? -patternHeight : patternHeight, this.buffer.image());
     }
 
     public void dispose() {
@@ -504,19 +516,49 @@ public class VGraphics implements BGFXEngine.Resource {
     return this;
   }
 
-  public VGraphics beginFrame(Framebuffer framebuffer, Window window, short viewId, float width, float height) {
+  /**
+   * Begins a frame rendering into the given framebuffer, binding it for the
+   * given window and view. The frame uses the dimensions snapshotted when the
+   * buffer was allocated. The owning component's live dimensions may have
+   * changed on another thread since, see Framebuffer.rebuffer()
+   *
+   * @param framebuffer Framebuffer being rendered into
+   * @param window Window the framebuffer is rendered for
+   * @param viewId View id the framebuffer is bound to
+   * @return this
+   */
+  public VGraphics beginFrame(Framebuffer framebuffer, Window window, short viewId) {
     framebuffer.bind(window, viewId);
+    return beginFrame(framebuffer.bufferPixelWidth, framebuffer.bufferPixelHeight, framebuffer.bufferScaleX, framebuffer.bufferScaleY);
+  }
 
-    // NOTE: The nvgBeginFrame call wants width and height in
-    // logical pixel space, it only takes one content scaling
-    // factor, so let's just hope for the best if X/Y scaling
-    // are unequal on some weird system...
-    nvgBeginFrame(
-      this.vg,
-      width, // * framebuffer.window.getUIContentScaleX(),
-      height, // * framebuffer.window.getUIContentScaleY(),
-      framebuffer.window.getUIContentScaleX()
-    );
+  private VGraphics beginFrame(int pixelWidth, int pixelHeight, float scaleX, float scaleY) {
+    // The frame is set up in device-pixel space with a devicePixelRatio of 1,
+    // and the UI content scale is applied as a root transform instead. This
+    // compensates for two quirks in the bgfx NanoVG backend:
+    //
+    // 1. Its renderViewport callback truncates the bgfx view rect to
+    //    uint16_t(width * devicePixelRatio), while the vertex shader maps
+    //    [0, width] over that rect. When width * scale is fractional, the
+    //    raster grid drifts from the nominal content scale by up to one
+    //    device pixel across the frame. Integer pixel dimensions at a ratio
+    //    of 1 make the view rect exact.
+    //
+    // 2. Its renderTriangles path, used for all text, hardcodes fringe = 1.0
+    //    into the scissor scale, where fills and strokes use the frame's
+    //    fringeWidth of 1/devicePixelRatio. In a UI-space frame the text
+    //    clip ramp is then contentScale times wider than the fill clip ramp,
+    //    and scrolled text bleeds up to a full device pixel past a
+    //    pixel-aligned scissor that contains fills exactly. At a ratio of 1,
+    //    that 1.0 is one device pixel and text clips identically to fills.
+    //
+    // Output is unaffected: AA fringes remain one device pixel, and glyph
+    // rasterization scale is transform scale times devicePixelRatio, the same
+    // product either way. NanoVG takes only one scale factor for the font
+    // atlas, so let's just hope for the best if X/Y scaling are unequal on
+    // some weird system...
+    nvgBeginFrame(this.vg, pixelWidth, pixelHeight, 1);
+    nvgScale(this.vg, scaleX, scaleY);
     return this;
   }
 
@@ -818,9 +860,65 @@ public class VGraphics implements BGFXEngine.Resource {
     return this;
   }
 
+  private final float[] scissorPushTransform = new float[6];
+
+  // Tolerance in device pixels within which a scissor edge is considered to lie
+  // on a pixel boundary, absorbing float error so that such edges are not pulled
+  // a full pixel inward
+  private static final float SCISSOR_SNAP_EPSILON = .01f;
+
+  // Snapped scissor edges are inset by this many device pixels, placing the
+  // first pixel row outside the box strictly beyond the scissor's anti-aliasing
+  // ramp rather than exactly at its clamp point, where float drift could blend
+  // content into pixels that neighboring components never repaint
+  private static final float SCISSOR_EDGE_INSET = .125f;
+
+  /**
+   * Pushes a scissor box with its edges snapped inward onto the device-pixel
+   * grid of the frame. NanoVG scissoring is anti-aliased: the clip edge is an
+   * alpha ramp one device pixel wide, centered on the scissor boundary. A
+   * boundary in the interior of a pixel blends content into pixels beyond the
+   * box, which typically belong to components that are not being redrawn, so
+   * the spill accumulates over repeated redraws, e.g. when scrolling. Snapping
+   * is inward only: rounding an edge outward would spill content at up to full
+   * alpha into the pixel row straddling the box edge.
+   *
+   * The one-device-pixel clip ramp for text relies upon the frame being in
+   * device-pixel space, see beginFrame().
+   *
+   * @param x Scissor box top-left x
+   * @param y Scissor box top-left y
+   * @param w Scissor box width
+   * @param h Scissor box height
+   * @return this
+   */
   public VGraphics scissorPush(float x, float y, float w, float h) {
     nvgSave(this.vg);
-    nvgIntersectScissor(this.vg, x, y, w, h);
+    nvgCurrentTransform(this.vg, this.scissorPushTransform);
+    final float[] transform = this.scissorPushTransform;
+    if ((transform[1] == 0f) && (transform[2] == 0f) && (transform[0] > 0f) && (transform[3] > 0f)) {
+      // Axis-aligned transform, as everywhere in the 2d UI tree: the frame's
+      // root content-scale plus translations. Convert to device-pixel space,
+      // snap the edges inward onto the pixel grid, inset, and convert back
+      final float sx = transform[0];
+      final float sy = transform[3];
+      final float tx = transform[4];
+      final float ty = transform[5];
+      final float devLeft = (float) Math.ceil(sx * x + tx - SCISSOR_SNAP_EPSILON) + SCISSOR_EDGE_INSET;
+      final float devTop = (float) Math.ceil(sy * y + ty - SCISSOR_SNAP_EPSILON) + SCISSOR_EDGE_INSET;
+      final float devRight = (float) Math.floor(sx * (x + w) + tx + SCISSOR_SNAP_EPSILON) - SCISSOR_EDGE_INSET;
+      final float devBottom = (float) Math.floor(sy * (y + h) + ty + SCISSOR_SNAP_EPSILON) - SCISSOR_EDGE_INSET;
+      nvgIntersectScissor(
+        this.vg,
+        (devLeft - tx) / sx,
+        (devTop - ty) / sy,
+        (devRight - devLeft) / sx,
+        (devBottom - devTop) / sy
+      );
+    } else {
+      // Transform has rotation or reflection, pixel-alignment is not meaningful
+      nvgIntersectScissor(this.vg, x, y, w, h);
+    }
     return this;
   }
 

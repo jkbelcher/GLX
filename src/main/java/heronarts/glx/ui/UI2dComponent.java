@@ -1696,20 +1696,11 @@ public abstract class UI2dComponent extends UIObject {
     final float sy = this.scrollY;
 
     boolean needsVgScissor = false;
-    float scissorX = 0, scissorY = 0;
     if (this.needsRedraw || this.childNeedsRedraw) {
       if (this instanceof Scissored) {
         needsVgScissor = true;
-        scissorX = scissorY = .5f;
       } else if (this instanceof UI2dScrollContainer scroll) {
-        if (scroll.hasScrollX()) {
-          needsVgScissor = true;
-          scissorX = .5f;
-        }
-        if (scroll.hasScrollY()) {
-          needsVgScissor = true;
-          scissorY = .5f;
-        }
+        needsVgScissor = scroll.hasScrollX() || scroll.hasScrollY();
       }
     }
 
@@ -1718,9 +1709,11 @@ public abstract class UI2dComponent extends UIObject {
       drawBackground(ui, vg);
     }
 
-    // Scissor all the content and children
+    // Scissor all the content and children. scissorPush snaps the edges
+    // inward onto device-pixel boundaries so that no content spills into
+    // pixels that neighboring components will not repaint
     if (needsVgScissor) {
-      vg.scissorPush(this.scissor.x + scissorX, this.scissor.y + scissorY, this.scissor.width - 2*scissorX, this.scissor.height - 2*scissorY);
+      vg.scissorPush(this.scissor.x, this.scissor.y, this.scissor.width, this.scissor.height);
     }
 
     // Redraw ourselves, just our immediate content
