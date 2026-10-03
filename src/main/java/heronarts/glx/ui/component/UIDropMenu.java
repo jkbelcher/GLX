@@ -150,11 +150,23 @@ public class UIDropMenu extends UIParameterComponent implements UIFocus, UIContr
           }
         });
       }
-      setOptions(this.parameter.getOptions());
+      setOptions(getParamterOptions());
       this.contextMenu.setActions(this.actions);
       this.contextMenu.setHighlight(this.parameter.getBaseIndex());
     }
     redraw();
+  }
+
+  private String[] getParamterOptions() {
+    String[] options = this.parameter.getOptions();
+    if (options == null) {
+      options = new String[this.parameter.getRangei()];
+      final int min = this.parameter.getMinValue();
+      for (int i = 0; i < options.length; ++i) {
+        options[i] = String.valueOf(min + i);
+      }
+    }
+    return options;
   }
 
   public void onParameterChanged(LXParameter p) {
