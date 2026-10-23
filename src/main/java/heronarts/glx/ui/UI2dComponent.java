@@ -1677,7 +1677,10 @@ public abstract class UI2dComponent extends UIObject {
     draw(ui, vg, false);
   }
 
-  private void draw(UI ui, VGraphics vg, boolean forceRedraw) {
+  // Note: this method must not be private! The child drawing loop below
+  // relies upon virtual dispatch reaching the UI2dContext override, which
+  // blits its framebuffer rather than re-drawing its content
+  void draw(UI ui, VGraphics vg, boolean forceRedraw) {
     if (!isVisible()) {
       return;
     }

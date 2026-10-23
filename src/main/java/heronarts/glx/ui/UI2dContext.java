@@ -70,7 +70,10 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     // Bind the framebuffer, which rebuilds if necessary
     vg.beginFrame(this.framebuffer, window, viewId, this.width, this.height);
     vg.scissor(0, 0, this.width, this.height);
-    super.draw(this.ui, vg);
+    // Note: invoke the superclass implementation directly here, which renders
+    // our content into the framebuffer. Our own draw() overrides must not be
+    // dispatched to, they blit the framebuffer rather than drawing into it
+    super.draw(this.ui, vg, false);
     vg.endFrame();
 
     // Note: this super.draw() call will have cleared the
@@ -132,6 +135,21 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     vg.fill();
 
     this.needsBlit = false;
+  }
+
+  /**
+   * Draws this context into a parent 2d context which is performing a redraw
+   * pass. The forceRedraw flag has no bearing upon our own content, which the
+   * render() pass has already generated into our framebuffer, but the parent
+   * has repainted and our framebuffer needs to be blitted back into it.
+   *
+   * @param ui UI context
+   * @param vg Graphics context
+   * @param forceRedraw Whether the parent is forcing a full redraw
+   */
+  @Override
+  void draw(UI ui, VGraphics vg, boolean forceRedraw) {
+    draw(ui, vg);
   }
 
   @Override
