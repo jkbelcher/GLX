@@ -1672,12 +1672,9 @@ public abstract class UI2dComponent extends UIObject {
    *
    * @param ui UI
    * @param vg View to draw into
+   * @param forceRedraw Whether to force child redraw
    */
-  void draw(UI ui, VGraphics vg) {
-    draw(ui, vg, false);
-  }
-
-  private void draw(UI ui, VGraphics vg, boolean forceRedraw) {
+  void draw(UI ui, VGraphics vg, boolean forceRedraw) {
     if (!isVisible()) {
       return;
     }

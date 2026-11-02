@@ -70,7 +70,7 @@ public class UI2dContext extends UI2dContainer implements UILayer {
     // Bind the framebuffer, which rebuilds if necessary
     vg.beginFrame(this.framebuffer, window, viewId, this.width, this.height);
     vg.scissor(0, 0, this.width, this.height);
-    super.draw(this.ui, vg);
+    super.draw(this.ui, vg, false);
     vg.endFrame();
 
     // Note: this super.draw() call will have cleared the
@@ -114,9 +114,10 @@ public class UI2dContext extends UI2dContainer implements UILayer {
    *
    * @param ui UI context
    * @param vg Graphics context
+   * @param forceRedraw Force a full redraw
    */
   @Override
-  public void draw(UI ui, VGraphics vg) {
+  public void draw(UI ui, VGraphics vg, boolean forceRedraw) {
     if (this.isOffscreen || !isVisible()) {
       return;
     }
