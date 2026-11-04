@@ -44,8 +44,9 @@ import heronarts.glx.ui.vg.VGraphics;
  * continuously, covering the scroll-context, nested-context, scroll-container,
  * and fractional-size cases. After a fixed number of frames, each pane's
  * framebuffer is read back and dumped as a PNG into the directory given as
- * the first program argument, and the process exits. Bright pixels just
- * outside a pane's box in the dumps indicate scissor spill.
+ * the program argument, and the process exits. Bright pixels just outside a
+ * pane's box in the dumps indicate scissor spill. Pass --opengl to force the
+ * OpenGL renderer.
  */
 public class GLXScrollSpillTest extends GLX {
 
@@ -83,6 +84,7 @@ public class GLXScrollSpillTest extends GLX {
     short readTex = -1;
     ByteBuffer data = null;
     int texWidth, texHeight;
+    boolean flipY;
 
     Capture(String name, UI2dContext context) {
       this.name = name;
@@ -92,8 +94,11 @@ public class GLXScrollSpillTest extends GLX {
     void blitAndRead(GLX glx, int blitView) {
       this.texWidth = (int) Math.ceil(this.context.getWidth() * glx.windowEngine.mainWindow.getUIContentScaleX());
       this.texHeight = (int) Math.ceil(this.context.getHeight() * glx.windowEngine.mainWindow.getUIContentScaleY());
+      // OpenGL reads render targets back bottom-up
+      this.flipY = bgfx_get_caps().originBottomLeft();
+      // Must match the RGBA8 nvglu framebuffer format, D3D11 will not blit across format families
       this.readTex = bgfx_create_texture_2d(this.texWidth, this.texHeight, false, 1,
-        BGFX_TEXTURE_FORMAT_BGRA8,
+        BGFX_TEXTURE_FORMAT_RGBA8,
         BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK, null, 0);
       short srcTex = bgfx_get_texture(this.context.getTexture(), 0);
       bgfx_blit(blitView, this.readTex, 0, 0, 0, 0, srcTex, 0, 0, 0, 0, this.texWidth, this.texHeight, 0);
@@ -106,10 +111,10 @@ public class GLXScrollSpillTest extends GLX {
       for (int y = 0; y < this.texHeight; ++y) {
         for (int x = 0; x < this.texWidth; ++x) {
           int i = 4 * (y * this.texWidth + x);
-          int b = this.data.get(i) & 0xff;
+          int r = this.data.get(i) & 0xff;
           int g = this.data.get(i + 1) & 0xff;
-          int r = this.data.get(i + 2) & 0xff;
-          img.setRGB(x, y, (r << 16) | (g << 8) | b);
+          int b = this.data.get(i + 2) & 0xff;
+          img.setRGB(x, this.flipY ? this.texHeight - 1 - y : y, (r << 16) | (g << 8) | b);
         }
       }
       File out = new File(captureDir, this.name + ".png");
@@ -131,7 +136,9 @@ public class GLXScrollSpillTest extends GLX {
       for (Capture capture : this.captures) {
         capture.blitAndRead(this, blitView++);
       }
-      GLX.log("CAPTURE issued at frame " + this.frameCount);
+      GLX.log("CAPTURE issued at frame " + this.frameCount +
+        " contentScale=" + this.windowEngine.mainWindow.getUIContentScaleX() +
+        "x" + this.windowEngine.mainWindow.getUIContentScaleY());
     } else if (this.frameCount >= DUMP_FRAME && !this.dumped) {
       this.dumped = true;
       try {
@@ -244,10 +251,14 @@ public class GLXScrollSpillTest extends GLX {
   }
 
   public static void main(String[] args) {
-    if (args.length > 0) {
-      captureDir = args[0];
-    }
     final Flags flags = new Flags();
+    for (String arg : args) {
+      if ("--opengl".equals(arg)) {
+        flags.useOpenGL = true;
+      } else {
+        captureDir = arg;
+      }
+    }
     flags.windowWidth = 920;
     flags.windowHeight = 460;
     final WindowEngine windowEngine = new WindowEngine(flags);
