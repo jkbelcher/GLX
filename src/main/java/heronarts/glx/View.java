@@ -240,25 +240,23 @@ public class View {
    * @return this
    */
   public View image(UI2dContext context) {
+    // NOTE: context coordinates are in UI coordinate space. But the tex2d program
+    // is in framebuffer coordinate space. We need to scale the bounds by the content
+    // scale factor here to move from context's UI-space to framebuffer-space
+    final float contentScaleX = this.window.getUIContentScaleX();
+    final float contentScaleY = this.window.getUIContentScaleY();
     if (this.glx.bgfx.isOpenGL()) {
-      // NOTE: buncha hacks here. OpenGL/Mac seems to have already taken framebuffer scaling into
-      // acccount, so we just correct for UI zooming and the fact that Y is up on OpenGL framebuffers
-      final float uiZoom = this.glx.windowEngine.getUIZoom();
-
+      // The OpenGL screen ortho has Y up, and render targets are stored bottom-up,
+      // so flip the Y position within the view and draw with negative height
       this.glx.program.tex2d.submit(
         this,
         bgfx_get_texture(context.getTexture(), 0),
-        context.getX() * uiZoom,
-        getHeight() / this.window.getSystemContentScaleY() - context.getY() * uiZoom,
-        context.getWidth() * uiZoom,
-        -context.getHeight() * uiZoom
+        context.getX() * contentScaleX,
+        getHeight() - context.getY() * contentScaleY,
+        context.getWidth() * contentScaleX,
+        -context.getHeight() * contentScaleY
       );
     } else {
-      // NOTE: context coordinates are in UI coordinate space. But the tex2d program
-      // is in framebuffer coordinate space. We need to scale the bounds by the content
-      // scale factor here to move from context's UI-space to framebuffer-space
-      final float contentScaleX = this.window.getUIContentScaleX();
-      final float contentScaleY = this.window.getUIContentScaleY();
       this.glx.program.tex2d.submit(
         this,
         bgfx_get_texture(context.getTexture(), 0),
